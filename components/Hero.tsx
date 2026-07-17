@@ -29,10 +29,10 @@ export default function Hero() {
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-start">
-            <Button href="#agenda" variant="primary">
+            <Button href="#contacto" variant="primary">
               Agenda una reunión
             </Button>
-            <Button href="#projects" variant="secondary">
+            <Button href="#portafolio" variant="secondary">
               Ver proyectos
             </Button>
           </div>
