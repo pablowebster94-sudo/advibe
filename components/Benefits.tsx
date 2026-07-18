@@ -33,8 +33,8 @@ export default function Benefits() {
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
           eyebrow="Beneficios"
-          title="Un enfoque centrado en rendimiento, claridad y crecimiento." 
-          description="Más que ideas, entregamos sistemas que convierten audiencias en clientes con precisión y estética." 
+          title="Un enfoque centrado en rendimiento, claridad y crecimiento."
+          description="Más que ideas, entregamos sistemas que convierten audiencias en clientes con precisión y estética."
         />
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -45,7 +45,8 @@ export default function Benefits() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.55, delay: index * 0.1 }}
-              className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-7 shadow-[0_25px_80px_-70px_rgba(0,212,255,0.22)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/20"
+              whileHover={{ y: -6, scale: 1.01 }}
+              className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-7 shadow-[0_25px_80px_-70px_rgba(0,212,255,0.22)] backdrop-blur-xl"
             >
               <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl text-cyan-200 shadow-[0_0_30px_rgba(0,212,255,0.12)]">
                 {benefit.icon}

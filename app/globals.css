@@ -26,11 +26,40 @@ html {
 
 body {
   min-height: 100vh;
-  background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(0, 119, 255, 0.08), transparent 28%),
+  position: relative;
+  overflow-x: hidden;
+  background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.13), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(0, 119, 255, 0.1), transparent 28%),
     linear-gradient(180deg, #07080d 0%, #050505 100%);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.55;
+}
+
+body::before {
+  top: -8rem;
+  left: -4rem;
+  width: 24rem;
+  height: 24rem;
+  background: rgba(0, 212, 255, 0.14);
+}
+
+body::after {
+  bottom: -6rem;
+  right: -4rem;
+  width: 22rem;
+  height: 22rem;
+  background: rgba(56, 189, 248, 0.12);
 }
 
 * {

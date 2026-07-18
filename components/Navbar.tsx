@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 
 const navLinks = [
@@ -28,28 +32,40 @@ const socialLinks = [
 ];
 
 export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 backdrop-blur-3xl">
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.45 }}
+      className={`sticky top-0 z-50 border-b transition-all duration-300 ${
+        scrolled
+          ? "border-white/15 bg-slate-950/80 shadow-[0_20px_80px_-50px_rgba(0,212,255,0.55)] backdrop-blur-3xl"
+          : "border-white/10 bg-slate-950/60 backdrop-blur-2xl"
+      }`}
+    >
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <a href="#home" className="flex items-center gap-3 transition hover:opacity-90">
           <span className="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl shadow-[0_24px_80px_-50px_rgba(0,212,255,0.8)]">
             A
           </span>
           <div className="space-y-0.5">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">
-              AdVibe
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">AdVibe</p>
             <p className="text-xs text-slate-400">Agencia premium</p>
           </div>
         </a>
 
         <nav className="hidden items-center gap-10 md:flex">
           {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-sm font-medium text-slate-300 transition hover:text-white"
-            >
+            <a key={link.label} href={link.href} className="text-sm font-medium text-slate-300 transition hover:text-white">
               {link.label}
             </a>
           ))}
@@ -76,6 +92,6 @@ export default function Navbar() {
           </Button>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

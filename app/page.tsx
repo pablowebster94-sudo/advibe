@@ -1,8 +1,10 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import Clients from "@/components/Clients";
 import Services from "@/components/Services";
 import Process from "@/components/Process";
 import Portfolio from "@/components/Portfolio";
+import Stats from "@/components/Stats";
 import Testimonials from "@/components/Testimonials";
 import Benefits from "@/components/Benefits";
 import CTA from "@/components/CTA";
@@ -14,9 +16,11 @@ export default function Home() {
       <main className="relative overflow-hidden">
         <Navbar />
         <Hero />
+        <Clients />
         <Services />
         <Process />
         <Portfolio />
+        <Stats />
         <Testimonials />
         <Benefits />
         <CTA />
