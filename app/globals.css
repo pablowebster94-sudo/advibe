@@ -2,15 +2,15 @@
 
 :root {
   color-scheme: dark;
-  --background: #050505;
-  --foreground: #f8fafc;
-  --surface: rgba(15, 23, 42, 0.88);
-  --surface-strong: rgba(15, 23, 42, 0.98);
+  --background: #040404;
+  --foreground: #f8f6f2;
+  --surface: rgba(10, 10, 10, 0.88);
+  --surface-strong: rgba(8, 8, 8, 0.98);
   --border: rgba(255, 255, 255, 0.08);
-  --accent: #00d4ff;
-  --accent-strong: #0077ff;
-  --text-muted: #94a3b8;
-  --shadow-glow: 0 30px 120px -80px rgba(0, 212, 255, 0.45);
+  --accent: #f2efdf;
+  --accent-strong: #d9d0b7;
+  --text-muted: #8b8f97;
+  --shadow-glow: 0 30px 140px -90px rgba(242, 239, 223, 0.18);
 }
 
 @theme inline {
@@ -28,9 +28,10 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
-  background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.13), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(0, 119, 255, 0.1), transparent 28%),
-    linear-gradient(180deg, #07080d 0%, #050505 100%);
+  background:
+    radial-gradient(circle at top left, rgba(242, 239, 223, 0.14), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.04), transparent 26%),
+    linear-gradient(180deg, #060606 0%, #040404 100%);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
@@ -51,7 +52,7 @@ body::before {
   left: -4rem;
   width: 24rem;
   height: 24rem;
-  background: rgba(0, 212, 255, 0.14);
+  background: rgba(242, 239, 223, 0.1);
 }
 
 body::after {
@@ -59,7 +60,7 @@ body::after {
   right: -4rem;
   width: 22rem;
   height: 22rem;
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 * {

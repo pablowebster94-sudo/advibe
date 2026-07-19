@@ -36,10 +36,10 @@ export default function Process() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.55, delay: index * 0.08 }}
-              className="relative rounded-[2rem] border border-white/10 bg-slate-950/70 p-8 shadow-[0_30px_80px_-70px_rgba(0,212,255,0.25)] backdrop-blur-xl"
+              className="relative rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(10,10,10,0.82))] p-8 shadow-[0_30px_90px_-70px_rgba(255,255,255,0.16)] backdrop-blur-xl"
             >
               <div className="relative z-10 flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-cyan-400/10 text-xl font-semibold text-cyan-200 shadow-[0_0_30px_rgba(0,212,255,0.12)]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-white/10 bg-white/8 text-xl font-semibold text-white/85 shadow-[0_0_30px_rgba(255,255,255,0.08)]">
                   {index + 1}
                 </div>
                 <h3 className="text-xl font-semibold text-white">{step.title}</h3>
@@ -52,7 +52,7 @@ export default function Process() {
                   viewport={{ once: true, amount: 0.25 }}
                   variants={lineAnimation}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="absolute left-20 top-full mt-10 h-16 w-px origin-top bg-gradient-to-b from-cyan-300/60 to-transparent"
+                  className="absolute left-20 top-full mt-10 h-16 w-px origin-top bg-gradient-to-b from-white/35 to-transparent"
                 />
               ) : null}
             </motion.article>

@@ -24,9 +24,9 @@ export default function Testimonials() {
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.55, delay: index * 0.1 }}
               whileHover={{ y: -6, scale: 1.01 }}
-              className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_30px_80px_-70px_rgba(0,212,255,0.2)] backdrop-blur-xl"
+              className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(10,10,10,0.82))] p-8 shadow-[0_30px_90px_-70px_rgba(255,255,255,0.16)] backdrop-blur-xl"
             >
-              <div className="mb-6 flex items-center gap-1 text-cyan-300">
+              <div className="mb-6 flex items-center gap-1 text-white/70">
                 {Array.from({ length: 5 }).map((_, starIndex) => (
                   <span key={starIndex}>★</span>
                 ))}

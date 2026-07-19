@@ -6,7 +6,6 @@ import Process from "@/components/Process";
 import Portfolio from "@/components/Portfolio";
 import Stats from "@/components/Stats";
 import Testimonials from "@/components/Testimonials";
-import Benefits from "@/components/Benefits";
 import CTA from "@/components/CTA";
 import Footer from "@/components/Footer";
 
@@ -16,13 +15,12 @@ export default function Home() {
       <main className="relative overflow-hidden">
         <Navbar />
         <Hero />
-        <Clients />
         <Services />
-        <Process />
         <Portfolio />
+        <Process />
         <Stats />
+        <Clients />
         <Testimonials />
-        <Benefits />
         <CTA />
         <Footer />
       </main>

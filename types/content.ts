@@ -34,6 +34,20 @@ export type CaseStudyItem = {
   description: string;
 };
 
+export type ClientGroupItem = {
+  sector: string;
+  clients: string[];
+};
+
+export type CaseStudyGroupItem = {
+  sector: string;
+  title: string;
+  metric: string;
+  result: string;
+  description: string;
+  clients: string[];
+};
+
 export type TestimonialItem = {
   quote: string;
   name: string;

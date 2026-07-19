@@ -5,6 +5,8 @@ import type {
   WorkflowItem,
   PortfolioItem,
   CaseStudyItem,
+  ClientGroupItem,
+  CaseStudyGroupItem,
   TestimonialItem,
   FaqItem,
 } from "@/types/content";
@@ -70,10 +72,10 @@ export const services: ServiceItem[] = [
 ];
 
 export const stats: StatItem[] = [
-  { value: "+320%", label: "Aumento medio en conversión" },
-  { value: "18x", label: "Retorno de inversión promedio" },
-  { value: "24h", label: "Implementación de campañas en tiempo real" },
-  { value: "95%", label: "Procesos automatizados con IA" },
+  { value: "+50", label: "Marcas atendidas" },
+  { value: "Ecuador + USA", label: "Campañas activas en dos mercados" },
+  { value: "$0.17", label: "Conversaciones desde" },
+  { value: "+70", label: "Conversaciones generadas en campañas" },
 ];
 
 export const workflow: WorkflowItem[] = [
@@ -114,22 +116,127 @@ export const portfolio: PortfolioItem[] = [
 
 export const caseStudies: CaseStudyItem[] = [
   {
-    title: "Escuela de innovación digital",
-    metric: "+210%",
-    result: "Tráfico orgánico y pago en una estrategia integrada.",
-    description: "Creamos un funnel completo que multiplicó la captación de leads premium.",
-  },
-  {
-    title: "Marca global de servicios",
+    title: "Educación",
     metric: "+38%",
-    result: "Aumento de ventas directas a través de WhatsApp y landing pages.",
-    description: "Implementamos chatbots y embudos personalizados para equipos comerciales.",
+    result: "Captación de leads y mayor presencia institucional.",
+    description: "Diseñamos una narrativa premium para academias y escuelas con foco en confianza, conversión y claridad de mensaje.",
   },
   {
-    title: "Producto de consumo digital",
-    metric: "+460%",
-    result: "Interacción de usuarios y tiempo de sesión mejorados.",
-    description: "Rediseñamos la experiencia con un storytelling moderno y una identidad potente.",
+    title: "Automotriz",
+    metric: "+24%",
+    result: "Mejor rendimiento de campañas y más oportunidades de contacto.",
+    description: "Creamos experiencias de comunicación orientadas a acción, posicionamiento y seguimiento comercial.",
+  },
+  {
+    title: "Construcción e inmobiliario",
+    metric: "+31%",
+    result: "Más consultas y mayor autoridad de marca para negocios locales y regionales.",
+    description: "Unimos branding, web y campañas para fortalecer credibilidad y acelerar oportunidades de negocio.",
+  },
+];
+
+export const clientGroups: ClientGroupItem[] = [
+  {
+    sector: "Educación",
+    clients: [
+      "High School Centro de Idiomas",
+      "Unidad Educativa Santo Domingo de Guzmán",
+      "Centro Infantil Chiquititos",
+      "United Kingdom English Academy",
+      "Centro de Capacitaciones América (antes Centro de Especialidades América)",
+    ],
+  },
+  {
+    sector: "Automotriz",
+    clients: ["AM Motorsport"],
+  },
+  {
+    sector: "Construcción e inmobiliario",
+    clients: [
+      "Constructora Cardagali",
+      "Gonzaga Professional Builders (USA)",
+      "G3L Handyman Solutions (USA)",
+      "Gabriel Garrido Handyman (USA)",
+      "A.V. Renew Pressure & Greenscape Designs (USA)",
+      "Verónica López Arquitectura",
+    ],
+  },
+  {
+    sector: "Gastronomía",
+    clients: [
+      "Bears Burger",
+      "Borincuba Sport & Grill",
+      "La Trinidad Restaurante",
+      "Santiago Cruz Restaurante",
+      "Bocabell",
+      "La Hueca de la Larga",
+      "GastroFest Guala",
+      "Balneario Los Marios",
+      "Golosinas Don Pepe",
+    ],
+  },
+  {
+    sector: "Salud",
+    clients: ["Medicab Consultorio Médico", "CETAD San Lucas", "Carla Molina Odontología", "MediDent"],
+  },
+  {
+    sector: "Deportes",
+    clients: ["Liga Deportiva Cantonal de Chordeleg", "Club Formativo Santa Bárbara"],
+  },
+  {
+    sector: "Centros comerciales",
+    clients: ["Nova Plaza Centro Comercial", "Multiplaza Serrano"],
+  },
+  {
+    sector: "Moda y comercio",
+    clients: ["Nostrum Jeans", "ShopFast"],
+  },
+  {
+    sector: "Marca personal",
+    clients: ["Paola Miguitama", "Byron Galarza Psicoterapia Integral"],
+  },
+];
+
+export const caseStudyGroups: CaseStudyGroupItem[] = [
+  {
+    sector: "Educación",
+    title: "Escuelas y academias con presencia premium",
+    metric: "+38%",
+    result: "Más contacto cualificado y mejor autoridad de marca.",
+    description: "Diseñamos mensajes, identidad y experiencias digitales que elevan la percepción premium de cada institución.",
+    clients: ["High School Centro de Idiomas", "United Kingdom English Academy"],
+  },
+  {
+    sector: "Automotriz",
+    title: "Marcas que convierten con claridad",
+    metric: "+24%",
+    result: "Mejor rendimiento de campañas y seguimiento comercial.",
+    description: "Integramos creatividad publicitaria, páginas de alto impacto y automatización para generar más oportunidades.",
+    clients: ["AM Motorsport"],
+  },
+  {
+    sector: "Construcción e inmobiliario",
+    title: "Negocios que transmiten confianza",
+    metric: "+31%",
+    result: "Más consultas y mayor autoridad de marca en mercados competitivos.",
+    description: "Creamos una presencia digital sólida y elegante para negocios que necesitan demostrar experiencia real.",
+    clients: ["Constructora Cardagali", "Verónica López Arquitectura"],
+  },
+  {
+    sector: "Gastronomía",
+    title: "Experiencias que se recuerdan",
+    metric: "+27%",
+    result: "Más demanda, mejor interacción y mayor recordación de marca.",
+    description: "Combinamos branding visual, campañas y páginas diseñadas para impulsar reservas, pedidos y fidelización.",
+    clients: ["Bears Burger", "La Trinidad Restaurante"],
+  },
+  {
+    sector: "Salud",
+    title: "Especialistas con presencia humana y premium",
+    metric: "+19%",
+    result: "Más consultas y un tono más cercano y profesional.",
+    description: "Unimos estrategia de contenidos y diseño para reforzar confianza, credibilidad y conversión local.",
+    clients: ["Medicab Consultorio Médico", "MediDent"],
   },
 ];
 

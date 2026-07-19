@@ -46,7 +46,7 @@ export default function Benefits() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.55, delay: index * 0.1 }}
               whileHover={{ y: -6, scale: 1.01 }}
-              className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-7 shadow-[0_25px_80px_-70px_rgba(0,212,255,0.22)] backdrop-blur-xl"
+              className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-7 shadow-[0_25px_80px_-70px_rgba(255,255,255,0.16)] backdrop-blur-xl"
             >
               <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl text-cyan-200 shadow-[0_0_30px_rgba(0,212,255,0.12)]">
                 {benefit.icon}

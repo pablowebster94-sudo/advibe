@@ -1,0 +1,1301 @@
+[33mcommit 6711cd9137f728c74271a931df15721d6debfa5d[m
+Author: Pablo Webster <pablowebster94@gmail.com>
+Date:   Sat Jul 18 02:16:40 2026 -0500
+
+    Rediseño premium de la landing
+
+[1mdiff --git a/app/globals.css b/app/globals.css[m
+[1mindex 4545655..8fe4f15 100644[m
+[1m--- a/app/globals.css[m
+[1m+++ b/app/globals.css[m
+[36m@@ -2,10 +2,10 @@[m
+ [m
+ :root {[m
+   color-scheme: dark;[m
+[31m-  --background: #050505;[m
+[32m+[m[32m  --background: #04050a;[m
+   --foreground: #f8fafc;[m
+[31m-  --surface: rgba(15, 23, 42, 0.88);[m
+[31m-  --surface-strong: rgba(15, 23, 42, 0.98);[m
+[32m+[m[32m  --surface: rgba(8, 11, 20, 0.86);[m
+[32m+[m[32m  --surface-strong: rgba(8, 11, 20, 0.96);[m
+   --border: rgba(255, 255, 255, 0.08);[m
+   --accent: #00d4ff;[m
+   --accent-strong: #0077ff;[m
+[36m@@ -28,9 +28,10 @@[m [mbody {[m
+   min-height: 100vh;[m
+   position: relative;[m
+   overflow-x: hidden;[m
+[31m-  background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.13), transparent 24%),[m
+[31m-    radial-gradient(circle at bottom right, rgba(0, 119, 255, 0.1), transparent 28%),[m
+[31m-    linear-gradient(180deg, #07080d 0%, #050505 100%);[m
+[32m+[m[32m  background:[m
+[32m+[m[32m    radial-gradient(circle at top left, rgba(0, 212, 255, 0.16), transparent 25%),[m
+[32m+[m[32m    radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.08), transparent 20%),[m
+[32m+[m[32m    linear-gradient(135deg, #06070b 0%, #03040a 45%, #05060d 100%);[m
+   color: var(--foreground);[m
+   font-family: var(--font-sans), system-ui, sans-serif;[m
+ }[m
+[36m@@ -42,16 +43,16 @@[m [mbody::after {[m
+   pointer-events: none;[m
+   z-index: 0;[m
+   border-radius: 9999px;[m
+[31m-  filter: blur(100px);[m
+[31m-  opacity: 0.55;[m
+[32m+[m[32m  filter: blur(120px);[m
+[32m+[m[32m  opacity: 0.6;[m
+ }[m
+ [m
+ body::before {[m
+   top: -8rem;[m
+[31m-  left: -4rem;[m
+[32m+[m[32m  left: -5rem;[m
+   width: 24rem;[m
+   height: 24rem;[m
+[31m-  background: rgba(0, 212, 255, 0.14);[m
+[32m+[m[32m  background: rgba(0, 212, 255, 0.16);[m
+ }[m
+ [m
+ body::after {[m
+[36m@@ -59,7 +60,7 @@[m [mbody::after {[m
+   right: -4rem;[m
+   width: 22rem;[m
+   height: 22rem;[m
+[31m-  background: rgba(56, 189, 248, 0.12);[m
+[32m+[m[32m  background: rgba(56, 189, 248, 0.14);[m
+ }[m
+ [m
+ * {[m
+[36m@@ -67,7 +68,7 @@[m [mbody::after {[m
+ }[m
+ [m
+ ::selection {[m
+[31m-  background: rgba(0, 212, 255, 0.3);[m
+[32m+[m[32m  background: rgba(0, 212, 255, 0.35);[m
+   color: #ffffff;[m
+ }[m
+ [m
+[36m@@ -75,3 +76,12 @@[m [mbutton,[m
+ a {[m
+   transition: all 200ms ease;[m
+ }[m
+[32m+[m
+[32m+[m[32m@keyframes drift {[m
+[32m+[m[32m  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }[m
+[32m+[m[32m  50% { transform: translate3d(18px, -18px, 0) scale(1.04); }[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m.animate-drift {[m
+[32m+[m[32m  animation: drift 12s ease-in-out infinite;[m
+[32m+[m[32m}[m
+[1mdiff --git a/app/page.tsx b/app/page.tsx[m
+[1mindex 9a49ea2..f75c42d 100644[m
+[1m--- a/app/page.tsx[m
+[1m+++ b/app/page.tsx[m
+[36m@@ -1,43 +1,5 @@[m
+[31m-import Navbar from "@/components/Navbar";[m
+[31m-import Hero from "@/components/Hero";[m
+[31m-import Clients from "@/components/Clients";[m
+[31m-import Services from "@/components/Services";[m
+[31m-import Process from "@/components/Process";[m
+[31m-import Portfolio from "@/components/Portfolio";[m
+[31m-import Stats from "@/components/Stats";[m
+[31m-import Testimonials from "@/components/Testimonials";[m
+[31m-import Benefits from "@/components/Benefits";[m
+[31m-import CTA from "@/components/CTA";[m
+[31m-import Footer from "@/components/Footer";[m
+[32m+[m[32mimport ImmersiveLanding from "@/components/ImmersiveLanding";[m
+ [m
+ export default function Home() {[m
+[31m-  return ([m
+[31m-    <div className="relative min-h-screen bg-[#050505] text-white">[m
+[31m-      <main className="relative overflow-hidden">[m
+[31m-        <Navbar />[m
+[31m-        <Hero />[m
+[31m-        <Clients />[m
+[31m-        <Services />[m
+[31m-        <Process />[m
+[31m-        <Portfolio />[m
+[31m-        <Stats />[m
+[31m-        <Testimonials />[m
+[31m-        <Benefits />[m
+[31m-        <CTA />[m
+[31m-        <Footer />[m
+[31m-      </main>[m
+[31m-[m
+[31m-      <a[m
+[31m-        href="https://wa.me/593984966335?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios."[m
+[31m-        target="_blank"[m
+[31m-        rel="noreferrer"[m
+[31m-        className="fixed bottom-4 right-4 z-[60] flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#25D366]/30 transition hover:scale-105 sm:bottom-6 sm:right-6"[m
+[31m-      >[m
+[31m-        <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">[m
+[31m-          <path d="M17.6 6.3A8.7 8.7 0 0 0 12 3.2C7.1 3.2 3.1 7.1 3.1 12c0 1.6.4 3.1 1.2 4.4L3 21l4.7-1.2a8.8 8.8 0 0 0 4.3 1.1h.1c5 0 9-4 9-8.9a8.8 8.8 0 0 0-2.5-6.2Zm-5.6 13.6h-.1a7.2 7.2 0 0 1-3.6-1l-.2-.1-2.8.7.7-2.7-.2-.3a7.2 7.2 0 1 1 5.9 3.4Zm3.9-5.4c-.2-.1-1.2-.6-1.4-.7-.2-.1-.3-.1-.4.1-.1.2-.5.7-.6.8-.1.1-.2.1-.4.1a5.7 5.7 0 0 1-2.9-2.5c-.2-.3 0-.5.1-.6l.3-.4c.1-.1.1-.2 0-.3l-.2-.4a.7.7 0 0 0-.2-.3c-.2-.1-.4-.1-.6 0l-.5.2c-.2.1-.4.3-.5.6-.1.2-.2.4-.1.7.1.4.4 1 .8 1.6.5.7 1.1 1.2 1.8 1.6.6.3 1 .4 1.3.3.3-.1.6-.3.8-.6.1-.2.1-.3 0-.4l-.3-.3c-.1-.1-.2-.1-.4-.1Z" />[m
+[31m-        </svg>[m
+[31m-        <span>WhatsApp</span>[m
+[31m-      </a>[m
+[31m-    </div>[m
+[31m-  );[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m  return <ImmersiveLanding />;[m
+[32m+[m[32m}[m
+[1mdiff --git a/components/Benefits.tsx b/components/Benefits.tsx[m
+[1mindex f4b8903..2eda036 100644[m
+[1m--- a/components/Benefits.tsx[m
+[1m+++ b/components/Benefits.tsx[m
+[36m@@ -1,7 +1,6 @@[m
+ "use client";[m
+ [m
+ import { motion } from "framer-motion";[m
+[31m-import SectionHeading from "@/components/ui/SectionHeading";[m
+ [m
+ const benefits = [[m
+   {[m
+[36m@@ -16,7 +15,7 @@[m [mconst benefits = [[m
+   },[m
+   {[m
+     title: "Diseño premium",[m
+[31m-    description: "Experiencias visuales modernas que construyen confianza de marca.",[m
+[32m+[m[32m    description: "Experiencias visuales modernas que construyen confianza y valor percibido.",[m
+     icon: "✨",[m
+   },[m
+   {[m
+[36m@@ -29,32 +28,39 @@[m [mconst benefits = [[m
+ export default function Benefits() {[m
+   return ([m
+     <section className="relative overflow-hidden py-24 sm:py-28 lg:py-32">[m
+[31m-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/10 to-transparent" />[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <SectionHeading[m
+[31m-          eyebrow="Beneficios"[m
+[31m-          title="Un enfoque centrado en rendimiento, claridad y crecimiento."[m
+[31m-          description="Más que ideas, entregamos sistemas que convierten audiencias en clientes con precisión y estética."[m
+[31m-        />[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="rounded-[2.5rem] border border-white/10 bg-[rgba(7,10,19,0.82)] p-8 shadow-[0_35px_110px_-70px_rgba(0,212,255,0.28)] backdrop-blur-xl sm:p-10">[m
+[32m+[m[32m          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">[m
+[32m+[m[32m            <div className="max-w-xl">[m
+[32m+[m[32m              <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">Por qué AdVibe</p>[m
+[32m+[m[32m              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[32m+[m[32m                Porque el crecimiento real necesita claridad, velocidad y una ejecución impecable.[m
+[32m+[m[32m              </h2>[m
+[32m+[m[32m              <p className="mt-5 text-lg leading-8 text-slate-300">[m
+[32m+[m[32m                Más que una agencia, construimos una capa de ventaja competitiva para marcas que necesitan sobresalir sin perder foco.[m
+[32m+[m[32m              </p>[m
+[32m+[m[32m            </div>[m
+ [m
+[31m-        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">[m
+[31m-          {benefits.map((benefit, index) => ([m
+[31m-            <motion.article[m
+[31m-              key={benefit.title}[m
+[31m-              initial={{ opacity: 0, y: 24 }}[m
+[31m-              whileInView={{ opacity: 1, y: 0 }}[m
+[31m-              viewport={{ once: true, amount: 0.25 }}[m
+[31m-              transition={{ duration: 0.55, delay: index * 0.1 }}[m
+[31m-              whileHover={{ y: -6, scale: 1.01 }}[m
+[31m-              className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-7 shadow-[0_25px_80px_-70px_rgba(0,212,255,0.22)] backdrop-blur-xl"[m
+[31m-            >[m
+[31m-              <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl text-cyan-200 shadow-[0_0_30px_rgba(0,212,255,0.12)]">[m
+[31m-                {benefit.icon}[m
+[31m-              </div>[m
+[31m-              <h3 className="mt-6 text-xl font-semibold text-white">{benefit.title}</h3>[m
+[31m-              <p className="mt-4 text-sm leading-7 text-slate-300">{benefit.description}</p>[m
+[31m-            </motion.article>[m
+[31m-          ))}[m
+[32m+[m[32m            <div className="grid gap-4 md:grid-cols-2">[m
+[32m+[m[32m              {benefits.map((benefit, index) => ([m
+[32m+[m[32m                <motion.article[m
+[32m+[m[32m                  key={benefit.title}[m
+[32m+[m[32m                  initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                  whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                  viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m                  transition={{ duration: 0.55, delay: index * 0.08 }}[m
+[32m+[m[32m                  whileHover={{ y: -6, scale: 1.01 }}[m
+[32m+[m[32m                  className="rounded-[1.6rem] border border-white/10 bg-white/5 p-6"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/10 text-2xl text-cyan-200">[m
+[32m+[m[32m                    {benefit.icon}[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                  <h3 className="mt-5 text-xl font-semibold text-white">{benefit.title}</h3>[m
+[32m+[m[32m                  <p className="mt-3 text-sm leading-7 text-slate-300">{benefit.description}</p>[m
+[32m+[m[32m                </motion.article>[m
+[32m+[m[32m              ))}[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+         </div>[m
+       </div>[m
+     </section>[m
+[1mdiff --git a/components/CTA.tsx b/components/CTA.tsx[m
+[1mindex 9b0ed14..0849dc6 100644[m
+[1m--- a/components/CTA.tsx[m
+[1m+++ b/components/CTA.tsx[m
+[36m@@ -28,12 +28,11 @@[m [mconst contactItems = [[m
+ export default function CTA() {[m
+   return ([m
+     <section id="contacto" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">[m
+[31m-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/10 to-transparent" />[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <div className="rounded-[2.5rem] border border-white/10 bg-slate-950/80 p-8 shadow-[0_40px_120px_-90px_rgba(0,212,255,0.28)] backdrop-blur-xl sm:p-10">[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="rounded-[2.5rem] border border-white/10 bg-[rgba(7,10,19,0.84)] p-8 shadow-[0_35px_120px_-70px_rgba(0,212,255,0.28)] backdrop-blur-xl sm:p-10">[m
+           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">[m
+             <div>[m
+[31m-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300/90">[m
+[32m+[m[32m              <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300/90">[m
+                 Contacto[m
+               </p>[m
+               <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl lg:text-5xl">[m
+[1mdiff --git a/components/Clients.tsx b/components/Clients.tsx[m
+[1mindex 2de1237..b03ee68 100644[m
+[1m--- a/components/Clients.tsx[m
+[1m+++ b/components/Clients.tsx[m
+[36m@@ -6,23 +6,36 @@[m [mimport { clientGroups, logos } from "@/lib/content";[m
+ export default function Clients() {[m
+   return ([m
+     <section className="relative overflow-hidden py-10 sm:py-14">[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 px-6 py-8 shadow-[0_35px_90px_-70px_rgba(0,212,255,0.25)] backdrop-blur-xl sm:px-8">[m
+[31m-          <div className="max-w-3xl">[m
+[31m-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Clientes y marcas</p>[m
+[31m-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[31m-              Empresas que han confiado en AdVibe[m
+[31m-            </h2>[m
+[31m-            <p className="mt-3 text-lg text-slate-300">[m
+[31m-              Trabajamos con equipos que buscan una presencia más fuerte, más clara y más rentable.[m
+[31m-            </p>[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="rounded-[2.5rem] border border-white/10 bg-[rgba(7,10,19,0.82)] px-6 py-8 shadow-[0_35px_110px_-70px_rgba(0,212,255,0.3)] backdrop-blur-xl sm:px-8 lg:px-10">[m
+[32m+[m[32m          <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">[m
+[32m+[m[32m            <div className="max-w-2xl">[m
+[32m+[m[32m              <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">Clientes destacados</p>[m
+[32m+[m[32m              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[32m+[m[32m                Empresas que han confiado en AdVibe[m
+[32m+[m[32m              </h2>[m
+[32m+[m[32m              <p className="mt-4 text-lg leading-8 text-slate-300">[m
+[32m+[m[32m                Trabajamos con negocios que entienden que la percepción premium, la velocidad y la claridad de mensaje son parte del crecimiento real.[m
+[32m+[m[32m              </p>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m            <div className="flex flex-wrap gap-3">[m
+[32m+[m[32m              {[[m
+[32m+[m[32m                { label: "50+ marcas", value: "atendidas" },[m
+[32m+[m[32m                { label: "12+", value: "sectores" },[m
+[32m+[m[32m                { label: "4", value: "servicios clave" },[m
+[32m+[m[32m              ].map((item) => ([m
+[32m+[m[32m                <div key={item.label} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">[m
+[32m+[m[32m                  <span className="font-semibold text-white">{item.label}</span> {item.value}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              ))}[m
+[32m+[m[32m            </div>[m
+           </div>[m
+ [m
+           <motion.div[m
+[31m-            initial={{ opacity: 0, y: 12 }}[m
+[32m+[m[32m            initial={{ opacity: 0, y: 16 }}[m
+             whileInView={{ opacity: 1, y: 0 }}[m
+             viewport={{ once: true, amount: 0.2 }}[m
+[31m-            transition={{ duration: 0.5 }}[m
+[32m+[m[32m            transition={{ duration: 0.55 }}[m
+             className="mt-8 grid gap-4 lg:grid-cols-2"[m
+           >[m
+             {clientGroups.map((group) => ([m
+[1mdiff --git a/components/Hero.tsx b/components/Hero.tsx[m
+[1mindex 9e5764b..d94e238 100644[m
+[1m--- a/components/Hero.tsx[m
+[1m+++ b/components/Hero.tsx[m
+[36m@@ -1,38 +1,43 @@[m
+ "use client";[m
+ [m
+[31m-import { motion } from "framer-motion";[m
+[32m+[m[32mimport { motion, useScroll, useTransform } from "framer-motion";[m
+ import Button from "@/components/ui/Button";[m
+ [m
+ const highlights = ["Estrategia premium", "Desarrollo web rápido", "Automatización inteligente"];[m
+ [m
+ export default function Hero() {[m
+[32m+[m[32m  const { scrollY } = useScroll();[m
+[32m+[m[32m  const y = useTransform(scrollY, [0, 420], [0, -50]);[m
+[32m+[m[32m  const rotate = useTransform(scrollY, [0, 300], [0, -2]);[m
+[32m+[m
+   return ([m
+     <section id="home" className="relative isolate overflow-hidden px-6 py-24 sm:py-32 lg:px-8 lg:py-36">[m
+[31m-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.2),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.16),_transparent_42%)]" />[m
+[31m-      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-[linear-gradient(120deg,rgba(255,255,255,0.04),transparent_55%,rgba(0,212,255,0.06))]" />[m
+[32m+[m[32m      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(56,189,248,0.16),_transparent_40%)]" />[m
+[32m+[m[32m      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-[linear-gradient(125deg,rgba(255,255,255,0.06),transparent_45%,rgba(0,212,255,0.08))]" />[m
+[32m+[m[32m      <div className="absolute left-1/2 top-20 -z-10 h-72 w-72 -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl" />[m
+ [m
+[31m-      <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">[m
+[32m+[m[32m      <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">[m
+         <motion.div[m
+[31m-          initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m          initial={{ opacity: 0, y: 32 }}[m
+           animate={{ opacity: 1, y: 0 }}[m
+[31m-          transition={{ duration: 0.55 }}[m
+[32m+[m[32m          transition={{ duration: 0.6 }}[m
+           className="max-w-3xl"[m
+         >[m
+[31m-          <p className="mb-6 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-300 shadow-[0_0_80px_rgba(0,212,255,0.12)]">[m
+[32m+[m[32m          <p className="mb-6 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-300 shadow-[0_0_80px_rgba(0,212,255,0.16)]">[m
+             Diseño, desarrollo y crecimiento digital premium[m
+           </p>[m
+ [m
+[31m-          <h1 className="text-4xl font-semibold tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl">[m
+[31m-            Creamos experiencias digitales que elevan marcas y convierten con claridad.[m
+[32m+[m[32m          <h1 className="text-4xl font-semibold tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">[m
+[32m+[m[32m            La agencia que convierte estrategia, tecnología y diseño en ventaja competitiva.[m
+           </h1>[m
+ [m
+           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">[m
+[31m-            Ayudamos a empresas ambiciosas a transformar ideas en productos, campañas y sistemas que generan resultados reales y una presencia de alto impacto.[m
+[32m+[m[32m            Creamos productos, campañas y experiencias que hacen que las marcas se sientan más inteligentes, más rápidas y más valiosas.[m
+           </p>[m
+ [m
+           <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-start">[m
+             <Button href="#contacto" variant="primary">[m
+[31m-              Agenda una reunión[m
+[32m+[m[32m              Conversemos[m
+             </Button>[m
+             <Button href="#portafolio" variant="secondary">[m
+               Ver proyectos[m
+[36m@@ -46,41 +51,59 @@[m [mexport default function Hero() {[m
+               </li>[m
+             ))}[m
+           </ul>[m
+[32m+[m
+[32m+[m[32m          <div className="mt-10 grid gap-4 sm:grid-cols-3">[m
+[32m+[m[32m            {[[m
+[32m+[m[32m              ["50+", "marcas atendidas"],[m
+[32m+[m[32m              ["12+", "sectores"],[m
+[32m+[m[32m              ["4", "servicios clave"],[m
+[32m+[m[32m            ].map(([value, label]) => ([m
+[32m+[m[32m              <div key={label} className="rounded-[1.2rem] border border-white/10 bg-white/5 px-4 py-4 backdrop-blur">[m
+[32m+[m[32m                <p className="text-2xl font-semibold text-white">{value}</p>[m
+[32m+[m[32m                <p className="mt-1 text-sm text-slate-400">{label}</p>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            ))}[m
+[32m+[m[32m          </div>[m
+         </motion.div>[m
+ [m
+         <motion.div[m
+           initial={{ opacity: 0, x: 24 }}[m
+           animate={{ opacity: 1, x: 0 }}[m
+[31m-          transition={{ duration: 0.6, delay: 0.1 }}[m
+[32m+[m[32m          transition={{ duration: 0.7, delay: 0.1 }}[m
+[32m+[m[32m          style={{ y, rotate }}[m
+           className="relative"[m
+         >[m
+[31m-          <div className="absolute inset-0 -z-10 rounded-[2.2rem] bg-[radial-gradient(circle_at_top_left,_rgba(0,212,255,0.25),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.08),_transparent_32%)] blur-3xl" />[m
+[31m-          <div className="rounded-[2.2rem] border border-white/10 bg-slate-900/70 p-4 shadow-[0_45px_140px_-70px_rgba(0,212,255,0.35)] backdrop-blur-2xl sm:p-6">[m
+[32m+[m[32m          <div className="absolute inset-0 -z-10 rounded-[2.4rem] bg-[radial-gradient(circle_at_top_left,_rgba(0,212,255,0.28),_transparent_38%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.08),_transparent_28%)] blur-3xl" />[m
+[32m+[m[32m          <div className="rounded-[2.4rem] border border-white/10 bg-[rgba(8,12,24,0.72)] p-4 shadow-[0_40px_140px_-70px_rgba(0,212,255,0.45)] backdrop-blur-2xl sm:p-6">[m
+             <div className="rounded-[1.8rem] border border-cyan-400/20 bg-gradient-to-br from-cyan-400/10 via-slate-900 to-slate-950 p-4 sm:p-6">[m
+               <div className="flex items-center justify-between">[m
+                 <div>[m
+[31m-                  <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Growth Studio</p>[m
+[31m-                  <p className="mt-2 text-2xl font-semibold text-white">Sistemas que conectan marca, producto y ventas.</p>[m
+[32m+[m[32m                  <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">Studio OS</p>[m
+[32m+[m[32m                  <p className="mt-2 text-2xl font-semibold text-white">Un sistema de crecimiento diseñado para marcas ambiciosas.</p>[m
+                 </div>[m
+                 <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-200">[m
+                   +320%[m
+                 </div>[m
+               </div>[m
+ [m
+[31m-              <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">[m
+[31m-                <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/80 p-4">[m
+[32m+[m[32m              <div className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">[m
+[32m+[m[32m                <div className="rounded-[1.4rem] border border-white/10 bg-slate-950/70 p-4">[m
+                   <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-400">[m
+                     <span>Vista previa</span>[m
+                     <span>Live</span>[m
+                   </div>[m
+[31m-                  <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-800 p-3">[m
+[31m-                    <div className="rounded-[0.9rem] border border-cyan-400/20 bg-cyan-400/10 p-3">[m
+[31m-                      <div className="h-2 w-20 rounded-full bg-cyan-300/70" />[m
+[32m+[m[32m                  <div className="mt-4 rounded-[1.1rem] border border-cyan-400/20 bg-gradient-to-br from-slate-900 to-slate-800 p-3">[m
+[32m+[m[32m                    <div className="rounded-[0.95rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(0,212,255,0.16),transparent_55%)] p-3">[m
+[32m+[m[32m                      <div className="h-2 w-24 rounded-full bg-cyan-300/70" />[m
+                       <div className="mt-3 grid gap-2">[m
+                         <div className="h-2 w-full rounded-full bg-white/20" />[m
+                         <div className="h-2 w-4/5 rounded-full bg-white/15" />[m
+                         <div className="h-2 w-3/4 rounded-full bg-white/10" />[m
+                       </div>[m
+[32m+[m[32m                      <div className="mt-3 flex gap-2">[m
+[32m+[m[32m                        <div className="h-16 flex-1 rounded-[0.75rem] border border-cyan-400/20 bg-cyan-400/10" />[m
+[32m+[m[32m                        <div className="h-16 flex-1 rounded-[0.75rem] border border-white/10 bg-white/5" />[m
+[32m+[m[32m                      </div>[m
+                     </div>[m
+                   </div>[m
+                 </div>[m
+[1mdiff --git a/components/ImmersiveLanding.tsx b/components/ImmersiveLanding.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..c15e556[m
+[1m--- /dev/null[m
+[1m+++ b/components/ImmersiveLanding.tsx[m
+[36m@@ -0,0 +1,463 @@[m
+[32m+[m[32m"use client";[m
+[32m+[m
+[32m+[m[32mimport { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";[m
+[32m+[m[32mimport { useEffect, useState } from "react";[m
+[32m+[m
+[32m+[m[32mconst navItems = [[m
+[32m+[m[32m  { label: "Inicio", href: "#home" },[m
+[32m+[m[32m  { label: "Servicios", href: "#servicios" },[m
+[32m+[m[32m  { label: "Proyectos", href: "#proyectos" },[m
+[32m+[m[32m  { label: "Contacto", href: "#contacto" },[m
+[32m+[m[32m];[m
+[32m+[m
+[32m+[m[32mconst services = [[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Brand systems",[m
+[32m+[m[32m    blurb: "Identidad que se siente inevitable desde el primer segundo.",[m
+[32m+[m[32m    points: ["Naming", "Visual language", "Motion direction"],[m
+[32m+[m[32m    accent: "from-cyan-400/20 via-slate-900 to-slate-950",[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Product experience",[m
+[32m+[m[32m    blurb: "Productos digitales fluidos, claros y diseñados para crecer.",[m
+[32m+[m[32m    points: ["UX strategy", "High-fidelity interfaces", "Conversion loops"],[m
+[32m+[m[32m    accent: "from-fuchsia-500/20 via-slate-900 to-slate-950",[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Growth engine",[m
+[32m+[m[32m    blurb: "Campañas y sistemas que hacen visible cada oportunidad.",[m
+[32m+[m[32m    points: ["Launch narratives", "Automation", "CRM-ready flows"],[m
+[32m+[m[32m    accent: "from-violet-500/20 via-slate-900 to-slate-950",[m
+[32m+[m[32m  },[m
+[32m+[m[32m];[m
+[32m+[m
+[32m+[m[32mconst filters = ["Todos", "Lanzamientos", "Brand", "Productos"] as const;[m
+[32m+[m
+[32m+[m[32mtype FilterType = (typeof filters)[number];[m
+[32m+[m
+[32m+[m[32mconst projects = [[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Northstar AI",[m
+[32m+[m[32m    category: "Lanzamientos",[m
+[32m+[m[32m    description: "Una experiencia de marca y producto pensada para convertir atención en confianza.",[m
+[32m+[m[32m    metric: "+320% engagement",[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Vanta Studio",[m
+[32m+[m[32m    category: "Brand",[m
+[32m+[m[32m    description: "Sistema visual premium con ritmo editorial, profundidad y una voz única.",[m
+[32m+[m[32m    metric: "Nueva identidad",[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Stackline OS",[m
+[32m+[m[32m    category: "Productos",[m
+[32m+[m[32m    description: "Plataforma de producto con diseño de alto nivel y recorrido impecable.",[m
+[32m+[m[32m    metric: "+42% conversión",[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    title: "Echo Labs",[m
+[32m+[m[32m    category: "Lanzamientos",[m
+[32m+[m[32m    description: "Un lanzamiento que se sintió tan refinado como el producto que acompañó.",[m
+[32m+[m[32m    metric: "3 semanas de rollout",[m
+[32m+[m[32m  },[m
+[32m+[m[32m];[m
+[32m+[m
+[32m+[m[32mconst stats = [[m
+[32m+[m[32m  { value: 50, label: "marcas acompañadas" },[m
+[32m+[m[32m  { value: 14, label: "sectores activos" },[m
+[32m+[m[32m  { value: 96, label: "satisfacción" },[m
+[32m+[m[32m];[m
+[32m+[m
+[32m+[m[32mfunction Counter({ value }: { value: number }) {[m
+[32m+[m[32m  const [display, setDisplay] = useState(0);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    let frame = 0;[m
+[32m+[m[32m    const startTime = performance.now();[m
+[32m+[m[32m    const duration = 1300;[m
+[32m+[m
+[32m+[m[32m    const tick = (time: number) => {[m
+[32m+[m[32m      const progress = Math.min(1, (time - startTime) / duration);[m
+[32m+[m[32m      setDisplay(Math.round(progress * value));[m
+[32m+[m[32m      if (progress < 1) {[m
+[32m+[m[32m        frame = window.requestAnimationFrame(tick);[m
+[32m+[m[32m      }[m
+[32m+[m[32m    };[m
+[32m+[m
+[32m+[m[32m    frame = window.requestAnimationFrame(tick);[m
+[32m+[m[32m    return () => window.cancelAnimationFrame(frame);[m
+[32m+[m[32m  }, [value]);[m
+[32m+[m
+[32m+[m[32m  return <span>{display}</span>;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport default function ImmersiveLanding() {[m
+[32m+[m[32m  const [activeService, setActiveService] = useState(services[0]);[m
+[32m+[m[32m  const [activeFilter, setActiveFilter] = useState<FilterType>("Todos");[m
+[32m+[m[32m  const [cursor, setCursor] = useState({ x: 0, y: 0 });[m
+[32m+[m[32m  const { scrollYProgress } = useScroll();[m
+[32m+[m[32m  const heroY = useTransform(scrollYProgress, [0, 1], [0, -80]);[m
+[32m+[m[32m  const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0.2]);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    const handleMove = (event: MouseEvent) => {[m
+[32m+[m[32m      setCursor({ x: event.clientX, y: event.clientY });[m
+[32m+[m[32m    };[m
+[32m+[m
+[32m+[m[32m    window.addEventListener("mousemove", handleMove);[m
+[32m+[m[32m    return () => window.removeEventListener("mousemove", handleMove);[m
+[32m+[m[32m  }, []);[m
+[32m+[m
+[32m+[m[32m  const visibleProjects =[m
+[32m+[m[32m    activeFilter === "Todos"[m
+[32m+[m[32m      ? projects[m
+[32m+[m[32m      : projects.filter((project) => project.category === activeFilter);[m
+[32m+[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="relative min-h-screen overflow-x-hidden bg-[#04050a] text-white">[m
+[32m+[m[32m      <motion.div[m
+[32m+[m[32m        className="pointer-events-none fixed inset-0 z-0 opacity-80"[m
+[32m+[m[32m        animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}[m
+[32m+[m[32m        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}[m
+[32m+[m[32m        style={{[m
+[32m+[m[32m          backgroundImage:[m
+[32m+[m[32m            "radial-gradient(circle at 20% 20%, rgba(0,212,255,0.18), transparent 24%), radial-gradient(circle at 80% 15%, rgba(255,255,255,0.08), transparent 18%), linear-gradient(135deg, rgba(255,255,255,0.04), transparent 40%, rgba(0,212,255,0.04))",[m
+[32m+[m[32m          backgroundSize: "200% 200%",[m
+[32m+[m[32m        }}[m
+[32m+[m[32m      />[m
+[32m+[m
+[32m+[m[32m      <motion.div[m
+[32m+[m[32m        className="pointer-events-none fixed z-10 h-72 w-72 rounded-full bg-cyan-400/20 blur-[140px]"[m
+[32m+[m[32m        animate={{ x: cursor.x - 160, y: cursor.y - 160 }}[m
+[32m+[m[32m        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 0.3 }}[m
+[32m+[m[32m      />[m
+[32m+[m
+[32m+[m[32m      <header className="fixed inset-x-0 top-0 z-40 px-4 pt-4 sm:px-6 lg:px-8">[m
+[32m+[m[32m        <motion.nav[m
+[32m+[m[32m          initial={{ opacity: 0, y: -16 }}[m
+[32m+[m[32m          animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m          transition={{ duration: 0.6 }}[m
+[32m+[m[32m          className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-[rgba(6,9,18,0.7)] px-4 py-3 backdrop-blur-xl"[m
+[32m+[m[32m        >[m
+[32m+[m[32m          <a href="#home" className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-200">[m
+[32m+[m[32m            ADVIBE[m
+[32m+[m[32m          </a>[m
+[32m+[m[32m          <div className="hidden items-center gap-6 md:flex">[m
+[32m+[m[32m            {navItems.map((item) => ([m
+[32m+[m[32m              <a key={item.label} href={item.href} className="text-sm text-slate-300 transition hover:text-white">[m
+[32m+[m[32m                {item.label}[m
+[32m+[m[32m              </a>[m
+[32m+[m[32m            ))}[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <motion.a[m
+[32m+[m[32m            whileHover={{ scale: 1.03, y: -1 }}[m
+[32m+[m[32m            whileTap={{ scale: 0.97 }}[m
+[32m+[m[32m            href="#contacto"[m
+[32m+[m[32m            className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200"[m
+[32m+[m[32m          >[m
+[32m+[m[32m            Empezar[m
+[32m+[m[32m          </motion.a>[m
+[32m+[m[32m        </motion.nav>[m
+[32m+[m[32m      </header>[m
+[32m+[m
+[32m+[m[32m      <main id="home" className="relative z-20">[m
+[32m+[m[32m        <section className="relative flex min-h-screen items-center px-6 py-28 sm:px-8 lg:px-8 lg:py-32">[m
+[32m+[m[32m          <div className="mx-auto grid w-full max-w-7xl gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">[m
+[32m+[m[32m            <motion.div style={{ y: heroY, opacity: heroOpacity }} className="max-w-4xl">[m
+[32m+[m[32m              <motion.p[m
+[32m+[m[32m                initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                transition={{ duration: 0.7 }}[m
+[32m+[m[32m                className="mb-7 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-medium tracking-[0.28em] text-cyan-200 uppercase"[m
+[32m+[m[32m              >[m
+[32m+[m[32m                Agencia premium de producto y marketing[m
+[32m+[m[32m              </motion.p>[m
+[32m+[m
+[32m+[m[32m              <motion.h1[m
+[32m+[m[32m                initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                transition={{ duration: 0.8, delay: 0.05 }}[m
+[32m+[m[32m                className="text-5xl font-semibold leading-[0.9] tracking-[-0.06em] text-white sm:text-7xl lg:text-[5.6rem]"[m
+[32m+[m[32m              >[m
+[32m+[m[32m                Diseñamos <span className="text-cyan-300">experiencias</span> que se sienten imposibles de ignorar.[m
+[32m+[m[32m              </motion.h1>[m
+[32m+[m
+[32m+[m[32m              <motion.p[m
+[32m+[m[32m                initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                transition={{ duration: 0.8, delay: 0.12 }}[m
+[32m+[m[32m                className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl"[m
+[32m+[m[32m              >[m
+[32m+[m[32m                Creamos marcas, productos y sistemas de crecimiento con una calidad visual que inspira confianza desde el primer segundo.[m
+[32m+[m[32m              </motion.p>[m
+[32m+[m
+[32m+[m[32m              <motion.div[m
+[32m+[m[32m                initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                transition={{ duration: 0.8, delay: 0.18 }}[m
+[32m+[m[32m                className="mt-10 flex flex-col gap-3 sm:flex-row"[m
+[32m+[m[32m              >[m
+[32m+[m[32m                <motion.a[m
+[32m+[m[32m                  whileHover={{ scale: 1.03, y: -2 }}[m
+[32m+[m[32m                  whileTap={{ scale: 0.97 }}[m
+[32m+[m[32m                  href="#contacto"[m
+[32m+[m[32m                  className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-6 py-3.5 text-sm font-semibold text-slate-950"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  Solicitar una propuesta[m
+[32m+[m[32m                </motion.a>[m
+[32m+[m[32m                <motion.a[m
+[32m+[m[32m                  whileHover={{ scale: 1.03, y: -2 }}[m
+[32m+[m[32m                  whileTap={{ scale: 0.97 }}[m
+[32m+[m[32m                  href="#proyectos"[m
+[32m+[m[32m                  className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  Ver proyectos[m
+[32m+[m[32m                </motion.a>[m
+[32m+[m[32m              </motion.div>[m
+[32m+[m
+[32m+[m[32m              <motion.div[m
+[32m+[m[32m                initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                transition={{ duration: 0.8, delay: 0.24 }}[m
+[32m+[m[32m                className="mt-10 flex flex-wrap gap-3"[m
+[32m+[m[32m              >[m
+[32m+[m[32m                {[[m
+[32m+[m[32m                  "Motion-first",[m
+[32m+[m[32m                  "Brand systems",[m
+[32m+[m[32m                  "Product design",[m
+[32m+[m[32m                  "Growth infrastructure",[m
+[32m+[m[32m                ].map((item) => ([m
+[32m+[m[32m                  <span key={item} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">[m
+[32m+[m[32m                    {item}[m
+[32m+[m[32m                  </span>[m
+[32m+[m[32m                ))}[m
+[32m+[m[32m              </motion.div>[m
+[32m+[m[32m            </motion.div>[m
+[32m+[m
+[32m+[m[32m            <motion.div[m
+[32m+[m[32m              initial={{ opacity: 0, x: 24 }}[m
+[32m+[m[32m              animate={{ opacity: 1, x: 0 }}[m
+[32m+[m[32m              transition={{ duration: 0.9, delay: 0.16 }}[m
+[32m+[m[32m              className="relative"[m
+[32m+[m[32m            >[m
+[32m+[m[32m              <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_top_left,_rgba(0,212,255,0.24),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.1),_transparent_28%)] blur-3xl" />[m
+[32m+[m[32m              <div className="relative rounded-[2rem] border border-white/10 bg-[rgba(7,10,19,0.82)] p-4 shadow-[0_40px_140px_-70px_rgba(0,212,255,0.42)] backdrop-blur-2xl sm:p-6">[m
+[32m+[m[32m                <div className="rounded-[1.6rem] border border-cyan-400/20 bg-gradient-to-br from-cyan-400/10 via-slate-900 to-slate-950 p-5 sm:p-7">[m
+[32m+[m[32m                  <div className="flex items-center justify-between">[m
+[32m+[m[32m                    <div>[m
+[32m+[m[32m                      <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300">Studio signal</p>[m
+[32m+[m[32m                      <p className="mt-3 text-2xl font-semibold text-white">El tipo de ejecución que cambia la percepción de una marca.</p>[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                    <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-200">[m
+[32m+[m[32m                      01 / 03[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                  </div>[m
+[32m+[m
+[32m+[m[32m                  <div className="mt-8 space-y-3">[m
+[32m+[m[32m                    {["Narrativa premium", "Product clarity", "Growth velocity"].map((item, index) => ([m
+[32m+[m[32m                      <motion.div[m
+[32m+[m[32m                        key={item}[m
+[32m+[m[32m                        initial={{ opacity: 0, y: 12 }}[m
+[32m+[m[32m                        animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                        transition={{ delay: 0.2 + index * 0.08 }}[m
+[32m+[m[32m                        className="rounded-[1rem] border border-white/10 bg-white/5 p-4"[m
+[32m+[m[32m                      >[m
+[32m+[m[32m                        <div className="flex items-center justify-between">[m
+[32m+[m[32m                          <span className="text-sm text-slate-300">{item}</span>[m
+[32m+[m[32m                          <div className="h-2 w-16 rounded-full bg-gradient-to-r from-cyan-300 to-cyan-500" />[m
+[32m+[m[32m                        </div>[m
+[32m+[m[32m                      </motion.div>[m
+[32m+[m[32m                    ))}[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </motion.div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </section>[m
+[32m+[m
+[32m+[m[32m        <section id="servicios" className="px-6 py-24 sm:px-8 lg:px-8 lg:py-28">[m
+[32m+[m[32m          <div className="mx-auto max-w-7xl">[m
+[32m+[m[32m            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">[m
+[32m+[m[32m              <div className="max-w-2xl">[m
+[32m+[m[32m                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">Servicios</p>[m
+[32m+[m[32m                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">[m
+[32m+[m[32m                  Lo que hacemos no parece una agencia tradicional. Se siente como una máquina de ventaja competitiva.[m
+[32m+[m[32m                </h2>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m              <p className="max-w-xl text-lg leading-8 text-slate-300">[m
+[32m+[m[32m                Cada servicio está diseñado para crear claridad de marca y una ejecución impecable desde la primera idea hasta el lanzamiento.[m
+[32m+[m[32m              </p>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <div className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">[m
+[32m+[m[32m              <div className="space-y-3">[m
+[32m+[m[32m                {services.map((service) => ([m
+[32m+[m[32m                  <motion.button[m
+[32m+[m[32m                    key={service.title}[m
+[32m+[m[32m                    whileHover={{ x: 4, scale: 1.01 }}[m
+[32m+[m[32m                    whileTap={{ scale: 0.99 }}[m
+[32m+[m[32m                    onClick={() => setActiveService(service)}[m
+[32m+[m[32m                    className={`w-full rounded-[1.2rem] border px-5 py-4 text-left transition ${activeService.title === service.title ? "border-cyan-400/35 bg-cyan-400/10" : "border-white/10 bg-white/5"}`}[m
+[32m+[m[32m                  >[m
+[32m+[m[32m                    <div className="flex items-center justify-between">[m
+[32m+[m[32m                      <span className="text-lg font-semibold text-white">{service.title}</span>[m
+[32m+[m[32m                      <span className="text-sm text-slate-400">↗</span>[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                  </motion.button>[m
+[32m+[m[32m                ))}[m
+[32m+[m[32m              </div>[m
+[32m+[m
+[32m+[m[32m              <AnimatePresence mode="wait">[m
+[32m+[m[32m                <motion.div[m
+[32m+[m[32m                  key={activeService.title}[m
+[32m+[m[32m                  initial={{ opacity: 0, y: 16 }}[m
+[32m+[m[32m                  animate={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                  exit={{ opacity: 0, y: -16 }}[m
+[32m+[m[32m                  transition={{ duration: 0.35 }}[m
+[32m+[m[32m                  className={`rounded-[2rem] border border-white/10 bg-gradient-to-br ${activeService.accent} p-7 shadow-[0_30px_120px_-80px_rgba(0,212,255,0.3)]`}[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">Servicio destacado</p>[m
+[32m+[m[32m                  <h3 className="mt-4 text-3xl font-semibold text-white">{activeService.title}</h3>[m
+[32m+[m[32m                  <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-300">{activeService.blurb}</p>[m
+[32m+[m[32m                  <div className="mt-8 flex flex-wrap gap-3">[m
+[32m+[m[32m                    {activeService.points.map((point) => ([m
+[32m+[m[32m                      <span key={point} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200">[m
+[32m+[m[32m                        {point}[m
+[32m+[m[32m                      </span>[m
+[32m+[m[32m                    ))}[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                </motion.div>[m
+[32m+[m[32m              </AnimatePresence>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </section>[m
+[32m+[m
+[32m+[m[32m        <section id="proyectos" className="px-6 py-24 sm:px-8 lg:px-8 lg:py-28">[m
+[32m+[m[32m          <div className="mx-auto max-w-7xl">[m
+[32m+[m[32m            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">[m
+[32m+[m[32m              <div className="max-w-2xl">[m
+[32m+[m[32m                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">Proyectos</p>[m
+[32m+[m[32m                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">[m
+[32m+[m[32m                  Un portafolio que se siente como un estudio de alto nivel, no como una colección de entregables.[m
+[32m+[m[32m                </h2>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m              <div className="flex flex-wrap gap-2">[m
+[32m+[m[32m                {filters.map((filter) => ([m
+[32m+[m[32m                  <button[m
+[32m+[m[32m                    key={filter}[m
+[32m+[m[32m                    onClick={() => setActiveFilter(filter)}[m
+[32m+[m[32m                    className={`rounded-full border px-4 py-2 text-sm transition ${activeFilter === filter ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-200" : "border-white/10 bg-white/5 text-slate-300"}`}[m
+[32m+[m[32m                  >[m
+[32m+[m[32m                    {filter}[m
+[32m+[m[32m                  </button>[m
+[32m+[m[32m                ))}[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <div className="mt-12 grid gap-6 lg:grid-cols-2">[m
+[32m+[m[32m              {visibleProjects.map((project, index) => ([m
+[32m+[m[32m                <motion.article[m
+[32m+[m[32m                  key={project.title}[m
+[32m+[m[32m                  initial={{ opacity: 0, y: 22 }}[m
+[32m+[m[32m                  whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                  viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m                  transition={{ duration: 0.45, delay: index * 0.08 }}[m
+[32m+[m[32m                  whileHover={{ y: -8, scale: 1.01, rotateX: 3, rotateY: -3 }}[m
+[32m+[m[32m                  className="group rounded-[2rem] border border-white/10 bg-[rgba(7,10,19,0.82)] p-6 shadow-[0_30px_120px_-70px_rgba(0,212,255,0.26)] backdrop-blur-xl"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  <div className="flex items-start justify-between">[m
+[32m+[m[32m                    <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">[m
+[32m+[m[32m                      {project.category}[m
+[32m+[m[32m                    </span>[m
+[32m+[m[32m                    <span className="text-sm text-slate-400">0{index + 1}</span>[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                  <div className="mt-8 h-36 rounded-[1.4rem] border border-white/10 bg-gradient-to-br from-cyan-400/16 via-slate-900 to-slate-950" />[m
+[32m+[m[32m                  <h3 className="mt-6 text-2xl font-semibold text-white">{project.title}</h3>[m
+[32m+[m[32m                  <p className="mt-3 text-sm leading-7 text-slate-300">{project.description}</p>[m
+[32m+[m[32m                  <p className="mt-5 text-sm font-semibold text-cyan-200">{project.metric}</p>[m
+[32m+[m[32m                </motion.article>[m
+[32m+[m[32m              ))}[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </section>[m
+[32m+[m
+[32m+[m[32m        <section className="px-6 py-24 sm:px-8 lg:px-8 lg:py-28">[m
+[32m+[m[32m          <div className="mx-auto max-w-7xl rounded-[2.5rem] border border-white/10 bg-[rgba(7,10,19,0.82)] p-8 shadow-[0_35px_140px_-80px_rgba(0,212,255,0.3)] backdrop-blur-xl sm:p-10 lg:p-12">[m
+[32m+[m[32m            <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">[m
+[32m+[m[32m              <div>[m
+[32m+[m[32m                <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">Indicadores</p>[m
+[32m+[m[32m                <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">[m
+[32m+[m[32m                  Números que no improvisan. Se construyen con intención.[m
+[32m+[m[32m                </h2>[m
+[32m+[m[32m                <p className="mt-5 max-w-xl text-lg leading-8 text-slate-300">[m
+[32m+[m[32m                  Cada colaboración se enfoca en producir un impacto capaz de sostenerse en el tiempo.[m
+[32m+[m[32m                </p>[m
+[32m+[m[32m              </div>[m
+[32m+[m
+[32m+[m[32m              <div className="space-y-4">[m
+[32m+[m[32m                {stats.map((stat, index) => ([m
+[32m+[m[32m                  <motion.div[m
+[32m+[m[32m                    key={stat.label}[m
+[32m+[m[32m                    initial={{ opacity: 0, y: 16 }}[m
+[32m+[m[32m                    whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                    viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m                    transition={{ duration: 0.45, delay: index * 0.08 }}[m
+[32m+[m[32m                    className="rounded-[1.4rem] border border-white/10 bg-white/5 p-6"[m
+[32m+[m[32m                  >[m
+[32m+[m[32m                    <div className="flex items-end justify-between">[m
+[32m+[m[32m                      <div>[m
+[32m+[m[32m                        <p className="text-4xl font-semibold text-white">[m
+[32m+[m[32m                          <Counter value={stat.value} />[m
+[32m+[m[32m                          {stat.value === 96 ? "%" : "+"}[m
+[32m+[m[32m                        </p>[m
+[32m+[m[32m                        <p className="mt-2 text-sm text-slate-400">{stat.label}</p>[m
+[32m+[m[32m                      </div>[m
+[32m+[m[32m                      <div className="h-12 w-24 rounded-full border border-cyan-400/20 bg-gradient-to-r from-cyan-400/10 to-transparent" />[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                  </motion.div>[m
+[32m+[m[32m                ))}[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </section>[m
+[32m+[m
+[32m+[m[32m        <section id="contacto" className="px-6 py-24 sm:px-8 lg:px-8 lg:py-32">[m
+[32m+[m[32m          <div className="mx-auto max-w-7xl">[m
+[32m+[m[32m            <motion.div[m
+[32m+[m[32m              initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m              whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m              viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m              className="rounded-[2.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(0,212,255,0.14),rgba(255,255,255,0.05))] p-8 shadow-[0_35px_140px_-70px_rgba(0,212,255,0.35)] backdrop-blur-xl sm:p-10 lg:p-12"[m
+[32m+[m[32m            >[m
+[32m+[m[32m              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">[m
+[32m+[m[32m                <div className="max-w-3xl">[m
+[32m+[m[32m                  <p className="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-200">Contacto</p>[m
+[32m+[m[32m                  <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl lg:text-5xl">[m
+[32m+[m[32m                    Si lo que buscas es una presencia que se sienta de otro nivel, empecemos.[m
+[32m+[m[32m                  </h2>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m                <motion.a[m
+[32m+[m[32m                  whileHover={{ scale: 1.03, y: -2 }}[m
+[32m+[m[32m                  whileTap={{ scale: 0.97 }}[m
+[32m+[m[32m                  href="https://wa.me/593984966335?text=Hola,%20quiero%20una%20propuesta%20premium."[m
+[32m+[m[32m                  target="_blank"[m
+[32m+[m[32m                  rel="noreferrer"[m
+[32m+[m[32m                  className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-950"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  Hablar con el equipo[m
+[32m+[m[32m                </motion.a>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </motion.div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </section>[m
+[32m+[m[32m      </main>[m
+[32m+[m
+[32m+[m[32m      <footer className="relative z-20 border-t border-white/10 px-6 py-8 text-sm text-slate-400 sm:px-8 lg:px-8">[m
+[32m+[m[32m        <div className="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">[m
+[32m+[m[32m          <p>AdVibe Agencia · Diseño, desarrollo y crecimiento premium.</p>[m
+[32m+[m[32m          <p>Gualaceo, Azuay · Ecuador</p>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </footer>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+[1mdiff --git a/components/Navbar.tsx b/components/Navbar.tsx[m
+[1mindex 78a5133..3a1f661 100644[m
+[1m--- a/components/Navbar.tsx[m
+[1m+++ b/components/Navbar.tsx[m
+[36m@@ -35,7 +35,7 @@[m [mexport default function Navbar() {[m
+   const [scrolled, setScrolled] = useState(false);[m
+ [m
+   useEffect(() => {[m
+[31m-    const onScroll = () => setScrolled(window.scrollY > 12);[m
+[32m+[m[32m    const onScroll = () => setScrolled(window.scrollY > 8);[m
+     onScroll();[m
+     window.addEventListener("scroll", onScroll);[m
+     return () => window.removeEventListener("scroll", onScroll);[m
+[36m@@ -43,27 +43,25 @@[m [mexport default function Navbar() {[m
+ [m
+   return ([m
+     <motion.header[m
+[31m-      initial={{ y: -20, opacity: 0 }}[m
+[32m+[m[32m      initial={{ y: -16, opacity: 0 }}[m
+       animate={{ y: 0, opacity: 1 }}[m
+       transition={{ duration: 0.45 }}[m
+[31m-      className={`sticky top-0 z-50 border-b transition-all duration-300 ${[m
+[31m-        scrolled[m
+[31m-          ? "border-white/15 bg-slate-950/80 shadow-[0_20px_80px_-50px_rgba(0,212,255,0.55)] backdrop-blur-3xl"[m
+[31m-          : "border-white/10 bg-slate-950/60 backdrop-blur-2xl"[m
+[32m+[m[32m      className={`sticky top-0 z-50 transition-all duration-300 ${[m
+[32m+[m[32m        scrolled ? "border-b border-white/10 bg-[rgba(3,4,10,0.76)] backdrop-blur-2xl" : "bg-transparent"[m
+       }`}[m
+     >[m
+[31m-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">[m
+[32m+[m[32m      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">[m
+         <a href="#home" className="flex items-center gap-3 transition hover:opacity-90">[m
+[31m-          <span className="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl shadow-[0_24px_80px_-50px_rgba(0,212,255,0.8)]">[m
+[32m+[m[32m          <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-lg font-semibold text-cyan-300 shadow-[0_0_40px_rgba(0,212,255,0.16)]">[m
+             A[m
+           </span>[m
+[31m-          <div className="space-y-0.5">[m
+[31m-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">AdVibe</p>[m
+[32m+[m[32m          <div>[m
+[32m+[m[32m            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">AdVibe</p>[m
+             <p className="text-xs text-slate-400">Agencia premium</p>[m
+           </div>[m
+         </a>[m
+ [m
+[31m-        <nav className="hidden items-center gap-10 md:flex">[m
+[32m+[m[32m        <nav className="hidden items-center gap-6 md:flex">[m
+           {navLinks.map((link) => ([m
+             <a key={link.label} href={link.href} className="text-sm font-medium text-slate-300 transition hover:text-white">[m
+               {link.label}[m
+[36m@@ -79,16 +77,13 @@[m [mexport default function Navbar() {[m
+               target="_blank"[m
+               rel="noreferrer"[m
+               aria-label={link.label}[m
+[31m-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 transition hover:border-cyan-400/50 hover:bg-white/10 hover:text-white"[m
+[32m+[m[32m              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 transition hover:border-cyan-400/40 hover:bg-white/10 hover:text-white"[m
+             >[m
+               {link.icon}[m
+             </a>[m
+           ))}[m
+[31m-          <Button href="https://wa.me/593984966335?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios." variant="ghost" className="hidden sm:inline-flex">[m
+[31m-            WhatsApp[m
+[31m-          </Button>[m
+           <Button href="#contacto" variant="primary" className="text-sm">[m
+[31m-            Contáctanos[m
+[32m+[m[32m            Hablemos[m
+           </Button>[m
+         </div>[m
+       </div>[m
+[1mdiff --git a/components/Portfolio.tsx b/components/Portfolio.tsx[m
+[1mindex fc7abca..c97822e 100644[m
+[1m--- a/components/Portfolio.tsx[m
+[1m+++ b/components/Portfolio.tsx[m
+[36m@@ -2,38 +2,36 @@[m
+ [m
+ import { motion } from "framer-motion";[m
+ import { portfolio } from "@/lib/content";[m
+[31m-import SectionHeading from "@/components/ui/SectionHeading";[m
+[31m-[m
+[31m-const visuals = [[m
+[31m-  "from-cyan-500/20 via-slate-900 to-slate-950",[m
+[31m-  "from-fuchsia-500/20 via-slate-900 to-slate-950",[m
+[31m-  "from-violet-500/20 via-slate-900 to-slate-950",[m
+[31m-  "from-emerald-500/20 via-slate-900 to-slate-950",[m
+[31m-];[m
+ [m
+ export default function Portfolio() {[m
+   return ([m
+     <section id="portafolio" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">[m
+       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/10 to-transparent" />[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <SectionHeading[m
+[31m-          eyebrow="Portafolio"[m
+[31m-          title="Trabajos diseñados para sorprender y convertir."[m
+[31m-          description="Proyectos con dirección premium, experiencia de usuario impecable y resultados tangibles."[m
+[31m-        />[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">[m
+[32m+[m[32m          <div className="max-w-2xl">[m
+[32m+[m[32m            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">Portafolio</p>[m
+[32m+[m[32m            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[32m+[m[32m              Trabajos que mezclan diseño, performance y una identidad contundente.[m
+[32m+[m[32m            </h2>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <p className="max-w-xl text-lg leading-8 text-slate-300">[m
+[32m+[m[32m            Cada proyecto se construye con una mirada estratégica, una estética premium y una experiencia preparada para convertir.[m
+[32m+[m[32m          </p>[m
+[32m+[m[32m        </div>[m
+ [m
+[31m-        <div className="mt-14 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">[m
+[31m-          {portfolio.map((project, index) => ([m
+[32m+[m[32m        <div className="mt-14 grid gap-6 lg:grid-cols-2">[m
+[32m+[m[32m          {portfolio.slice(0, 2).map((project, index) => ([m
+             <motion.article[m
+               key={project.title}[m
+               initial={{ opacity: 0, y: 30 }}[m
+               whileInView={{ opacity: 1, y: 0 }}[m
+               viewport={{ once: true, amount: 0.2 }}[m
+[31m-              transition={{ duration: 0.55, delay: index * 0.1 }}[m
+[32m+[m[32m              transition={{ duration: 0.6, delay: index * 0.08 }}[m
+               whileHover={{ y: -8, scale: 1.01 }}[m
+[31m-              className="group overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/70 shadow-[0_40px_80px_-70px_rgba(0,212,255,0.25)] backdrop-blur-xl"[m
+[32m+[m[32m              className="group overflow-hidden rounded-[2rem] border border-white/10 bg-[rgba(7,10,19,0.84)] shadow-[0_30px_110px_-70px_rgba(0,212,255,0.32)] backdrop-blur-xl"[m
+             >[m
+[31m-              <div className={`relative h-64 overflow-hidden bg-gradient-to-br ${visuals[index % visuals.length]}`}>[m
+[32m+[m[32m              <div className="relative h-80 overflow-hidden bg-gradient-to-br from-cyan-500/20 via-slate-900 to-slate-950">[m
+                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(0,212,255,0.18),transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.06),transparent_34%)]" />[m
+                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050505] to-transparent" />[m
+                 <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200 backdrop-blur">[m
+[36m@@ -45,10 +43,29 @@[m [mexport default function Portfolio() {[m
+               </div>[m
+               <div className="space-y-4 p-6">[m
+                 <h3 className="text-xl font-semibold text-white">{project.title}</h3>[m
+[31m-                <p className="text-sm leading-7 text-slate-300">[m
+[31m-                  Una ejecución estratégica que combina marca, experiencia y performance.[m
+[31m-                </p>[m
+[32m+[m[32m                <p className="text-sm leading-7 text-slate-300">Una ejecución estratégica que combina marca, experiencia y performance.</p>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </motion.article>[m
+[32m+[m[32m          ))}[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div className="mt-6 grid gap-6 md:grid-cols-2">[m
+[32m+[m[32m          {portfolio.slice(2).map((project, index) => ([m
+[32m+[m[32m            <motion.article[m
+[32m+[m[32m              key={project.title}[m
+[32m+[m[32m              initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m              whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m              viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m              transition={{ duration: 0.55, delay: index * 0.08 }}[m
+[32m+[m[32m              whileHover={{ y: -6, scale: 1.01 }}[m
+[32m+[m[32m              className="rounded-[1.8rem] border border-white/10 bg-white/5 p-6 backdrop-blur-xl"[m
+[32m+[m[32m            >[m
+[32m+[m[32m              <div className="flex items-center justify-between">[m
+[32m+[m[32m                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">{project.category}</p>[m
+[32m+[m[32m                <span className="text-sm text-slate-400">0{index + 3}</span>[m
+               </div>[m
+[32m+[m[32m              <h3 className="mt-4 text-xl font-semibold text-white">{project.title}</h3>[m
+[32m+[m[32m              <p className="mt-3 text-sm leading-7 text-slate-300">{project.highlight}</p>[m
+             </motion.article>[m
+           ))}[m
+         </div>[m
+[1mdiff --git a/components/Process.tsx b/components/Process.tsx[m
+[1mindex 80e3964..ab0cdf4 100644[m
+[1m--- a/components/Process.tsx[m
+[1m+++ b/components/Process.tsx[m
+[36m@@ -1,62 +1,41 @@[m
+ "use client";[m
+ [m
+ import { motion } from "framer-motion";[m
+[31m-import SectionHeading from "@/components/ui/SectionHeading";[m
+[31m-[m
+[31m-const steps = [[m
+[31m-  { title: "Descubrimiento", description: "Entendemos tu negocio, audiencia y objetivos." },[m
+[31m-  { title: "Estrategia", description: "Definimos el plan creativo, técnico y de automatización." },[m
+[31m-  { title: "Implementación", description: "Construimos campañas y experiencias digitales con precisión." },[m
+[31m-  { title: "Optimización", description: "Medimos resultados y mejoramos cada interacción." },[m
+[31m-];[m
+[31m-[m
+[31m-const lineAnimation = {[m
+[31m-  hidden: { scaleY: 0 },[m
+[31m-  show: { scaleY: 1 },[m
+[31m-};[m
+[32m+[m[32mimport { workflow } from "@/lib/content";[m
+ [m
+ export default function Process() {[m
+   return ([m
+     <section id="proceso" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">[m
+[31m-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/5 to-transparent" />[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <SectionHeading[m
+[31m-          eyebrow="Nuestro proceso"[m
+[31m-          title="Una ruta clara hasta resultados medibles."[m
+[31m-          description="Cada paso conecta estrategia, tecnología y creatividad para impulsar crecimiento con seguridad."[m
+[31m-        />[m
+[31m-[m
+[31m-        <div className="relative mt-14 grid gap-8 lg:grid-cols-2">[m
+[31m-          <div className="absolute left-12 top-20 hidden h-[calc(100%-4rem)] w-px bg-white/10 lg:block" />[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">[m
+[32m+[m[32m          <div className="max-w-xl">[m
+[32m+[m[32m            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">Proceso</p>[m
+[32m+[m[32m            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[32m+[m[32m              Una ruta clara desde la idea hasta una ejecución de alto impacto.[m
+[32m+[m[32m            </h2>[m
+[32m+[m[32m            <p className="mt-5 text-lg leading-8 text-slate-300">[m
+[32m+[m[32m              Trabajamos con rigor, velocidad y una sensibilidad estética que rara vez se ve en agencias tradicionales.[m
+[32m+[m[32m            </p>[m
+[32m+[m[32m          </div>[m
+ [m
+[31m-          {steps.map((step, index) => ([m
+[31m-            <motion.article[m
+[31m-              key={step.title}[m
+[31m-              initial={{ opacity: 0, x: -20 }}[m
+[31m-              whileInView={{ opacity: 1, x: 0 }}[m
+[31m-              viewport={{ once: true, amount: 0.25 }}[m
+[31m-              transition={{ duration: 0.55, delay: index * 0.08 }}[m
+[31m-              className="relative rounded-[2rem] border border-white/10 bg-slate-950/70 p-8 shadow-[0_30px_80px_-70px_rgba(0,212,255,0.25)] backdrop-blur-xl"[m
+[31m-            >[m
+[31m-              <div className="relative z-10 flex items-center gap-4">[m
+[31m-                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-cyan-400/10 text-xl font-semibold text-cyan-200 shadow-[0_0_30px_rgba(0,212,255,0.12)]">[m
+[31m-                  {index + 1}[m
+[32m+[m[32m          <div className="grid gap-4 lg:grid-cols-3">[m
+[32m+[m[32m            {workflow.map((step, index) => ([m
+[32m+[m[32m              <motion.article[m
+[32m+[m[32m                key={step.title}[m
+[32m+[m[32m                initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m                transition={{ duration: 0.55, delay: index * 0.08 }}[m
+[32m+[m[32m                className="rounded-[1.6rem] border border-white/10 bg-[rgba(7,10,19,0.82)] p-6 shadow-[0_30px_90px_-70px_rgba(0,212,255,0.28)]"[m
+[32m+[m[32m              >[m
+[32m+[m[32m                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-sm font-semibold text-cyan-200">[m
+[32m+[m[32m                  {step.step}[m
+                 </div>[m
+[31m-                <h3 className="text-xl font-semibold text-white">{step.title}</h3>[m
+[31m-              </div>[m
+[31m-              <p className="mt-5 text-sm leading-7 text-slate-300">{step.description}</p>[m
+[31m-              {index < steps.length - 1 ? ([m
+[31m-                <motion.div[m
+[31m-                  initial="hidden"[m
+[31m-                  whileInView="show"[m
+[31m-                  viewport={{ once: true, amount: 0.25 }}[m
+[31m-                  variants={lineAnimation}[m
+[31m-                  transition={{ duration: 0.6, delay: index * 0.1 }}[m
+[31m-                  className="absolute left-20 top-full mt-10 h-16 w-px origin-top bg-gradient-to-b from-cyan-300/60 to-transparent"[m
+[31m-                />[m
+[31m-              ) : null}[m
+[31m-            </motion.article>[m
+[31m-          ))}[m
+[32m+[m[32m                <h3 className="mt-5 text-xl font-semibold text-white">{step.title}</h3>[m
+[32m+[m[32m                <p className="mt-3 text-sm leading-7 text-slate-300">{step.description}</p>[m
+[32m+[m[32m              </motion.article>[m
+[32m+[m[32m            ))}[m
+[32m+[m[32m          </div>[m
+         </div>[m
+       </div>[m
+     </section>[m
+[1mdiff --git a/components/Services.tsx b/components/Services.tsx[m
+[1mindex 827434e..de167f8 100644[m
+[1m--- a/components/Services.tsx[m
+[1m+++ b/components/Services.tsx[m
+[36m@@ -2,47 +2,48 @@[m
+ [m
+ import { motion } from "framer-motion";[m
+ import { services } from "@/lib/content";[m
+[31m-import SectionHeading from "@/components/ui/SectionHeading";[m
+[31m-[m
+[31m-const cardAnimation = {[m
+[31m-  hidden: { opacity: 0, y: 24 },[m
+[31m-  show: { opacity: 1, y: 0 },[m
+[31m-};[m
+ [m
+ export default function Services() {[m
+   return ([m
+     <section id="servicios" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">[m
+[31m-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/10 to-transparent" />[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <SectionHeading[m
+[31m-          eyebrow="Servicios"[m
+[31m-          title="Soluciones integrales para cada fase de crecimiento."[m
+[31m-          description="Diseñamos estrategias, automatizamos procesos y construimos productos digitales con un estándar de primer nivel."[m
+[31m-        />[m
+[32m+[m[32m      <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-cyan-400/10 to-transparent" />[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">[m
+[32m+[m[32m          <div className="max-w-xl">[m
+[32m+[m[32m            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">Servicios</p>[m
+[32m+[m[32m            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[32m+[m[32m              Soluciones diseñadas para mover marcas, productos y negocios con autoridad.[m
+[32m+[m[32m            </h2>[m
+[32m+[m[32m            <p className="mt-5 text-lg leading-8 text-slate-300">[m
+[32m+[m[32m              Combinamos estrategia, diseño, desarrollo y automatización para producir resultados que se sienten tan buenos como se ven.[m
+[32m+[m[32m            </p>[m
+[32m+[m[32m          </div>[m
+ [m
+[31m-        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">[m
+[31m-          {services.map((service, index) => ([m
+[31m-            <motion.article[m
+[31m-              key={service.title}[m
+[31m-              initial="hidden"[m
+[31m-              whileInView="show"[m
+[31m-              viewport={{ once: true, amount: 0.2 }}[m
+[31m-              variants={cardAnimation}[m
+[31m-              transition={{ duration: 0.55, delay: index * 0.08 }}[m
+[31m-              whileHover={{ y: -8, scale: 1.01 }}[m
+[31m-              className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/70 p-8 shadow-[0_35px_90px_-70px_rgba(0,212,255,0.28)] backdrop-blur-xl"[m
+[31m-            >[m
+[31m-              <div className={`absolute inset-0 bg-gradient-to-br ${service.accent} opacity-70 transition duration-500 group-hover:scale-105`} />[m
+[31m-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_38%)]" />[m
+[31m-              <div className="relative">[m
+[31m-                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-slate-950/70 text-2xl shadow-[0_0_30px_rgba(0,212,255,0.12)] ring-1 ring-white/10">[m
+[31m-                  {service.icon}[m
+[31m-                </div>[m
+[31m-                <h3 className="mt-6 text-xl font-semibold text-white">{service.title}</h3>[m
+[31m-                <p className="mt-4 text-sm leading-7 text-slate-200">{service.description}</p>[m
+[31m-              </div>[m
+[31m-            </motion.article>[m
+[31m-          ))}[m
+[32m+[m[32m          <div className="rounded-[2rem] border border-white/10 bg-[rgba(7,10,19,0.82)] p-4 shadow-[0_35px_100px_-70px_rgba(0,212,255,0.32)] backdrop-blur-xl sm:p-6">[m
+[32m+[m[32m            <div className="grid gap-4 md:grid-cols-2">[m
+[32m+[m[32m              {services.map((service, index) => ([m
+[32m+[m[32m                <motion.article[m
+[32m+[m[32m                  key={service.title}[m
+[32m+[m[32m                  initial={{ opacity: 0, y: 24 }}[m
+[32m+[m[32m                  whileInView={{ opacity: 1, y: 0 }}[m
+[32m+[m[32m                  viewport={{ once: true, amount: 0.2 }}[m
+[32m+[m[32m                  transition={{ duration: 0.5, delay: index * 0.06 }}[m
+[32m+[m[32m                  whileHover={{ y: -6, scale: 1.01 }}[m
+[32m+[m[32m                  className="group relative overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/5 p-6"[m
+[32m+[m[32m                >[m
+[32m+[m[32m                  <div className={`absolute inset-0 bg-gradient-to-br ${service.accent} opacity-70 transition duration-500 group-hover:scale-105`} />[m
+[32m+[m[32m                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_32%)]" />[m
+[32m+[m[32m                  <div className="relative">[m
+[32m+[m[32m                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950/70 text-2xl shadow-[0_0_30px_rgba(0,212,255,0.12)]">[m
+[32m+[m[32m                      {service.icon}[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                    <h3 className="mt-5 text-xl font-semibold text-white">{service.title}</h3>[m
+[32m+[m[32m                    <p className="mt-3 text-sm leading-7 text-slate-200">{service.description}</p>[m
+[32m+[m[32m                  </div>[m
+[32m+[m[32m                </motion.article>[m
+[32m+[m[32m              ))}[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+         </div>[m
+       </div>[m
+     </section>[m
+[1mdiff --git a/components/Testimonials.tsx b/components/Testimonials.tsx[m
+[1mindex 38eb647..5fdefd3 100644[m
+[1m--- a/components/Testimonials.tsx[m
+[1m+++ b/components/Testimonials.tsx[m
+[36m@@ -2,18 +2,22 @@[m
+ [m
+ import { motion } from "framer-motion";[m
+ import { caseStudies, testimonials } from "@/lib/content";[m
+[31m-import SectionHeading from "@/components/ui/SectionHeading";[m
+ [m
+ export default function Testimonials() {[m
+   return ([m
+     <section id="casos" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">[m
+[31m-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/5 to-transparent" />[m
+[31m-      <div className="mx-auto max-w-7xl px-6">[m
+[31m-        <SectionHeading[m
+[31m-          eyebrow="Casos de éxito"[m
+[31m-          title="Proyectos reales con resultados claros."[m
+[31m-          description="Cada colaboración se enfoca en fortalecer la marca, mejorar la conversión y dejar una experiencia memorable."[m
+[31m-        />[m
+[32m+[m[32m      <div className="mx-auto max-w-7xl px-6 lg:px-8">[m
+[32m+[m[32m        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">[m
+[32m+[m[32m          <div className="max-w-2xl">[m
+[32m+[m[32m            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-cyan-300">Casos de éxito</p>[m
+[32m+[m[32m            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">[m
+[32m+[m[32m              Marcas que eligieron un estándar más alto.[m
+[32m+[m[32m            </h2>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m          <p className="max-w-xl text-lg leading-8 text-slate-300">[m
+[32m+[m[32m            Los mejores resultados nacen cuando la estrategia, el contenido y la tecnología trabajan al mismo tiempo.[m
+[32m+[m[32m          </p>[m
+[32m+[m[32m        </div>[m
+ [m
+         <div className="mt-14 grid gap-6 lg:grid-cols-3">[m
+           {caseStudies.map((study, index) => ([m
+[36m@@ -22,9 +26,9 @@[m [mexport default function Testimonials() {[m
+               initial={{ opacity: 0, y: 24 }}[m
+               whileInView={{ opacity: 1, y: 0 }}[m
+               viewport={{ once: true, amount: 0.2 }}[m
+[31m-              transition={{ duration: 0.55, delay: index * 0.1 }}[m
+[32m+[m[32m              transition={{ duration: 0.55, delay: index * 0.08 }}[m
+               whileHover={{ y: -6, scale: 1.01 }}[m
+[31m-              className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_30px_80px_-70px_rgba(0,212,255,0.2)] backdrop-blur-xl"[m
+[32m+[m[32m              className="rounded-[2rem] border border-white/10 bg-[rgba(7,10,19,0.84)] p-8 shadow-[0_30px_80px_-70px_rgba(0,212,255,0.2)] backdrop-blur-xl"[m
+             >[m
+               <div className="flex items-center justify-between">[m
+                 <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300">[m
+[36m@@ -46,7 +50,7 @@[m [mexport default function Testimonials() {[m
+               initial={{ opacity: 0, y: 24 }}[m
+               whileInView={{ opacity: 1, y: 0 }}[m
+               viewport={{ once: true, amount: 0.2 }}[m
+[31m-              transition={{ duration: 0.55, delay: index * 0.1 }}[m
+[32m+[m[32m              transition={{ duration: 0.55, delay: index * 0.08 }}[m
+               whileHover={{ y: -6, scale: 1.01 }}[m
+               className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-[0_30px_80px_-70px_rgba(0,212,255,0.2)] backdrop-blur-xl"[m
+             >[m

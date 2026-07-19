@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
@@ -48,30 +49,36 @@ export default function Navbar() {
       transition={{ duration: 0.45 }}
       className={`sticky top-0 z-50 border-b transition-all duration-300 ${
         scrolled
-          ? "border-white/15 bg-slate-950/80 shadow-[0_20px_80px_-50px_rgba(0,212,255,0.55)] backdrop-blur-3xl"
-          : "border-white/10 bg-slate-950/60 backdrop-blur-2xl"
+          ? "border-white/10 bg-black/80 shadow-2xl backdrop-blur-3xl"
+          : "border-white/10 bg-black/50 backdrop-blur-2xl"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <a href="#home" className="flex items-center gap-3 transition hover:opacity-90">
-          <span className="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl shadow-[0_24px_80px_-50px_rgba(0,212,255,0.8)]">
-            A
-          </span>
-          <div className="space-y-0.5">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300">AdVibe</p>
-            <p className="text-xs text-slate-400">Agencia premium</p>
-          </div>
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+
+        <a href="#home" className="flex items-center">
+          <Image
+            src="/images/logo-advibe.png"
+            alt="AdVibe Agencia"
+            width={220}
+            height={70}
+            priority
+            className="h-auto w-auto object-contain"
+          />
         </a>
 
-        <nav className="hidden items-center gap-10 md:flex">
+        <nav className="hidden md:flex items-center gap-10">
           {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className="text-sm font-medium text-slate-300 transition hover:text-white">
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-sm font-medium text-slate-300 transition hover:text-white"
+            >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-3">
           {socialLinks.map((link) => (
             <a
               key={link.label}
@@ -79,18 +86,25 @@ export default function Navbar() {
               target="_blank"
               rel="noreferrer"
               aria-label={link.label}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 transition hover:border-cyan-400/50 hover:bg-white/10 hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
             >
               {link.icon}
             </a>
           ))}
-          <Button href="https://wa.me/593984966335?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios." variant="ghost" className="hidden sm:inline-flex">
+
+          <Button
+            href="https://wa.me/593984966335?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios."
+            variant="ghost"
+            className="hidden sm:inline-flex"
+          >
             WhatsApp
           </Button>
-          <Button href="#contacto" variant="primary" className="text-sm">
+
+          <Button href="#contacto" variant="primary">
             Contáctanos
           </Button>
         </div>
+
       </div>
     </motion.header>
   );

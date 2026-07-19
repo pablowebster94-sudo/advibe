@@ -13,7 +13,7 @@ const visuals = [
 export default function Portfolio() {
   return (
     <section id="portafolio" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/10 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/5 to-transparent" />
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
           eyebrow="Portafolio"
@@ -30,12 +30,12 @@ export default function Portfolio() {
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.55, delay: index * 0.1 }}
               whileHover={{ y: -8, scale: 1.01 }}
-              className="group overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/70 shadow-[0_40px_80px_-70px_rgba(0,212,255,0.25)] backdrop-blur-xl"
+              className="group overflow-hidden rounded-[2.1rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(10,10,10,0.9))] shadow-[0_40px_90px_-70px_rgba(255,255,255,0.16)] backdrop-blur-xl"
             >
-              <div className={`relative h-64 overflow-hidden bg-gradient-to-br ${visuals[index % visuals.length]}`}>
+              <div className={`relative h-72 overflow-hidden bg-gradient-to-br ${visuals[index % visuals.length]}`}>
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(0,212,255,0.18),transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.06),transparent_34%)]" />
                 <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050505] to-transparent" />
-                <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-cyan-200 backdrop-blur">
+                <div className="absolute left-6 top-6 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white/80 backdrop-blur">
                   {project.category}
                 </div>
                 <div className="absolute bottom-6 left-6 right-6 rounded-[1.25rem] border border-white/10 bg-slate-950/70 p-4 backdrop-blur">

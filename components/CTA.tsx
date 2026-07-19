@@ -30,7 +30,7 @@ export default function CTA() {
     <section id="contacto" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-cyan-400/10 to-transparent" />
       <div className="mx-auto max-w-7xl px-6">
-        <div className="rounded-[2.5rem] border border-white/10 bg-slate-950/80 p-8 shadow-[0_40px_120px_-90px_rgba(0,212,255,0.28)] backdrop-blur-xl sm:p-10">
+        <div className="rounded-[2.5rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-8 shadow-[0_40px_120px_-90px_rgba(255,255,255,0.18)] backdrop-blur-xl sm:p-10">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.28em] text-cyan-300/90">
