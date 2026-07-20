@@ -1,10 +1,11 @@
+import Image from "next/image";
 import Button from "@/components/ui/Button";
 
 const links = [
-  { label: "Servicios", href: "#servicios" },
-  { label: "Proyectos", href: "#portafolio" },
-  { label: "Proceso", href: "#proceso" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Soluciones", href: "#servicios" },
+  { label: "Casos de éxito", href: "#portafolio" },
+  { label: "Nuestra metodología", href: "#proceso" },
+  { label: "Diagnóstico", href: "#contacto" },
 ];
 
 const socialLinks = [
@@ -30,58 +31,99 @@ const socialLinks = [
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-white/10 bg-slate-950/80 py-16">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-400/10 to-transparent" />
-      <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 lg:flex-row lg:justify-between">
-        <div className="max-w-md space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-3xl bg-cyan-400/10 text-2xl text-cyan-300 shadow-[0_0_30px_rgba(0,212,255,0.15)]">A</span>
-            <div>
-              <p className="text-lg font-semibold text-white">Advibe Agencia</p>
-              <p className="text-sm text-slate-400">Marketing, IA y automatización</p>
-            </div>
-          </div>
-          <p className="text-sm leading-7 text-slate-400">
-            Creamos campañas, productos y experiencias digitales premium para marcas que quieren crecer con claridad y resultados.
+    <footer className="border-t border-white/10 bg-black py-16">
+
+      <div className="mx-auto max-w-7xl px-6 grid gap-12 lg:grid-cols-3">
+
+        <div>
+
+          <Image
+            src="/images/logo-advibe.png"
+            alt="AdVibe Agencia"
+            width={180}
+            height={55}
+            className="object-contain"
+          />
+
+          <p className="mt-6 leading-8 text-slate-400">
+            Ayudamos a empresas a crecer mediante estrategia,
+            creatividad y tecnología.
           </p>
-          <a href="https://advibe.agency" className="inline-flex text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
-            advibe.agency ↗
-          </a>
+
+          <p className="mt-6 text-sm text-slate-500">
+            Gualaceo · Azuay · Ecuador
+          </p>
+
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {links.map((link) => (
-            <a key={link.label} href={link.href} className="text-sm text-slate-300 transition hover:text-white">
-              {link.label}
-            </a>
-          ))}
+        <div>
+
+          <h3 className="text-white font-semibold">
+            Navegación
+          </h3>
+
+          <div className="mt-6 space-y-4">
+
+            {links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="block text-slate-400 hover:text-white transition"
+              >
+                {link.label}
+              </a>
+            ))}
+
+          </div>
+
         </div>
 
-        <div className="flex flex-col items-start gap-4 sm:items-end">
-          <p className="text-sm text-slate-400">+593 98 496 6335</p>
-          <p className="text-sm text-slate-400">Gualaceo, Azuay, Ecuador</p>
-          <div className="flex flex-wrap gap-3">
+        <div>
+
+          <h3 className="text-white font-semibold">
+            Hablemos
+          </h3>
+
+          <p className="mt-6 text-slate-400">
+            +593 98 496 6335
+          </p>
+
+          <p className="mt-2 text-slate-400">
+            hola@advibeagencia.com
+          </p>
+
+          <div className="mt-8 flex gap-3">
+
             {socialLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 target="_blank"
                 rel="noreferrer"
-                aria-label={link.label}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 transition hover:border-cyan-400/50 hover:bg-white/10 hover:text-white"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-300 hover:bg-white/10 transition"
               >
                 {link.icon}
               </a>
             ))}
-            <Button href="https://wa.me/593984966335?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios." variant="ghost" className="text-sm">
-              WhatsApp
-            </Button>
+
           </div>
+
+          <Button
+            href="https://wa.me/593984966335?text=Hola,%20quiero%20agendar%20un%20diagnóstico."
+            variant="primary"
+            className="mt-8"
+          >
+            Agendar diagnóstico
+          </Button>
+
         </div>
+
       </div>
-      <div className="mt-12 border-t border-white/10 pt-8 text-center text-sm text-slate-500">
-        © 2026 Advibe Agencia. Todos los derechos reservados.
+
+      <div className="mt-16 border-t border-white/10 pt-8 text-center text-sm text-slate-500">
+        © 2026 AdVibe Agencia. Todos los derechos reservados.
       </div>
+
     </footer>
   );
 }

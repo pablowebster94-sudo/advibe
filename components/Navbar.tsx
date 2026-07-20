@@ -6,9 +6,10 @@ import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 
 const navLinks = [
-  { label: "Servicios", href: "#servicios" },
-  { label: "Proyectos", href: "#portafolio" },
-  { label: "Contacto", href: "#contacto" },
+  { label: "Soluciones", href: "#servicios" },
+  { label: "Casos de éxito", href: "#portafolio" },
+  { label: "Nosotros", href: "#nosotros" },
+  { label: "Diagnóstico", href: "#contacto" },
 ];
 
 const socialLinks = [
@@ -49,12 +50,11 @@ export default function Navbar() {
       transition={{ duration: 0.45 }}
       className={`sticky top-0 z-50 border-b transition-all duration-300 ${
         scrolled
-          ? "border-white/10 bg-black/80 shadow-2xl backdrop-blur-3xl"
+          ? "border-white/10 bg-black/80 backdrop-blur-3xl shadow-2xl"
           : "border-white/10 bg-black/50 backdrop-blur-2xl"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-
         <a href="#home" className="flex items-center">
           <Image
             src="/images/logo-advibe.png"
@@ -71,7 +71,7 @@ export default function Navbar() {
             <a
               key={link.label}
               href={link.href}
-              className="text-sm font-medium text-slate-300 transition hover:text-white"
+              className="text-sm font-medium text-slate-300 transition duration-300 hover:text-white"
             >
               {link.label}
             </a>
@@ -92,19 +92,10 @@ export default function Navbar() {
             </a>
           ))}
 
-          <Button
-            href="https://wa.me/593984966335?text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios."
-            variant="ghost"
-            className="hidden sm:inline-flex"
-          >
-            WhatsApp
-          </Button>
-
           <Button href="#contacto" variant="primary">
-            Contáctanos
+            Agenda un diagnóstico
           </Button>
         </div>
-
       </div>
     </motion.header>
   );

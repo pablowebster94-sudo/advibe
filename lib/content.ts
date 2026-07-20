@@ -12,126 +12,156 @@ import type {
 } from "@/types/content";
 
 export const logos: LogoItem[] = [
-  { name: "Nexa", label: "Fintech" },
-  { name: "Atlas", label: "Retail" },
-  { name: "Eon", label: "Health" },
-  { name: "Pulse", label: "B2B" },
-  { name: "Orbit", label: "Travel" },
-  { name: "Lumen", label: "Tecnología" },
+  { name: "AM Motorsport", label: "Automotriz" },
+  { name: "Nostrum Jeans", label: "Moda" },
+  { name: "Cardagali", label: "Construcción" },
+  { name: "Unidad Educativa Santo Domingo de Guzmán", label: "Educación" },
+  { name: "Medicab", label: "Salud" },
+  { name: "Borincuba Sport & Grill", label: "Gastronomía" },
 ];
 
 export const services: ServiceItem[] = [
   {
-    title: "Meta Ads",
-    description: "Campañas escalables con creatividad, segmentación y análisis continuo para elevar el ROI.",
+    title: "Meta Ads y Adquisición de Clientes",
+    description: "Sistemas de captación diseñados con estrategia, creatividad y datos para generar crecimiento medible.",
     icon: "🚀",
     accent: "from-cyan-500/20 via-slate-900 to-slate-950",
   },
   {
-    title: "Google Ads",
-    description: "Estrategias centradas en resultados, conversiones y calidad de tráfico para cada etapa del embudo.",
-    icon: "📈",
+    title: "Producción Audiovisual",
+    description: "Contenido audiovisual con dirección creativa y estándar premium para elevar la percepción de marca.",
+    icon: "🎬",
     accent: "from-cyan-500/20 via-slate-900 to-slate-950",
   },
   {
-    title: "Inteligencia Artificial",
-    description: "Automatizamos decisiones, optimizamos audiencias y creamos experiencias predictivas.",
-    icon: "🤖",
-    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
-  },
-  {
-    title: "Automatización de procesos",
-    description: "Flujos inteligentes que reducen tareas manuales y aceleran la entrega de valor.",
-    icon: "⚙️",
+    title: "Fotografía Profesional",
+    description: "Sesiones fotográficas de alto nivel que comunican calidad y credibilidad en cada punto de contacto.",
+    icon: "📸",
     accent: "from-cyan-500/20 via-slate-900 to-slate-950",
   },
   {
     title: "Desarrollo Web",
-    description: "Plataformas en Next.js con diseño personalizado, rendimiento extremo y conversión integrada.",
+    description: "Plataformas en Next.js con diseño a medida, rendimiento extremo y conversión integrada desde el diseño.",
     icon: "🌐",
     accent: "from-cyan-500/20 via-slate-900 to-slate-950",
   },
   {
-    title: "Branding y Diseño gráfico",
-    description: "Identidades visuales modernas,óptimas para digital y experiencias coherentes de marca.",
-    icon: "🎨",
-    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
-  },
-  {
     title: "Landing Pages",
-    description: "Páginas de alto impacto enfocadas en leads, velocidad y diseño premium.",
+    description: "Páginas de alto impacto orientadas a captar leads con velocidad, claridad y diseño premium.",
     icon: "📄",
     accent: "from-cyan-500/20 via-slate-900 to-slate-950",
   },
   {
-    title: "Community Management",
-    description: "Estrategias sociales con contenido poderoso y conversaciones que generan confianza.",
+    title: "Branding e Identidad Visual",
+    description: "Sistemas de marca coherentes que posicionan a la empresa como una opción premium en su categoría.",
+    icon: "🎨",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "Gestión Estratégica de Redes Sociales",
+    description: "Manejo profesional de redes con contenido que construye autoridad y conversación real con la audiencia.",
     icon: "💬",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "Inteligencia Artificial",
+    description: "Integramos IA en procesos de venta y atención para tomar mejores decisiones y escalar sin fricción.",
+    icon: "🤖",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "Automatización",
+    description: "Flujos inteligentes que eliminan tareas manuales y aceleran cada etapa del proceso comercial.",
+    icon: "⚙️",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "CRM",
+    description: "Infraestructura comercial para organizar prospectos, automatizar el seguimiento y aumentar la conversión de oportunidades de negocio.",
+    icon: "📊",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "Chatbots",
+    description: "Automatizamos conversaciones mediante inteligencia artificial para responder, calificar prospectos y acelerar el proceso comercial.",
+    icon: "🤝",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "Cobertura de Eventos",
+    description: "Registro audiovisual profesional de eventos corporativos y sociales con entrega ágil y de alta calidad.",
+    icon: "🎥",
+    accent: "from-cyan-500/20 via-slate-900 to-slate-950",
+  },
+  {
+    title: "Consultoría Estratégica",
+    description: "Diagnóstico y planificación para empresas que buscan crecer con decisiones basadas en estrategia, datos y tecnología.",
+    icon: "🧭",
     accent: "from-cyan-500/20 via-slate-900 to-slate-950",
   },
 ];
 
 export const stats: StatItem[] = [
-  { value: "+50", label: "Marcas atendidas" },
-  { value: "Ecuador + USA", label: "Campañas activas en dos mercados" },
-  { value: "$0.17", label: "Conversaciones desde" },
-  { value: "+70", label: "Conversaciones generadas en campañas" },
+  { value: "+50", label: "Empresas atendidas" },
+  { value: "Ecuador + EE. UU.", label: "Presencia en dos mercados" },
+  { value: "9+", label: "Sectores atendidos" },
+  { value: "360°", label: "Sistemas de crecimiento" },
 ];
 
 export const workflow: WorkflowItem[] = [
   {
     step: "01",
-    title: "Diagnóstico de marca",
-    description: "Analizamos tu posicionamiento, activos actuales y oportunidad digital.",
+    title: "Diagnóstico estratégico",
+    description: "Analizamos tu marca, tu mercado y tus procesos actuales para identificar el camino de crecimiento más claro.",
   },
   {
     step: "02",
-    title: "Estrategia personalizada",
-    description: "Diseñamos un plan creativo, técnico y de automatización para generar confianza.",
+    title: "Diseño del sistema",
+    description: "Construimos una estrategia integral que conecta creatividad, tecnología y automatización con tus objetivos de negocio.",
   },
   {
     step: "03",
-    title: "Entrega y optimización",
-    description: "Implementamos, iteramos y escalamos con métricas claras y comunicación constante.",
+    title: "Optimización Continua",
+    description: "Medimos, analizamos y optimizamos continuamente cada estrategia para convertir los resultados iniciales en un crecimiento sostenido.",
   },
 ];
 
 export const portfolio: PortfolioItem[] = [
   {
-    title: "Ecommerce premium para tecnología",
-    category: "UX + Performance",
-    highlight: "Lanzamiento con 40% más conversiones en 45 días.",
+    title: "AM Motorsport",
+    category: "Meta Ads + Producción Audiovisual",
+    highlight: "Sistema de campañas y contenido para fortalecer la marca en el sector automotriz.",
   },
   {
-    title: "Automatización B2B para ventas",
-    category: "IA & CRM",
-    highlight: "Reducción de gestión manual en un 75%.",
+    title: "Nostrum Jeans",
+    category: "Desarrollo Web + Meta Ads",
+    highlight: "Catálogo digital y campañas de mensajería para impulsar conversaciones de venta.",
   },
   {
-    title: "Campaña de marca para producto SaaS",
-    category: "Paid Media",
-    highlight: "Crecimiento de leads calificados con costo por adquisición optimizado.",
+    title: "Unidad Educativa Santo Domingo de Guzmán",
+    category: "Branding + Community Manager",
+    highlight: "Presencia digital premium para reforzar la autoridad institucional.",
   },
 ];
 
 export const caseStudies: CaseStudyItem[] = [
   {
     title: "Educación",
-    metric: "+38%",
-    result: "Captación de leads y mayor presencia institucional.",
-    description: "Diseñamos una narrativa premium para academias y escuelas con foco en confianza, conversión y claridad de mensaje.",
+    metric: "Más contacto cualificado",
+    result: "Mayor captación de leads y presencia institucional premium.",
+    description: "Diseñamos una narrativa clara para instituciones educativas, con foco en confianza, conversión y posicionamiento de marca.",
   },
   {
     title: "Automotriz",
-    metric: "+24%",
-    result: "Mejor rendimiento de campañas y más oportunidades de contacto.",
-    description: "Creamos experiencias de comunicación orientadas a acción, posicionamiento y seguimiento comercial.",
+    metric: "Mejor rendimiento comercial",
+    result: "Más oportunidades de contacto y seguimiento comercial estructurado.",
+    description: "Integramos campañas, contenido audiovisual y automatización para generar más oportunidades de negocio.",
   },
   {
-    title: "Construcción e inmobiliario",
-    metric: "+31%",
-    result: "Más consultas y mayor autoridad de marca para negocios locales y regionales.",
-    description: "Unimos branding, web y campañas para fortalecer credibilidad y acelerar oportunidades de negocio.",
+    title: "Moda y comercio",
+    metric: "Crecimiento sostenido",
+    result: "Más conversaciones de venta a través de canales digitales.",
+    description: "Combinamos desarrollo web, campañas y automatización para acelerar el proceso de compra del cliente.",
   },
 ];
 
@@ -139,11 +169,9 @@ export const clientGroups: ClientGroupItem[] = [
   {
     sector: "Educación",
     clients: [
-      "High School Centro de Idiomas",
       "Unidad Educativa Santo Domingo de Guzmán",
-      "Centro Infantil Chiquititos",
       "United Kingdom English Academy",
-      "Centro de Capacitaciones América (antes Centro de Especialidades América)",
+      "CETAD San Lucas",
     ],
   },
   {
@@ -151,131 +179,107 @@ export const clientGroups: ClientGroupItem[] = [
     clients: ["AM Motorsport"],
   },
   {
-    sector: "Construcción e inmobiliario",
-    clients: [
-      "Constructora Cardagali",
-      "Gonzaga Professional Builders (USA)",
-      "G3L Handyman Solutions (USA)",
-      "Gabriel Garrido Handyman (USA)",
-      "A.V. Renew Pressure & Greenscape Designs (USA)",
-      "Verónica López Arquitectura",
-    ],
+    sector: "Moda y comercio",
+    clients: ["Nostrum Jeans"],
   },
   {
-    sector: "Gastronomía",
-    clients: [
-      "Bears Burger",
-      "Borincuba Sport & Grill",
-      "La Trinidad Restaurante",
-      "Santiago Cruz Restaurante",
-      "Bocabell",
-      "La Hueca de la Larga",
-      "GastroFest Guala",
-      "Balneario Los Marios",
-      "Golosinas Don Pepe",
-    ],
-  },
-  {
-    sector: "Salud",
-    clients: ["Medicab Consultorio Médico", "CETAD San Lucas", "Carla Molina Odontología", "MediDent"],
+    sector: "Muebles y retail",
+    clients: ["Muebles Ideal"],
   },
   {
     sector: "Deportes",
-    clients: ["Liga Deportiva Cantonal de Chordeleg", "Club Formativo Santa Bárbara"],
+    clients: ["Pikchus FC", "Liga Deportiva Cantonal de Chordeleg"],
   },
   {
-    sector: "Centros comerciales",
-    clients: ["Nova Plaza Centro Comercial", "Multiplaza Serrano"],
+    sector: "Construcción e Inmobiliario",
+    clients: ["Constructora Cardagali", "Verónica López Arquitectura"],
   },
   {
-    sector: "Moda y comercio",
-    clients: ["Nostrum Jeans", "ShopFast"],
+    sector: "Salud",
+    clients: ["Medicab"],
   },
   {
-    sector: "Marca personal",
-    clients: ["Paola Miguitama", "Byron Galarza Psicoterapia Integral"],
+    sector: "Gastronomía",
+    clients: ["Borincuba Sport & Grill", "La Trinidad Restaurante", "Bocabell"],
   },
 ];
 
 export const caseStudyGroups: CaseStudyGroupItem[] = [
   {
     sector: "Educación",
-    title: "Escuelas y academias con presencia premium",
-    metric: "+38%",
-    result: "Más contacto cualificado y mejor autoridad de marca.",
-    description: "Diseñamos mensajes, identidad y experiencias digitales que elevan la percepción premium de cada institución.",
-    clients: ["High School Centro de Idiomas", "United Kingdom English Academy"],
+    title: "Instituciones con presencia premium",
+    metric: "Más contacto cualificado",
+    result: "Mayor autoridad de marca y captación de leads institucionales.",
+    description: "Diseñamos identidad, contenido y estrategia digital para instituciones educativas que buscan proyectar confianza y prestigio.",
+    clients: ["Unidad Educativa Santo Domingo de Guzmán", "United Kingdom English Academy"],
   },
   {
     sector: "Automotriz",
     title: "Marcas que convierten con claridad",
-    metric: "+24%",
-    result: "Mejor rendimiento de campañas y seguimiento comercial.",
-    description: "Integramos creatividad publicitaria, páginas de alto impacto y automatización para generar más oportunidades.",
+    metric: "Mejor rendimiento comercial",
+    result: "Más oportunidades de contacto y seguimiento estructurado.",
+    description: "Integramos campañas publicitarias, producción audiovisual y automatización para generar oportunidades reales de negocio.",
     clients: ["AM Motorsport"],
   },
   {
-    sector: "Construcción e inmobiliario",
-    title: "Negocios que transmiten confianza",
-    metric: "+31%",
-    result: "Más consultas y mayor autoridad de marca en mercados competitivos.",
-    description: "Creamos una presencia digital sólida y elegante para negocios que necesitan demostrar experiencia real.",
-    clients: ["Constructora Cardagali", "Verónica López Arquitectura"],
+    sector: "Moda y comercio",
+    title: "Marcas que venden a través de conversaciones",
+    metric: "Crecimiento sostenido",
+    result: "Más conversaciones de venta y catálogo digital activo.",
+    description: "Unimos desarrollo web, Meta Ads y automatización de WhatsApp para acortar el camino entre el interés y la compra.",
+    clients: ["Nostrum Jeans"],
   },
   {
-    sector: "Gastronomía",
-    title: "Experiencias que se recuerdan",
-    metric: "+27%",
-    result: "Más demanda, mejor interacción y mayor recordación de marca.",
-    description: "Combinamos branding visual, campañas y páginas diseñadas para impulsar reservas, pedidos y fidelización.",
-    clients: ["Bears Burger", "La Trinidad Restaurante"],
+    sector: "Deportes",
+    title: "Instituciones deportivas con presencia digital",
+    metric: "Mayor visibilidad",
+    result: "Comunidad más activa y presencia digital consistente.",
+    description: "Desarrollamos estrategias de contenido y comunicación para fortalecer la identidad de clubes y ligas deportivas.",
+    clients: ["Pikchus FC", "Liga Deportiva Cantonal de Chordeleg"],
   },
   {
     sector: "Salud",
-    title: "Especialistas con presencia humana y premium",
-    metric: "+19%",
-    result: "Más consultas y un tono más cercano y profesional.",
-    description: "Unimos estrategia de contenidos y diseño para reforzar confianza, credibilidad y conversión local.",
-    clients: ["Medicab Consultorio Médico", "MediDent"],
+    title: "Especialistas con presencia confiable",
+    metric: "Más consultas",
+    result: "Mayor cercanía y credibilidad frente a nuevos pacientes.",
+    description: "Reforzamos la comunicación digital de consultorios y clínicas con un enfoque profesional y humano.",
+    clients: ["Medicab"],
   },
 ];
 
-export const testimonials: TestimonialItem[] = [
-  {
-    quote: "AdVibe transformó nuestra comunicación digital con ideas estratégicas y ejecución impecable.",
-    name: "Sofía Ramírez",
-    role: "CEO",
-    company: "Lumina Labs",
-  },
-  {
-    quote: "Su enfoque en IA y automatización nos dio claridad y velocidad para escalar rápido.",
-    name: "Martín Delgado",
-    role: "Director de Marketing",
-    company: "Nebula Retail",
-  },
-  {
-    quote: "Cada proyecto se sintió premium: diseño, resultados y coordinación de primer nivel.",
-    name: "Camila Torres",
-    role: "Fundadora",
-    company: "Pulse Studio",
-  },
-];
+export const testimonials: TestimonialItem[] = [];
 
 export const faq: FaqItem[] = [
   {
-    question: "¿Cómo empieza un proyecto con AdVibe?",
-    answer: "Iniciamos con una reunión de diagnóstico para entender tus objetivos, audiencias y desafíos.",
+    question: "¿Qué diferencia a AdVibe de una agencia de marketing tradicional?",
+    answer: "No vendemos servicios sueltos, diseñamos sistemas de crecimiento que integran estrategia, creatividad, tecnología y automatización para generar resultados sostenibles.",
   },
   {
-    question: "¿Qué resultados puedo esperar?",
-    answer: "Trabajamos con metas medibles: conversiones, leads calificados, eficiencia operativa y presencia premium.",
+    question: "¿Cómo se inicia un proyecto con AdVibe?",
+    answer: "Con un diagnóstico estratégico de tu marca, tu mercado y tus procesos actuales, para diseñar un plan de crecimiento adaptado a tus objetivos.",
   },
   {
-    question: "¿Ofrecen soporte después del lanzamiento?",
-    answer: "Sí, mantenemos optimizaciones continuas y acompañamiento estratégico con informes claros.",
+    question: "¿Trabajan con empresas fuera de Ecuador?",
+    answer: "Sí, operamos con clientes en Ecuador y Estados Unidos, adaptando cada estrategia al mercado y la audiencia correspondiente.",
   },
   {
-    question: "¿Integran WhatsApp y chatbots?",
-    answer: "Claro: diseñamos flujos conversacionales y automatizaciones para generar contacto directo y ventas.",
+    question: "¿Qué resultados puedo esperar al trabajar con AdVibe?",
+    answer: "Trabajamos con objetivos claros: más leads calificados, más ventas, procesos más eficientes y una marca con posicionamiento premium.",
+  },
+  {
+    question: "¿Cómo se integra la inteligencia artificial en las estrategias?",
+    answer: "Usamos IA para automatizar conversaciones de venta, calificar leads y optimizar decisiones dentro de las campañas y el proceso comercial.",
+  },
+  {
+    question: "¿Ofrecen acompañamiento después del lanzamiento?",
+    answer: "Sí, damos seguimiento continuo con optimización constante, reportes claros y una relación de socio estratégico, no de proveedor puntual.",
+  },
+  {
+    question: "¿Incluyen automatización de WhatsApp y CRM?",
+    answer: "Sí, diseñamos sistemas de chatbots y CRM que ordenan el proceso comercial y aceleran la conversión de cada conversación en venta.",
+  },
+  {
+    question: "¿Trabajan con empresas pequeñas o grandes?",
+    answer: "Trabajamos con empresas que buscan crecer. Adaptamos cada estrategia al tamaño, objetivos y etapa de cada negocio.",
   },
 ];

@@ -6,34 +6,63 @@ import SectionHeading from "@/components/ui/SectionHeading";
 
 export default function Stats() {
   return (
-    <section id="resultados" className="relative overflow-hidden py-16 sm:py-20">
+    <section
+      id="resultados"
+      className="relative overflow-hidden py-20 sm:py-24 lg:py-28"
+    >
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
-          eyebrow="Resultados"
-          title="Estrategia, ejecución y crecimiento en una sola agencia."
-          description="Cada proyecto combina visión, tecnología y performance para generar resultados medibles y una presencia de alto impacto."
+          eyebrow="Nuestra Experiencia"
+          title="Resultados construidos junto a empresas de diferentes sectores."
+          description="Cada proyecto representa una estrategia diseñada para atraer clientes, fortalecer marcas y generar crecimiento sostenible mediante creatividad, tecnología y datos."
         />
 
-        <div className="mt-12 rounded-[2.2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-8 shadow-[0_35px_90px_-70px_rgba(255,255,255,0.16)] sm:p-10">
+        <div className="mt-16 rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(10,10,10,0.90))] p-10 backdrop-blur-xl">
+
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.45, delay: index * 0.08 }}
-                className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-6"
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.45,
+                  delay: index * 0.08,
+                }}
+                whileHover={{
+                  y: -6,
+                }}
+                className="rounded-[1.5rem] border border-white/10 bg-black/40 p-8 transition-all duration-500 hover:border-cyan-400/30 hover:shadow-[0_20px_60px_-25px_rgba(0,212,255,0.18)]"
               >
-                <p className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{stat.value}</p>
-                <p className="mt-3 text-sm text-slate-400">{stat.label}</p>
+                <h3 className="text-4xl font-bold text-white">
+                  {stat.value}
+                </h3>
+
+                <p className="mt-4 leading-7 text-slate-300">
+                  {stat.label}
+                </p>
               </motion.div>
             ))}
+
           </div>
-          <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/5 p-6 text-sm text-slate-300 sm:flex sm:items-center sm:justify-between">
-            <p>Meta Ads + Desarrollo Web + Automatización IA</p>
-            <p className="mt-2 text-cyan-300 sm:mt-0">Estrategia, ejecución y crecimiento en una sola agencia</p>
+
+          <div className="mt-10 rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/5 p-8">
+
+            <h3 className="text-2xl font-semibold text-white">
+              Más que marketing, construimos sistemas de crecimiento.
+            </h3>
+
+            <p className="mt-4 max-w-4xl leading-8 text-slate-300">
+              Integramos estrategia, Meta Ads, producción audiovisual,
+              desarrollo web, inteligencia artificial y automatización para
+              ayudar a las empresas a vender más, optimizar procesos y
+              fortalecer su presencia digital.
+            </p>
+
           </div>
+
         </div>
       </div>
     </section>
