@@ -2,28 +2,11 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = `Eres Vibe, el asistente digital de AdVibe Agencia, una agencia de marketing, IA y automatización con sede en Ecuador.
-
-Objetivos:
-1. Diagnosticar brevemente la situación digital del visitante.
-2. Identificar 2-3 oportunidades de crecimiento concretas.
-3. Recomendar un diagnóstico gratuito con el equipo de AdVibe.
-
-Reglas:
-- Español latinoamericano, profesional, cercano y directo.
-- Haz UNA pregunta a la vez.
-- Máximo 3 oraciones por respuesta, salvo una lista breve cuando sea útil.
-- Prioriza leads, conversión, CAC, ROAS, velocidad de respuesta y automatización.
-- No solicites teléfono, correo, dirección ni otros datos personales.
-- Flujo ideal: industria -> principal reto -> diagnóstico -> invitación al diagnóstico gratuito.
-- No inventes métricas ni prometas resultados garantizados. Si faltan datos, dilo claramente.
-- No afirmes que AdVibe logró un resultado específico salvo que el usuario proporcione ese dato.`;
-
 type ChatMessage = { role: "assistant" | "user"; content: string };
-
 type RateEntry = { count: number; resetAt: number };
+
 const rateLimit = new Map<string, RateEntry>();
-const RATE_LIMIT = 12;
+const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 60_000;
 
 function isValidMessage(value: unknown): value is ChatMessage {
@@ -54,10 +37,34 @@ function isRateLimited(key: string) {
   return false;
 }
 
-export async function POST(request: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "La IA no está configurada." }, { status: 503 });
+function replyFor(messages: ChatMessage[]) {
+  const latest = messages.filter((message) => message.role === "user").at(-1)?.content.toLowerCase() || "";
+  const previousUserMessages = messages.filter((message) => message.role === "user").length;
 
+  if (previousUserMessages <= 1) {
+    return "Perfecto. ¿Cuál es hoy el principal reto de tu negocio: conseguir más clientes, convertir mejor los que ya llegan o automatizar procesos?";
+  }
+
+  if (/(cliente|clientes|ventas|venta|lead|prospect|captar|captación|marketing|publicidad|ads|anuncio)/i.test(latest)) {
+    return "Ahí hay una oportunidad clara de trabajar adquisición y conversión. Podemos revisar tu presencia digital, tus campañas y el recorrido hasta WhatsApp para detectar dónde se están perdiendo oportunidades. ¿Actualmente estás invirtiendo en publicidad digital?";
+  }
+
+  if (/(automat|crm|whatsapp|respuesta|bot|chat|ia|inteligencia)/i.test(latest)) {
+    return "La automatización puede ayudarte especialmente en seguimiento y velocidad de respuesta. AdVibe puede diseñar ese flujo sin quitarle el componente humano a la venta. ¿Qué proceso repites manualmente con más frecuencia?";
+  }
+
+  if (/(web|página|sitio|website|redes|instagram|facebook|contenido|video|marca|branding)/i.test(latest)) {
+    return "Podemos convertir esos activos digitales en un sistema comercial más coherente: contenido para atraer, una web para convertir y automatización para dar seguimiento. ¿Qué canal te está generando hoy más consultas?";
+  }
+
+  if (previousUserMessages >= 3) {
+    return "Con lo que me cuentas ya podemos hacer una primera lectura. El siguiente paso es un diagnóstico gratuito con el equipo de AdVibe para priorizar oportunidades y definir qué conviene implementar primero. Puedes solicitarlo aquí: https://www.advibeagencia.com/#diagnostico";
+  }
+
+  return "Entiendo. Para orientarte mejor, cuéntame un poco más sobre el objetivo que quieres conseguir y qué has probado hasta ahora.";
+}
+
+export async function POST(request: Request) {
   if (isRateLimited(getClientKey(request))) {
     return NextResponse.json(
       { error: "Demasiadas solicitudes. Inténtalo nuevamente en un minuto." },
@@ -73,38 +80,7 @@ export async function POST(request: Request) {
     }
 
     const messages: ChatMessage[] = rawMessages;
-    const upstream = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
-        max_tokens: 500,
-        system: SYSTEM_PROMPT,
-        messages: messages.map((message: ChatMessage) => ({ role: message.role, content: message.content.trim() })),
-      }),
-      cache: "no-store",
-    });
-
-    const data = await upstream.json();
-    if (!upstream.ok) {
-      console.error("Anthropic API error", data);
-      return NextResponse.json({ error: "No fue posible generar una respuesta." }, { status: 502 });
-    }
-
-    const reply = Array.isArray(data?.content)
-      ? data.content
-          .filter((block: { type?: string }) => block?.type === "text")
-          .map((block: { text?: string }) => block.text || "")
-          .join("\n")
-          .trim()
-      : "";
-
-    if (!reply) return NextResponse.json({ error: "La IA no devolvió una respuesta válida." }, { status: 502 });
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply: replyFor(messages) });
   } catch (error) {
     console.error("Chat route error", error);
     return NextResponse.json({ error: "Error procesando la conversación." }, { status: 500 });
