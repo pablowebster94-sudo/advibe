@@ -1,92 +1,91 @@
-import type {
-  LogoItem,
-  ServiceItem,
-  StatItem,
-  WorkflowItem,
-  PortfolioItem,
-  CaseStudyItem,
-  ClientGroupItem,
-  CaseStudyGroupItem,
-  TestimonialItem,
-  FaqItem,
-} from "@/types/content";
+import type { LogoItem, ServiceItem, StatItem, WorkflowItem, PortfolioItem, CaseStudyItem, ClientGroupItem, CaseStudyGroupItem, TestimonialItem, FaqItem } from "@/types/content";
 
 export const logos: LogoItem[] = [
   { name: "AM Motorsport", label: "Automotriz" },
   { name: "United Kingdom English Academy", label: "Educación" },
-  { name: "Cardagali", label: "Construcción" },
-  { name: "Medicab", label: "Salud" },
+  { name: "CETAD San Lucas", label: "Salud" },
+  { name: "Paola Migitama", label: "Marca personal" },
+  { name: "Medident", label: "Salud" },
+  { name: "Ballerina", label: "Educación" },
+  { name: "Bocabell", label: "Gastronomía" },
   { name: "Borincuba Sport & Grill", label: "Gastronomía" },
-  { name: "Constructora Cardagali", label: "Inmobiliario" },
+  { name: "G3L Handyman Solutions", label: "Servicios" },
+  { name: "Gastro Fest", label: "Eventos" },
+  { name: "Liga Chorde", label: "Deportes" },
+  { name: "Chiquititos", label: "Educación" },
+  { name: "El Sabor Mexicano", label: "Gastronomía" },
+  { name: "Celebraciones y Detalles", label: "Eventos" },
+  { name: "Nostrum", label: "Salud" },
+  { name: "Unidad Educativa Santo Domingo", label: "Educación" },
 ];
 
 export const services: ServiceItem[] = [
-  { title: "Meta Ads y Adquisición de Clientes", description: "Sistemas de captación diseñados con estrategia, creatividad y datos para generar crecimiento medible.", icon: "01", accent: "from-blue-500/20 via-slate-950 to-violet-950/20" },
-  { title: "Producción Audiovisual", description: "Contenido audiovisual con dirección creativa y estándar premium para elevar la percepción de marca.", icon: "02", accent: "from-violet-500/20 via-slate-950 to-blue-950/20" },
-  { title: "Fotografía Profesional", description: "Sesiones fotográficas de alto nivel que comunican calidad y credibilidad en cada punto de contacto.", icon: "03", accent: "from-cyan-500/15 via-slate-950 to-blue-950/20" },
-  { title: "Desarrollo Web", description: "Plataformas en Next.js con diseño a medida, rendimiento extremo y conversión integrada desde el diseño.", icon: "04", accent: "from-blue-500/20 via-slate-950 to-cyan-950/20" },
-  { title: "Landing Pages", description: "Páginas de alto impacto orientadas a captar leads con velocidad, claridad y diseño premium.", icon: "05", accent: "from-indigo-500/20 via-slate-950 to-violet-950/20" },
-  { title: "Branding e Identidad Visual", description: "Sistemas de marca coherentes que posicionan a la empresa como una opción premium en su categoría.", icon: "06", accent: "from-violet-500/20 via-slate-950 to-fuchsia-950/20" },
-  { title: "Gestión Estratégica de Redes Sociales", description: "Manejo profesional de redes con contenido que construye autoridad y conversación real con la audiencia.", icon: "07", accent: "from-cyan-500/15 via-slate-950 to-indigo-950/20" },
-  { title: "Inteligencia Artificial", description: "Integramos IA en procesos de venta y atención para tomar mejores decisiones y escalar sin fricción.", icon: "08", accent: "from-blue-500/20 via-slate-950 to-violet-950/20" },
-  { title: "Automatización", description: "Flujos inteligentes que eliminan tareas manuales y aceleran cada etapa del proceso comercial.", icon: "09", accent: "from-violet-500/20 via-slate-950 to-blue-950/20" },
-  { title: "CRM", description: "Infraestructura comercial para organizar prospectos, automatizar el seguimiento y aumentar la conversión de oportunidades de negocio.", icon: "10", accent: "from-cyan-500/15 via-slate-950 to-blue-950/20" },
-  { title: "Chatbots", description: "Automatizamos conversaciones mediante inteligencia artificial para responder, calificar prospectos y acelerar el proceso comercial.", icon: "11", accent: "from-blue-500/20 via-slate-950 to-indigo-950/20" },
-  { title: "Cobertura de Eventos", description: "Registro audiovisual profesional de eventos corporativos y sociales con entrega ágil y de alta calidad.", icon: "12", accent: "from-violet-500/20 via-slate-950 to-cyan-950/20" },
-  { title: "Consultoría Estratégica", description: "Diagnóstico y planificación para empresas que buscan crecer con decisiones basadas en estrategia, datos y tecnología.", icon: "13", accent: "from-blue-500/20 via-slate-950 to-violet-950/20" },
+  { title: "Meta Ads y Adquisición de Clientes", description: "Campañas publicitarias orientadas a generar mensajes, leads y oportunidades comerciales.", icon: "Publicidad", accent: "from-blue-500/20 via-slate-950 to-cyan-950/20" },
+  { title: "Producción Audiovisual", description: "Contenido audiovisual con dirección creativa y estándar premium para comunicar mejor lo que hace tu negocio.", icon: "Contenido", accent: "from-cyan-500/20 via-slate-950 to-teal-950/20" },
+  { title: "Fotografía Profesional", description: "Fotografía pensada para mostrar productos, servicios, espacios y personas con una presentación profesional.", icon: "Fotografía", accent: "from-violet-500/20 via-slate-950 to-blue-950/20" },
+  { title: "Desarrollo Web", description: "Sitios web rápidos, modernos y orientados a presentar la propuesta de valor y convertir visitas en oportunidades.", icon: "Web", accent: "from-blue-500/20 via-slate-950 to-cyan-950/20" },
+  { title: "Landing Pages", description: "Páginas de alto impacto enfocadas en campañas, captación de leads y conversión.", icon: "Conversión", accent: "from-indigo-500/20 via-slate-950 to-violet-950/20" },
+  { title: "Branding e Identidad Visual", description: "Diseño de identidad visual y piezas de marca cuando el proyecto necesita construir o renovar su presencia.", icon: "Identidad", accent: "from-violet-500/20 via-slate-950 to-fuchsia-950/20" },
+  { title: "Gestión Estratégica de Redes Sociales", description: "Contenido y planificación para mantener una comunicación constante, profesional y alineada con los objetivos del negocio.", icon: "Social", accent: "from-cyan-500/20 via-slate-950 to-indigo-950/20" },
+  { title: "Inteligencia Artificial", description: "Aplicaciones de IA para apoyar atención, análisis, creación de contenido y procesos comerciales.", icon: "IA", accent: "from-blue-500/20 via-slate-950 to-violet-950/20" },
+  { title: "Automatización", description: "Flujos que reducen tareas repetitivas y ayudan a responder y dar seguimiento a oportunidades con mayor velocidad.", icon: "Procesos", accent: "from-violet-500/20 via-slate-950 to-blue-950/20" },
+  { title: "CRM", description: "Organización y seguimiento de prospectos para que las oportunidades no se pierdan después de recibir un mensaje o lead.", icon: "Ventas", accent: "from-cyan-500/20 via-slate-950 to-blue-950/20" },
+  { title: "Chatbots", description: "Conversaciones automatizadas para responder preguntas frecuentes y orientar a los prospectos hacia el siguiente paso.", icon: "Atención", accent: "from-blue-500/20 via-slate-950 to-indigo-950/20" },
+  { title: "Cobertura de Eventos", description: "Registro audiovisual profesional de eventos corporativos y sociales con entrega ágil y de alta calidad.", icon: "Eventos", accent: "from-violet-500/20 via-slate-950 to-cyan-950/20" },
+  { title: "Consultoría Estratégica", description: "Diagnóstico y planificación para empresas que necesitan ordenar su comunicación, captación y presencia digital.", icon: "Estrategia", accent: "from-blue-500/20 via-slate-950 to-violet-950/20" },
 ];
 
 export const stats: StatItem[] = [
   { value: "+50", label: "Empresas atendidas" },
   { value: "Ecuador + EE. UU.", label: "Mercados" },
   { value: "9+", label: "Sectores" },
-  { value: "360°", label: "Sistema de crecimiento" },
+  { value: "360°", label: "Soluciones digitales" },
 ];
 
 export const workflow: WorkflowItem[] = [
-  { step: "01", title: "Diagnóstico estratégico", description: "Analizamos tu marca, tu mercado y tus procesos actuales para identificar el camino de crecimiento más claro." },
-  { step: "02", title: "Diseño del sistema", description: "Construimos una estrategia integral que conecta creatividad, tecnología y automatización con tus objetivos de negocio." },
-  { step: "03", title: "Optimización continua", description: "Medimos, analizamos y optimizamos continuamente cada estrategia para convertir los resultados iniciales en crecimiento sostenido." },
+  { step: "01", title: "Diagnóstico estratégico", description: "Analizamos tu situación actual para identificar qué acciones tienen más sentido para tu negocio." },
+  { step: "02", title: "Producción y ejecución", description: "Creamos contenido, campañas y activos digitales según los objetivos definidos." },
+  { step: "03", title: "Optimización continua", description: "Medimos mensajes, leads, campañas y contenido para mejorar lo que funciona y corregir lo que no." },
 ];
 
 export const portfolio: PortfolioItem[] = [
-  { title: "AM Motorsport", category: "Automotriz · Meta Ads + Audiovisual", highlight: "Contenido, campañas y estrategia comercial para una marca automotriz que necesita convertir atención en oportunidades reales." },
-  { title: "United Kingdom English Academy", category: "Educación · Meta Ads + Contenido", highlight: "Comunicación digital orientada a captar estudiantes y comunicar una propuesta educativa clara, cercana y confiable." },
-  { title: "Constructora Cardagali", category: "Construcción · Marca + Digital", highlight: "Presencia digital diseñada para comunicar confianza, profesionalismo y valor en proyectos de construcción." },
+  { title: "AM Motorsport", category: "Automotriz · Contenido + Publicidad", highlight: "Producción de contenido audiovisual y campañas publicitarias enfocadas en generar mensajes, leads y oportunidades de venta." },
+  { title: "United Kingdom English Academy", category: "Educación · Contenido + Meta Ads", highlight: "Creación de contenido y campañas publicitarias para comunicar la oferta educativa y generar consultas de potenciales estudiantes." },
+  { title: "CETAD San Lucas", category: "Salud · Branding + Contenido + Publicidad", highlight: "Diseño del logo e identidad visual, además de contenido y campañas orientadas a generar mensajes y leads durante las etapas de trabajo." },
+  { title: "Paola Migitama", category: "Marca personal · Contenido + Publicidad", highlight: "Desarrollo de contenido y apoyo publicitario para fortalecer la comunicación digital y generar oportunidades comerciales." },
 ];
 
 export const caseStudies: CaseStudyItem[] = [
-  { title: "Educación", metric: "Más claridad comercial", result: "Una propuesta educativa más fácil de entender y convertir.", description: "Construimos narrativas y campañas que conectan la propuesta de valor con las necesidades reales de estudiantes y familias." },
-  { title: "Automotriz", metric: "Más oportunidades", result: "Contenido y campañas alineados con el proceso comercial.", description: "Integramos producción audiovisual, publicidad y seguimiento para que la atención se convierta en conversaciones de venta." },
-  { title: "Construcción", metric: "Más autoridad", result: "Una presencia digital a la altura del negocio.", description: "Ordenamos identidad, comunicación y experiencia digital para transmitir confianza desde el primer contacto." },
+  { title: "Educación", metric: "Contenido + campañas", result: "Comunicación digital enfocada en generar consultas.", description: "Para United Kingdom English Academy trabajamos contenido y campañas publicitarias orientadas a comunicar su oferta educativa y atraer potenciales estudiantes." },
+  { title: "Automotriz", metric: "Contenido + leads", result: "Creatividades y campañas para generar conversaciones de venta.", description: "En AM Motorsport desarrollamos contenido audiovisual y campañas publicitarias enfocadas en mensajes, leads y oportunidades comerciales." },
+  { title: "Salud", metric: "Branding + campañas", result: "Identidad y comunicación digital para una institución de salud.", description: "En CETAD San Lucas realizamos el logo e identidad visual y posteriormente trabajamos contenido, mensajes y generación de leads durante distintas etapas de colaboración." },
 ];
 
 export const clientGroups: ClientGroupItem[] = [
-  { sector: "Educación", clients: ["United Kingdom English Academy", "CETAD San Lucas"] },
+  { sector: "Educación", clients: ["United Kingdom English Academy", "Ballerina", "Chiquititos", "Unidad Educativa Santo Domingo"] },
   { sector: "Automotriz", clients: ["AM Motorsport"] },
-  { sector: "Construcción e inmobiliario", clients: ["Constructora Cardagali", "Verónica López Arquitectura", "Muebles Ideal"] },
-  { sector: "Deportes", clients: ["Pikchus FC", "Liga Deportiva Cantonal de Chordeleg"] },
-  { sector: "Salud", clients: ["Medicab"] },
-  { sector: "Gastronomía", clients: ["Borincuba Sport & Grill", "La Trinidad Restaurante", "Bocabell"] },
+  { sector: "Salud", clients: ["CETAD San Lucas", "Medident", "Nostrum"] },
+  { sector: "Marca personal", clients: ["Paola Migitama"] },
+  { sector: "Deportes", clients: ["Liga Chorde"] },
+  { sector: "Gastronomía", clients: ["Borincuba Sport & Grill", "Bocabell", "El Sabor Mexicano"] },
 ];
 
 export const caseStudyGroups: CaseStudyGroupItem[] = [
-  { sector: "Educación", title: "Marcas educativas que inspiran confianza", metric: "Claridad + conversión", result: "Una comunicación más clara para captar y orientar nuevos estudiantes.", description: "Estrategia, contenido y campañas pensadas para comunicar valor educativo sin perder cercanía.", clients: ["United Kingdom English Academy"] },
-  { sector: "Automotriz", title: "Atención que se convierte en oportunidad", metric: "Contenido + adquisición", result: "Campañas y piezas audiovisuales alineadas con el proceso comercial.", description: "Integramos creatividad, Meta Ads y seguimiento para generar conversaciones con intención de compra.", clients: ["AM Motorsport"] },
-  { sector: "Construcción e inmobiliario", title: "Presencia digital que transmite valor", metric: "Marca + experiencia", result: "Mayor claridad y autoridad desde el primer punto de contacto.", description: "Construimos una presencia digital profesional para negocios donde la confianza es parte esencial de la decisión.", clients: ["Constructora Cardagali", "Verónica López Arquitectura"] },
-  { sector: "Deportes", title: "Comunidades con identidad digital", metric: "Visibilidad + comunidad", result: "Una comunicación más consistente y reconocible.", description: "Contenido y estrategia para fortalecer identidad, participación y presencia digital.", clients: ["Pikchus FC", "Liga Deportiva Cantonal de Chordeleg"] },
-  { sector: "Salud", title: "Profesionales con presencia confiable", metric: "Marca + cercanía", result: "Comunicación profesional para generar confianza.", description: "Una experiencia digital humana, clara y coherente con el nivel del servicio.", clients: ["Medicab"] },
+  { sector: "Educación", title: "Contenido que comunica y campañas que generan consultas", metric: "Contenido + Meta Ads", result: "Comunicación de la oferta educativa y generación de oportunidades.", description: "Trabajo de contenido y campañas publicitarias para United Kingdom English Academy.", clients: ["United Kingdom English Academy"] },
+  { sector: "Automotriz", title: "Contenido para vender vehículos", metric: "Audiovisual + Publicidad", result: "Más herramientas para comunicar inventario y generar conversaciones.", description: "Producción de contenido y campañas publicitarias para AM Motorsport, con foco en mensajes, leads y oportunidades de venta.", clients: ["AM Motorsport"] },
+  { sector: "Salud", title: "De la identidad visual a la captación", metric: "Logo + Contenido + Leads", result: "Una identidad creada y acompañada por comunicación digital.", description: "Para CETAD San Lucas realizamos el logo y parte de la identidad visual, además de contenido y campañas durante diferentes etapas de colaboración.", clients: ["CETAD San Lucas"] },
+  { sector: "Marca personal", title: "Contenido para una presencia profesional", metric: "Contenido + Publicidad", result: "Comunicación digital enfocada en oportunidades.", description: "Trabajo de contenido y apoyo publicitario para Paola Migitama.", clients: ["Paola Migitama"] },
 ];
 
 export const testimonials: TestimonialItem[] = [];
 
 export const faq: FaqItem[] = [
-  { question: "¿Qué diferencia a AdVibe de una agencia de marketing tradicional?", answer: "No vendemos servicios sueltos, diseñamos sistemas de crecimiento que integran estrategia, creatividad, tecnología y automatización para generar resultados sostenibles." },
-  { question: "¿Cómo se inicia un proyecto con AdVibe?", answer: "Con un diagnóstico estratégico de tu marca, tu mercado y tus procesos actuales, para diseñar un plan de crecimiento adaptado a tus objetivos." },
-  { question: "¿Trabajan con empresas fuera de Ecuador?", answer: "Sí, operamos con clientes en Ecuador y Estados Unidos, adaptando cada estrategia al mercado y la audiencia correspondiente." },
-  { question: "¿Qué resultados puedo esperar al trabajar con AdVibe?", answer: "Trabajamos con objetivos claros: más leads calificados, más ventas, procesos más eficientes y una marca con posicionamiento premium." },
-  { question: "¿Cómo se integra la inteligencia artificial en las estrategias?", answer: "Usamos IA para automatizar conversaciones de venta, calificar leads y optimizar decisiones dentro de las campañas y el proceso comercial." },
-  { question: "¿Ofrecen acompañamiento después del lanzamiento?", answer: "Sí, damos seguimiento continuo con optimización constante, reportes claros y una relación de socio estratégico, no de proveedor puntual." },
-  { question: "¿Incluyen automatización de WhatsApp y CRM?", answer: "Sí, diseñamos sistemas de chatbots y CRM que ordenan el proceso comercial y aceleran la conversión de cada conversación en venta." },
-  { question: "¿Trabajan con empresas pequeñas o grandes?", answer: "Trabajamos con empresas que buscan crecer. Adaptamos cada estrategia al tamaño, objetivos y etapa de cada negocio." },
+  { question: "¿Qué diferencia a AdVibe de una agencia de marketing tradicional?", answer: "Combinamos producción de contenido, publicidad digital, desarrollo web y soluciones tecnológicas según lo que realmente necesita cada negocio." },
+  { question: "¿Cómo se inicia un proyecto con AdVibe?", answer: "Con un diagnóstico de la situación actual y de los objetivos del negocio para definir qué acciones tienen más sentido." },
+  { question: "¿Trabajan con empresas fuera de Ecuador?", answer: "Sí, trabajamos con proyectos en Ecuador y Estados Unidos, adaptando contenido y campañas a cada mercado." },
+  { question: "¿Qué resultados puedo esperar al trabajar con AdVibe?", answer: "Depende del proyecto. Trabajamos para generar contenido de calidad, consultas, mensajes, leads y oportunidades comerciales, sin prometer resultados que todavía no hayan sido medidos." },
+  { question: "¿Cómo se integra la inteligencia artificial?", answer: "Podemos utilizar IA para apoyar atención, análisis, contenido y automatización de procesos cuando aporta valor real al proyecto." },
+  { question: "¿Ofrecen acompañamiento después del lanzamiento?", answer: "Sí. Podemos continuar con contenido, campañas, optimización y soporte según las necesidades del negocio." },
+  { question: "¿Incluyen automatización de WhatsApp y CRM?", answer: "Sí, cuando el proyecto lo requiere, podemos diseñar flujos de seguimiento, CRM y automatizaciones para ordenar el proceso comercial." },
+  { question: "¿Trabajan con empresas pequeñas o grandes?", answer: "Trabajamos con negocios y profesionales que necesitan mejorar su presencia digital, contenido o captación de clientes." },
 ];
