@@ -4,62 +4,39 @@ import { motion } from "framer-motion";
 import { services } from "@/lib/content";
 import SectionHeading from "@/components/ui/SectionHeading";
 
-const cardAnimation = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0 },
-};
-
 export default function Services() {
   return (
-    <section
-      id="servicios"
-      className="relative overflow-hidden py-24 sm:py-28 lg:py-32"
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/5 to-transparent" />
-
+    <section id="servicios" className="relative overflow-hidden py-28 sm:py-32 lg:py-40">
+      <div className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
-          eyebrow="Sistema de Crecimiento"
-          title="Todo lo que tu empresa necesita para crecer, en un solo lugar."
-          description="No ofrecemos servicios aislados. Integramos estrategia, creatividad y tecnología para construir un sistema que atraiga clientes, fortalezca tu marca y genere resultados sostenibles."
+          eyebrow="Sistema de crecimiento"
+          title="Una arquitectura de crecimiento, no una lista de servicios."
+          description="Conectamos marca, adquisición, contenido, tecnología y automatización para construir una operación digital que tenga sentido para tu negocio."
         />
 
-        <div className="mt-16 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-16 grid gap-px overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-4">
           {services.map((service, index) => (
             <motion.article
               key={service.title}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={cardAnimation}
-              transition={{
-                duration: 0.55,
-                delay: index * 0.08,
-              }}
-              whileHover={{
-                y: -8,
-                scale: 1.02,
-              }}
-              className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(10,10,10,0.90))] p-8 backdrop-blur-xl transition-all duration-500 hover:border-cyan-400/30 hover:shadow-[0_25px_80px_-35px_rgba(0,212,255,0.18)]"
+              initial={{ opacity: 0, y: 26 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.18 }}
+              transition={{ duration: 0.6, delay: index * 0.045, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ y: -6 }}
+              className="group relative min-h-72 overflow-hidden bg-[#080c14] p-7 transition-colors duration-500 hover:bg-[#0c1220] sm:p-8"
             >
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${service.accent} opacity-60 transition duration-500 group-hover:opacity-80`}
-              />
+              <div className={`absolute inset-0 bg-gradient-to-br ${service.accent} opacity-30 transition-opacity duration-500 group-hover:opacity-70`} />
+              <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-150" />
 
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.08),_transparent_40%)]" />
-
-              <div className="relative">
-                <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-white/10 bg-black/40 text-2xl">
-                  {service.icon}
+              <div className="relative flex h-full flex-col">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold tracking-[0.24em] text-blue-300">{service.icon}</span>
+                  <span className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-400 to-violet-400 opacity-60 transition duration-500 group-hover:scale-150 group-hover:opacity-100" />
                 </div>
-
-                <h3 className="mt-6 text-xl font-semibold text-white">
-                  {service.title}
-                </h3>
-
-                <p className="mt-4 leading-7 text-slate-300">
-                  {service.description}
-                </p>
+                <h3 className="mt-12 max-w-xs text-xl font-semibold tracking-tight text-white sm:text-2xl">{service.title}</h3>
+                <p className="mt-4 max-w-sm text-sm leading-7 text-slate-400">{service.description}</p>
+                <div className="mt-auto pt-8 text-xs font-medium uppercase tracking-[0.2em] text-slate-600 transition-colors group-hover:text-blue-300/80">AdVibe / {String(index + 1).padStart(2, "0")}</div>
               </div>
             </motion.article>
           ))}
