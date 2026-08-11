@@ -57,7 +57,7 @@ export default function AIChatbot() {
         {
           role: "assistant",
           content:
-            "No pude completar el análisis ahora. Puedes solicitar el diagnóstico gratuito o escribirnos directamente por WhatsApp.",
+            "No pude completar el diagnóstico ahora. Puedes solicitar el diagnóstico gratuito o escribirnos directamente por WhatsApp.",
         },
       ]);
     } finally {
@@ -83,7 +83,7 @@ export default function AIChatbot() {
               exit={{ opacity: 0, scale: 0.8 }}
               className="absolute -top-14 left-0 hidden whitespace-nowrap rounded-2xl border border-white/10 bg-[#0a0a0a]/95 px-4 py-2 text-sm text-slate-200 shadow-lg backdrop-blur-xl sm:block"
             >
-              ¿Cómo puede crecer tu marca con IA? 🤖
+              ¿Cómo puede crecer tu marca? ✦
               <div className="absolute -bottom-1.5 left-5 h-3 w-3 rotate-45 border-b border-r border-white/10 bg-[#0a0a0a]/95" />
             </motion.div>
           )}
@@ -94,7 +94,7 @@ export default function AIChatbot() {
           whileTap={{ scale: 0.95 }}
           onClick={toggle}
           className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-[0_8px_32px_-8px_rgba(34,211,238,0.5)]"
-          aria-label={open ? "Cerrar asistente IA" : "Abrir asistente IA"}
+          aria-label={open ? "Cerrar asistente de diagnóstico" : "Abrir asistente de diagnóstico"}
           aria-expanded={open}
           type="button"
         >
@@ -107,7 +107,7 @@ export default function AIChatbot() {
         {open && (
           <motion.div
             role="dialog"
-            aria-label="Asistente IA de AdVibe"
+            aria-label="Asistente de diagnóstico de AdVibe"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -117,7 +117,7 @@ export default function AIChatbot() {
               <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-bold">V</div>
               <div>
                 <p className="text-sm font-semibold text-white">Vibe · Asistente AdVibe</p>
-                <p className="text-xs text-cyan-300">Análisis digital con IA</p>
+                <p className="text-xs text-cyan-300">Diagnóstico digital</p>
               </div>
             </div>
 
