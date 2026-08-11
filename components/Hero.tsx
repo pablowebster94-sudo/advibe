@@ -53,10 +53,12 @@ export default function Hero() {
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
             <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "hero" }} className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white px-7 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-[#f3f3f0]">
-              Analizar mi marca
+              Solicitar diagnóstico gratuito
             </EventButton>
-            <Button href="#portafolio" variant="secondary">Ver proyectos</Button>
+            <Button href="#portafolio" variant="secondary">Ver casos</Button>
           </div>
+
+          <p className="mt-4 text-sm text-slate-500">Sin compromiso · Revisamos oportunidades reales de crecimiento</p>
 
           <ul className="mt-8 flex flex-wrap gap-3">
             {highlights.map((item) => <li key={item} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">{item}</li>)}
@@ -67,7 +69,10 @@ export default function Hero() {
           <motion.div style={{ ...glowStyle, rotateX, rotateY, transformPerspective: 1200 }} className="absolute inset-0 -z-10 rounded-[2.2rem] blur-3xl" />
           <motion.div style={{ rotateX, rotateY, transformPerspective: 1200 }} className="rounded-[2.2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(12,12,12,0.90))] p-6 backdrop-blur-2xl">
             <div className="rounded-[1.8rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(10,10,10,0.95))] p-6">
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/70">ADVIBE AGENCIA</p>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-white/70">ADVIBE AGENCIA</p>
+                <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200">Growth system</span>
+              </div>
               <h2 className="mt-3 text-3xl font-semibold text-white">Estrategia, creatividad y tecnología para vender más.</h2>
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {[["Meta Ads", "Campañas enfocadas en resultados"], ["Producción", "Contenido audiovisual premium"], ["Desarrollo Web", "Sitios rápidos y modernos"], ["IA", "Automatización y chatbots"]].map(([title, value]) => (
