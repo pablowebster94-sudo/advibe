@@ -41,7 +41,7 @@ export default function GoatReveal() {
             </motion.div>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.9, duration: 0.45 }} className="absolute bottom-10 right-[30%] z-20 rounded-2xl border border-white/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-2xl">Sí. Una cabra. 🐐</motion.div>
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.9, duration: 0.45 }} className="absolute bottom-10 right-[30%] z-20 rounded-2xl border border-white/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 shadow-2xl">Sí. Una cabra.</motion.div>
         </div>
       </div>
     </section>
