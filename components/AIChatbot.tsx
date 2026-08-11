@@ -28,7 +28,7 @@ export default function AIChatbot() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   async function sendMessage() {
     const trimmed = input.trim();
@@ -50,9 +50,7 @@ export default function AIChatbot() {
       if (!response.ok) throw new Error(data?.error || "Chat API error");
 
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
-      if (newMessages.length >= 5) {
-        trackEvent("chatbot_lead_qualified", { messages: newMessages.length });
-      }
+      if (newMessages.length >= 5) trackEvent("chatbot_lead_qualified", { messages: newMessages.length });
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -68,9 +66,10 @@ export default function AIChatbot() {
   }
 
   function toggle() {
-    setOpen((value) => !value);
+    const nextOpen = !open;
+    setOpen(nextOpen);
     setPulse(false);
-    trackEvent("chatbot_toggle", { action: open ? "close" : "open" });
+    trackEvent("chatbot_toggle", { action: nextOpen ? "open" : "close" });
   }
 
   return (
@@ -82,7 +81,7 @@ export default function AIChatbot() {
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute -top-14 left-0 whitespace-nowrap rounded-2xl border border-white/10 bg-[#0a0a0a]/95 px-4 py-2 text-sm text-slate-200 shadow-lg backdrop-blur-xl"
+              className="absolute -top-14 left-0 hidden whitespace-nowrap rounded-2xl border border-white/10 bg-[#0a0a0a]/95 px-4 py-2 text-sm text-slate-200 shadow-lg backdrop-blur-xl sm:block"
             >
               ¿Cómo puede crecer tu marca con IA? 🤖
               <div className="absolute -bottom-1.5 left-5 h-3 w-3 rotate-45 border-b border-r border-white/10 bg-[#0a0a0a]/95" />
@@ -97,6 +96,7 @@ export default function AIChatbot() {
           className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-[0_8px_32px_-8px_rgba(34,211,238,0.5)]"
           aria-label={open ? "Cerrar asistente IA" : "Abrir asistente IA"}
           aria-expanded={open}
+          type="button"
         >
           <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-cyan-300" />
           {open ? "×" : "✦"}
@@ -106,6 +106,8 @@ export default function AIChatbot() {
       <AnimatePresence>
         {open && (
           <motion.div
+            role="dialog"
+            aria-label="Asistente IA de AdVibe"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -119,7 +121,7 @@ export default function AIChatbot() {
               </div>
             </div>
 
-            <div className="flex max-h-72 flex-col gap-3 overflow-y-auto p-4 scrollbar-none" aria-live="polite">
+            <div className="flex max-h-72 flex-col gap-3 overflow-y-auto p-4" aria-live="polite">
               {messages.map((msg, index) => (
                 <motion.div key={`${msg.role}-${index}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 ${msg.role === "user" ? "bg-white text-slate-900" : "border border-white/10 bg-white/5 text-slate-100"}`}>
@@ -131,24 +133,29 @@ export default function AIChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="border-t border-white/10 p-3">
+            <form
+              className="border-t border-white/10 p-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void sendMessage();
+              }}
+            >
               <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => event.key === "Enter" && sendMessage()}
                   placeholder="Escribe tu respuesta…"
                   className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
                   disabled={loading}
                   maxLength={2000}
                   aria-label="Mensaje para Vibe"
                 />
-                <button onClick={sendMessage} disabled={loading || !input.trim()} className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-400 text-slate-950 disabled:opacity-40" aria-label="Enviar mensaje">
+                <button type="submit" disabled={loading || !input.trim()} className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-400 text-slate-950 disabled:opacity-40" aria-label="Enviar mensaje">
                   →
                 </button>
               </div>
               <p className="mt-2 text-center text-[10px] text-slate-600">Diagnóstico gratuito · Sin compromiso</p>
-            </div>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>
