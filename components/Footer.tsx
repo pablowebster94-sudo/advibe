@@ -30,11 +30,11 @@ const socialLinks = [
 
 function FooterLogo() {
   return (
-    <div aria-label="AdVibe Agencia" className="inline-flex flex-col leading-none">
+    <div aria-label="AdVibe Agencia" className="inline-flex flex-col items-center leading-none">
       <span className="text-[2.35rem] font-black tracking-[-0.075em] text-white">
         <span className="text-lime-400">Ad</span>Vibe
       </span>
-      <span className="ml-[4.35rem] mt-1 text-[0.52rem] font-medium tracking-[0.48em] text-slate-500">AGENCIA</span>
+      <span className="mt-1 text-[0.52rem] font-medium tracking-[0.48em] text-slate-500">AGENCIA</span>
     </div>
   );
 }
