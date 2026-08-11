@@ -10,9 +10,9 @@ export default function Services() {
       <div className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
-          eyebrow="Sistema de crecimiento"
-          title="Una arquitectura de crecimiento, no una lista de servicios."
-          description="Conectamos marca, adquisición, contenido, tecnología y automatización para construir una operación digital que tenga sentido para tu negocio."
+          eyebrow="Servicios"
+          title="Lo que hacemos para que tu negocio se vea, conecte y venda."
+          description="Combinamos contenido, publicidad, diseño y tecnología según las necesidades reales de cada proyecto."
         />
 
         <div className="mt-16 grid gap-px overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-4">
@@ -30,13 +30,10 @@ export default function Services() {
               <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-150" />
 
               <div className="relative flex h-full flex-col">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold tracking-[0.24em] text-blue-300">{service.icon}</span>
-                  <span className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-400 to-violet-400 opacity-60 transition duration-500 group-hover:scale-150 group-hover:opacity-100" />
-                </div>
+                <div className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-400 to-violet-400 opacity-60 transition duration-500 group-hover:scale-150 group-hover:opacity-100" />
                 <h3 className="mt-12 max-w-xs text-xl font-semibold tracking-tight text-white sm:text-2xl">{service.title}</h3>
                 <p className="mt-4 max-w-sm text-sm leading-7 text-slate-400">{service.description}</p>
-                <div className="mt-auto pt-8 text-xs font-medium uppercase tracking-[0.2em] text-slate-600 transition-colors group-hover:text-blue-300/80">AdVibe / {String(index + 1).padStart(2, "0")}</div>
+                <div className="mt-auto pt-8 text-xs font-medium uppercase tracking-[0.2em] text-slate-600 transition-colors group-hover:text-blue-300/80">AdVibe</div>
               </div>
             </motion.article>
           ))}
