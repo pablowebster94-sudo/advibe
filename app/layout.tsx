@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { faq } from "@/lib/content";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -78,7 +79,6 @@ const organizationSchema = {
     "@type": "ContactPoint",
     contactType: "sales",
     telephone: "+593984966335",
-    contactOption: "TollFree",
     availableLanguage: ["Spanish"],
   },
   hasOfferCatalog: {
@@ -102,6 +102,19 @@ const organizationSchema = {
   },
 };
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map(({ question, answer }) => ({
+    "@type": "Question",
+    name: question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: answer,
+    },
+  })),
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -117,6 +130,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       </body>
     </html>
