@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { faq } from "@/lib/content";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,56 +13,102 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://www.advibeagencia.com";
+
 export const metadata: Metadata = {
-  title: "AdVibe Agencia | Marketing, IA y Automatización Premium",
+  metadataBase: new URL(siteUrl),
+  title: "AdVibe Agencia | Marketing, IA y Automatización",
   description:
-    "AdVibe es una agencia de marketing e inteligencia artificial que crea experiencias digitales premium con campañas publicitarias, automatización y diseño de alto impacto.",
+    "AdVibe integra marketing, contenido audiovisual, desarrollo web, inteligencia artificial y automatización para ayudar a empresas a atraer clientes y crecer.",
   keywords: [
-    "Agencia de marketing",
-    "Inteligencia artificial",
-    "Automatización",
-    "Meta Ads",
-    "Google Ads",
-    "Landing Pages",
-    "Branding",
+    "AdVibe Agencia",
+    "agencia de marketing Ecuador",
+    "Meta Ads Ecuador",
+    "inteligencia artificial para empresas",
+    "automatización comercial",
+    "desarrollo web Ecuador",
+    "producción audiovisual Ecuador",
   ],
-  metadataBase: new URL("https://advibe.agency"),
+  alternates: { canonical: siteUrl },
+  robots: { index: true, follow: true },
   openGraph: {
-    title: "AdVibe Agencia | Marketing, IA y Automatización Premium",
+    title: "AdVibe Agencia | Marketing, IA y Automatización",
     description:
-      "Agencia premium que impulsa marcas con campañas, automatización inteligente y diseño de alto valor.",
-    url: "https://advibe.agency",
+      "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",
+    url: siteUrl,
     siteName: "AdVibe Agencia",
-    images: [
-      {
-        url: "https://advibe.agency/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "AdVibe Agencia premium",
-      },
-    ],
-    locale: "es_ES",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AdVibe Agencia" }],
+    locale: "es_EC",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AdVibe Agencia | Marketing, IA y Automatización Premium",
+    title: "AdVibe Agencia | Marketing, IA y Automatización",
     description:
-      "Agencia premium que impulsa marcas con campañas, automatización inteligente y diseño de alto valor.",
+      "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  name: "AdVibe Agencia",
+  url: siteUrl,
+  description:
+    "Agencia creativa y tecnológica especializada en marketing, producción audiovisual, desarrollo web, inteligencia artificial y automatización.",
+  areaServed: { "@type": "Country", name: "Ecuador" },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Gualaceo",
+    addressRegion: "Azuay",
+    addressCountry: "EC",
+  },
+  sameAs: [
+    "https://instagram.com/advibe.agencia",
+    "https://www.facebook.com/share/1DT1TqhpjU/",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "sales",
+    telephone: "+593984966335",
+    availableLanguage: ["Spanish"],
+  },
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Servicios AdVibe",
+    itemListElement: [
+      "Meta Ads y adquisición de clientes",
+      "Producción audiovisual",
+      "Desarrollo web",
+      "Inteligencia artificial",
+      "Automatización",
+      "CRM y chatbots",
+      "Branding e identidad visual",
+    ].map((name) => ({
+      "@type": "Offer",
+      itemOffered: { "@type": "Service", name },
+    })),
+  },
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map(({ question, answer }) => ({
+    "@type": "Question",
+    name: question,
+    acceptedAnswer: { "@type": "Answer", text: answer },
+  })),
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased text-white`}
-    >
-      <body className="min-h-full bg-[#050505] text-white">{children}</body>
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased text-white`}>
+      <body className="min-h-full bg-[#050505] text-white">
+        {children}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      </body>
     </html>
   );
 }
