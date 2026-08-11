@@ -21,6 +21,11 @@ Reglas:
 
 type ChatMessage = { role: "assistant" | "user"; content: string };
 
+type RateEntry = { count: number; resetAt: number };
+const rateLimit = new Map<string, RateEntry>();
+const RATE_LIMIT = 12;
+const RATE_WINDOW_MS = 60_000;
+
 function isValidMessage(value: unknown): value is ChatMessage {
   if (!value || typeof value !== "object") return false;
   const item = value as Record<string, unknown>;
@@ -32,9 +37,33 @@ function isValidMessage(value: unknown): value is ChatMessage {
   );
 }
 
+function getClientKey(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  return forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "anonymous";
+}
+
+function isRateLimited(key: string) {
+  const now = Date.now();
+  const current = rateLimit.get(key);
+  if (!current || current.resetAt <= now) {
+    rateLimit.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  if (current.count >= RATE_LIMIT) return true;
+  current.count += 1;
+  return false;
+}
+
 export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "La IA no está configurada." }, { status: 503 });
+
+  if (isRateLimited(getClientKey(request))) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes. Inténtalo nuevamente en un minuto." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
 
   try {
     const body = await request.json();
@@ -66,7 +95,11 @@ export async function POST(request: Request) {
     }
 
     const reply = Array.isArray(data?.content)
-      ? data.content.filter((block: { type?: string }) => block?.type === "text").map((block: { text?: string }) => block.text || "").join("\n").trim()
+      ? data.content
+          .filter((block: { type?: string }) => block?.type === "text")
+          .map((block: { text?: string }) => block.text || "")
+          .join("\n")
+          .trim()
       : "";
 
     if (!reply) return NextResponse.json({ error: "La IA no devolvió una respuesta válida." }, { status: 502 });
