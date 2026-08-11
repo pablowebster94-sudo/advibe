@@ -2,39 +2,31 @@
 
 import { motion } from "framer-motion";
 import { services } from "@/lib/content";
-import SectionHeading from "@/components/ui/SectionHeading";
 
 export default function Services() {
   return (
-    <section id="servicios" className="relative overflow-hidden py-28 sm:py-32 lg:py-40">
-      <div className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
+    <section id="servicios" className="relative overflow-hidden bg-[#f4f5f7] py-24 text-slate-950 sm:py-32 lg:py-40">
+      <div className="absolute right-[-10rem] top-[-8rem] h-[32rem] w-[32rem] rounded-full border border-blue-600/10" />
+      <div className="absolute right-[-5rem] top-[-3rem] h-[22rem] w-[22rem] rounded-full border border-blue-600/10 animate-pulse-ring" />
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeading
-          eyebrow="Servicios"
-          title="Lo que hacemos para que tu negocio se vea, conecte y venda."
-          description="Combinamos contenido, publicidad, diseño y tecnología según las necesidades reales de cada proyecto."
-        />
+        <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.32em] text-blue-600">Lo que hacemos</p>
+            <h2 className="mt-5 max-w-xl text-5xl font-semibold leading-[0.92] tracking-[-0.055em] sm:text-6xl">Servicios que se sienten en el negocio.</h2>
+          </div>
+          <p className="max-w-2xl text-lg leading-8 text-slate-600">No necesitas contratar una lista interminable de servicios. Elegimos las herramientas que realmente necesita tu proyecto: contenido, publicidad, web y tecnología.</p>
+        </div>
 
-        <div className="mt-16 grid gap-px overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/10 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-16 grid gap-px overflow-hidden rounded-[2rem] border border-slate-300 bg-slate-300 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service, index) => (
-            <motion.article
-              key={service.title}
-              initial={{ opacity: 0, y: 26 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.18 }}
-              transition={{ duration: 0.6, delay: index * 0.045, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{ y: -6 }}
-              className="group relative min-h-72 overflow-hidden bg-[#080c14] p-7 transition-colors duration-500 hover:bg-[#0c1220] sm:p-8"
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${service.accent} opacity-30 transition-opacity duration-500 group-hover:opacity-70`} />
-              <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl transition-transform duration-700 group-hover:scale-150" />
-
-              <div className="relative flex h-full flex-col">
-                <div className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-400 to-violet-400 opacity-60 transition duration-500 group-hover:scale-150 group-hover:opacity-100" />
-                <h3 className="mt-12 max-w-xs text-xl font-semibold tracking-tight text-white sm:text-2xl">{service.title}</h3>
-                <p className="mt-4 max-w-sm text-sm leading-7 text-slate-400">{service.description}</p>
-                <div className="mt-auto pt-8 text-xs font-medium uppercase tracking-[0.2em] text-slate-600 transition-colors group-hover:text-blue-300/80">AdVibe</div>
+            <motion.article key={service.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.55, delay: index * 0.035, ease: [0.22, 1, 0.36, 1] }} whileHover={{ backgroundColor: "#075BFF", color: "#ffffff" }} className="group relative min-h-64 bg-white p-7 transition-colors duration-500 sm:p-8">
+              <div className="flex items-start justify-between gap-6">
+                <span className="text-xs font-bold uppercase tracking-[0.25em] text-blue-600 transition-colors group-hover:text-white/60">{service.title.split(" ")[0]}</span>
+                <span className="text-xs font-semibold text-slate-300 transition-colors group-hover:text-white/35">↗</span>
               </div>
+              <h3 className="mt-14 max-w-sm text-2xl font-semibold tracking-[-0.035em] text-slate-950 transition-colors group-hover:text-white">{service.title}</h3>
+              <p className="mt-4 max-w-sm text-sm leading-7 text-slate-500 transition-colors group-hover:text-white/70">{service.description}</p>
+              <div className="absolute bottom-0 left-0 h-1 w-0 bg-white transition-all duration-500 group-hover:w-full" />
             </motion.article>
           ))}
         </div>
