@@ -2,29 +2,93 @@
 
 import { motion } from "framer-motion";
 
-const goatSrc = "data:image/webp;base64,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";
-
 export default function GoatReveal() {
   return (
-    <section aria-label="Cierre de AdVibe" className="relative min-h-[760px] overflow-hidden bg-[#05070b] text-white sm:min-h-[860px]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_58%,rgba(122,255,45,0.10),transparent_28%),radial-gradient(circle_at_20%_75%,rgba(20,54,62,0.34),transparent_34%),linear-gradient(180deg,#05070b_0%,#07100f_48%,#030505_100%)]" />
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} viewport={{ once: true, amount: 0.35 }} transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }} className="absolute right-[-18rem] top-[8%] h-[42rem] w-[42rem] rounded-full border border-lime-300/10" />
-      <div className="absolute right-[-9rem] top-[20%] h-[30rem] w-[30rem] rounded-full border border-white/[0.06]" />
+    <section aria-label="Cierre AdVibe" className="relative overflow-hidden bg-[#050505] py-24 sm:py-32">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(163,230,53,0.13),transparent_35%)]" />
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="relative min-h-[520px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#07100b] p-8 sm:p-12">
+          <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_20%,rgba(163,230,53,0.035)_50%,transparent_80%)]" />
+          <div className="absolute right-[-12rem] top-[-12rem] h-[34rem] w-[34rem] rounded-full border border-lime-300/10" />
+          <div className="absolute right-[-7rem] top-[-7rem] h-[24rem] w-[24rem] rounded-full border border-lime-300/10" />
 
-      <div className="relative mx-auto flex min-h-[760px] max-w-7xl items-end px-6 pb-20 pt-28 sm:min-h-[860px] sm:px-10 sm:pb-24">
-        <div className="relative z-20 max-w-2xl">
-          <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="text-xs font-semibold uppercase tracking-[0.42em] text-lime-300/80">Creativos por naturaleza</motion.p>
-          <motion.h2 initial={{ opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.08, ease: [0.22, 1, 0.36, 1] }} className="mt-5 max-w-xl text-5xl font-semibold leading-[0.9] tracking-[-0.06em] sm:text-7xl lg:text-8xl">Estrategia.<br />Contenido.<br /><span className="text-lime-300">Resultados.</span></motion.h2>
-          <motion.div initial={{ width: 0, opacity: 0 }} whileInView={{ width: 170, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.35 }} className="mt-8 h-px bg-lime-300" />
-          <motion.p initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, delay: 0.42 }} className="mt-6 text-sm uppercase tracking-[0.3em] text-white/45">AdVibe · Agencia creativa & tecnológica</motion.p>
-        </div>
+          <div className="relative z-20 max-w-xl pt-4 sm:pt-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.34em] text-lime-300">Creativos por naturaleza</p>
+            <h2 className="mt-5 text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">
+              Resultados.
+            </h2>
+            <div className="mt-8 h-px w-40 bg-lime-300" />
+            <p className="mt-6 text-xs font-semibold uppercase tracking-[0.32em] text-white/45">ADVIBE · AGENCIA CREATIVA &amp; TECNOLÓGICA</p>
+          </div>
 
-        <motion.div initial={{ opacity: 0, x: 90, scale: 0.92 }} whileInView={{ opacity: 1, x: 0, scale: 1 }} viewport={{ once: true, amount: 0.28 }} transition={{ duration: 1.35, delay: 0.15, ease: [0.22, 1, 0.36, 1] }} className="absolute bottom-0 right-[-5%] z-10 w-[72%] max-w-[760px] sm:right-[2%] sm:w-[58%] lg:right-[4%] lg:w-[52%]">
-          <motion.div animate={{ y: [0, -8, 0], rotate: [0, 0.35, 0, -0.35, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} className="relative">
-            <div className="absolute inset-[12%] rounded-full bg-lime-300/10 blur-[90px]" />
-            <img src={goatSrc} alt="Cabra AdVibe — Creativos por naturaleza" className="relative h-auto w-full object-contain drop-shadow-[0_35px_80px_rgba(0,0,0,0.7)]" />
+          <motion.div
+            initial={{ opacity: 0, y: 120, scale: 0.82, rotate: 3 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 1.15, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute bottom-[-2rem] right-[2%] z-10 w-[250px] sm:right-[7%] sm:w-[360px] md:w-[430px]"
+          >
+            <motion.div
+              animate={{ y: [0, -7, 0], rotate: [0, 0.45, 0, -0.45, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="relative"
+            >
+              <div className="absolute left-[17%] top-[17%] h-[65%] w-[65%] rounded-full bg-lime-300/10 blur-[70px]" />
+              <svg viewBox="0 0 520 560" role="img" aria-label="Cabra creativa de AdVibe" className="relative h-auto w-full drop-shadow-[0_35px_60px_rgba(0,0,0,0.65)]">
+                <defs>
+                  <linearGradient id="goat-fur" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#f3f2eb" />
+                    <stop offset="0.55" stopColor="#d4d3ca" />
+                    <stop offset="1" stopColor="#9b9c98" />
+                  </linearGradient>
+                  <linearGradient id="goat-jacket" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#263029" />
+                    <stop offset="1" stopColor="#0d120f" />
+                  </linearGradient>
+                  <linearGradient id="goat-horn" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#b99b67" />
+                    <stop offset="1" stopColor="#51402b" />
+                  </linearGradient>
+                </defs>
+
+                <ellipse cx="260" cy="535" rx="150" ry="20" fill="rgba(0,0,0,.45)" />
+
+                <path d="M145 390 C92 416 70 480 95 535 L185 535 L215 404 Z" fill="url(#goat-jacket)" stroke="#050806" strokeWidth="8" />
+                <path d="M375 390 C428 416 450 480 425 535 L335 535 L305 404 Z" fill="url(#goat-jacket)" stroke="#050806" strokeWidth="8" />
+                <path d="M175 390 C160 445 145 500 155 540 L205 540 L230 430 Z" fill="#121914" stroke="#080b09" strokeWidth="7" />
+                <path d="M345 390 C360 445 375 500 365 540 L315 540 L290 430 Z" fill="#121914" stroke="#080b09" strokeWidth="7" />
+
+                <path d="M260 205 C184 205 151 265 168 360 C179 421 213 455 260 455 C307 455 341 421 352 360 C369 265 336 205 260 205 Z" fill="url(#goat-fur)" stroke="#20241f" strokeWidth="9" />
+
+                <path d="M188 246 C130 228 102 190 116 157 C146 169 180 195 207 221 Z" fill="#dddcd4" stroke="#20241f" strokeWidth="8" />
+                <path d="M332 246 C390 228 418 190 404 157 C374 169 340 195 313 221 Z" fill="#dddcd4" stroke="#20241f" strokeWidth="8" />
+
+                <path d="M214 207 C185 151 189 93 226 62 C251 94 262 151 246 211 Z" fill="url(#goat-horn)" stroke="#20241f" strokeWidth="9" />
+                <path d="M306 207 C335 151 331 93 294 62 C269 94 258 151 274 211 Z" fill="url(#goat-horn)" stroke="#20241f" strokeWidth="9" />
+
+                <path d="M191 278 Q230 247 260 279 Q290 247 329 278 L318 332 Q260 350 202 332 Z" fill="#080b0b" stroke="#1d241f" strokeWidth="8" />
+                <path d="M205 286 L244 279 L246 325 L208 321 Z" fill="#171b19" />
+                <path d="M315 286 L276 279 L274 325 L312 321 Z" fill="#171b19" />
+                <path d="M247 281 L273 281" stroke="#a3e635" strokeWidth="7" strokeLinecap="round" />
+
+                <ellipse cx="229" cy="303" rx="7" ry="5" fill="#a3e635" />
+                <ellipse cx="291" cy="303" rx="7" ry="5" fill="#a3e635" />
+
+                <path d="M235 355 Q260 368 285 355" fill="none" stroke="#20241f" strokeWidth="8" strokeLinecap="round" />
+                <path d="M225 382 Q260 430 295 382 Q260 402 225 382Z" fill="#d1d0c8" stroke="#20241f" strokeWidth="7" />
+
+                <path d="M194 405 L157 445" stroke="#20241f" strokeWidth="9" strokeLinecap="round" />
+                <path d="M326 405 L363 445" stroke="#20241f" strokeWidth="9" strokeLinecap="round" />
+                <circle cx="156" cy="446" r="7" fill="#a3e635" />
+                <circle cx="364" cy="446" r="7" fill="#a3e635" />
+
+                <path d="M205 425 Q260 465 315 425 L332 500 Q260 525 188 500 Z" fill="url(#goat-jacket)" stroke="#050806" strokeWidth="8" />
+                <path d="M218 429 L260 477 L302 429" fill="none" stroke="#3e4a40" strokeWidth="6" />
+                <path d="M242 474 L278 474" stroke="#a3e635" strokeWidth="5" strokeLinecap="round" />
+              </svg>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
