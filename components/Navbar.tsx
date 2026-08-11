@@ -16,6 +16,17 @@ const socials = [
   { label: "Facebook", href: "https://www.facebook.com/share/1DT1TqhpjU/", icon: "FB" },
 ];
 
+function BrandLogo() {
+  return (
+    <span className="inline-flex flex-col items-center leading-none" aria-label="AdVibe Agencia">
+      <span className="text-[2rem] font-black tracking-[-0.07em] text-white sm:text-[2.25rem]">
+        <span className="text-lime-400">Ad</span>Vibe
+      </span>
+      <span className="mt-1 text-[0.55rem] font-medium tracking-[0.45em] text-slate-500">AGENCIA</span>
+    </span>
+  );
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -28,9 +39,8 @@ export default function Navbar() {
   return (
     <motion.header initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6 }} className={`sticky top-0 z-50 border-b transition-all duration-500 ${scrolled ? "border-white/10 bg-[#07101a]/90 backdrop-blur-2xl" : "border-white/5 bg-[#07101a]/70 backdrop-blur-xl"}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8">
-        <a href="#home" aria-label="AdVibe Agencia" className="group relative flex items-end leading-none">
-          <span className="text-[2rem] font-black tracking-[-0.07em] text-white sm:text-[2.25rem]"><span className="text-lime-400">Ad</span>Vibe</span>
-          <span className="absolute -bottom-2 left-[8.2rem] text-[0.55rem] font-medium tracking-[0.45em] text-slate-500 sm:left-[9.1rem]">AGENCIA</span>
+        <a href="#home" className="group flex items-center" aria-label="AdVibe Agencia">
+          <BrandLogo />
         </a>
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
