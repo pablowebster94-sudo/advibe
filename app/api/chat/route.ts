@@ -67,11 +67,12 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const messages = Array.isArray(body?.messages) ? body.messages : [];
-    if (messages.length < 1 || messages.length > 20 || !messages.every(isValidMessage)) {
+    const rawMessages: unknown = body?.messages;
+    if (!Array.isArray(rawMessages) || rawMessages.length < 1 || rawMessages.length > 20 || !rawMessages.every(isValidMessage)) {
       return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
     }
 
+    const messages: ChatMessage[] = rawMessages;
     const upstream = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
         model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
         max_tokens: 500,
         system: SYSTEM_PROMPT,
-        messages: messages.map((message) => ({ role: message.role, content: message.content.trim() })),
+        messages: messages.map((message: ChatMessage) => ({ role: message.role, content: message.content.trim() })),
       }),
       cache: "no-store",
     });
