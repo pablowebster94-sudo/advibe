@@ -5,86 +5,102 @@ import { motion } from "framer-motion";
 export default function GoatReveal() {
   return (
     <section aria-label="Cierre AdVibe" className="relative overflow-hidden bg-[#050505] py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(163,230,53,0.13),transparent_35%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_70%,rgba(163,230,53,0.12),transparent_32%)]" />
       <div className="mx-auto max-w-7xl px-6">
         <div className="relative min-h-[520px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#07100b] p-8 sm:p-12">
-          <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_20%,rgba(163,230,53,0.035)_50%,transparent_80%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent_18%,rgba(163,230,53,0.035)_52%,transparent_82%)]" />
           <div className="absolute right-[-12rem] top-[-12rem] h-[34rem] w-[34rem] rounded-full border border-lime-300/10" />
           <div className="absolute right-[-7rem] top-[-7rem] h-[24rem] w-[24rem] rounded-full border border-lime-300/10" />
 
           <div className="relative z-20 max-w-xl pt-4 sm:pt-8">
             <p className="text-xs font-semibold uppercase tracking-[0.34em] text-lime-300">Creativos por naturaleza</p>
-            <h2 className="mt-5 text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">
-              Resultados.
-            </h2>
+            <h2 className="mt-5 text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">Resultados.</h2>
             <div className="mt-8 h-px w-40 bg-lime-300" />
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.32em] text-white/45">ADVIBE · AGENCIA CREATIVA &amp; TECNOLÓGICA</p>
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 120, scale: 0.82, rotate: 3 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-            viewport={{ once: true, amount: 0.35 }}
-            transition={{ duration: 1.15, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute bottom-[-2rem] right-[2%] z-10 w-[250px] sm:right-[7%] sm:w-[360px] md:w-[430px]"
+            initial={{ opacity: 0, y: 140, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 1.25, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute bottom-[-3.5rem] right-[0%] z-10 w-[280px] sm:right-[5%] sm:w-[410px] md:w-[500px]"
           >
-            <motion.div
-              animate={{ y: [0, -7, 0], rotate: [0, 0.45, 0, -0.45, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="relative"
-            >
-              <div className="absolute left-[17%] top-[17%] h-[65%] w-[65%] rounded-full bg-lime-300/10 blur-[70px]" />
-              <svg viewBox="0 0 520 560" role="img" aria-label="Cabra creativa de AdVibe" className="relative h-auto w-full drop-shadow-[0_35px_60px_rgba(0,0,0,0.65)]">
+            <motion.div animate={{ y: [0, -6, 0], rotate: [0, 0.25, 0, -0.25, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} className="relative">
+              <div className="absolute left-[15%] top-[18%] h-[62%] w-[68%] rounded-full bg-lime-300/10 blur-[90px]" />
+              <svg viewBox="0 0 620 620" role="img" aria-label="Cabra AdVibe — Creativos por naturaleza" className="relative h-auto w-full drop-shadow-[0_40px_70px_rgba(0,0,0,0.75)]">
                 <defs>
-                  <linearGradient id="goat-fur" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#f3f2eb" />
-                    <stop offset="0.55" stopColor="#d4d3ca" />
-                    <stop offset="1" stopColor="#9b9c98" />
+                  <radialGradient id="fur" cx="35%" cy="25%" r="80%">
+                    <stop offset="0" stopColor="#f7f5ed" />
+                    <stop offset="0.52" stopColor="#ddd9ce" />
+                    <stop offset="1" stopColor="#a29d91" />
+                  </radialGradient>
+                  <linearGradient id="coat" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#303a31" />
+                    <stop offset="0.5" stopColor="#151b17" />
+                    <stop offset="1" stopColor="#080b09" />
                   </linearGradient>
-                  <linearGradient id="goat-jacket" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#263029" />
-                    <stop offset="1" stopColor="#0d120f" />
+                  <linearGradient id="horn" x1="0" y1="0" x2="0.9" y2="1">
+                    <stop offset="0" stopColor="#d1b47c" />
+                    <stop offset="0.45" stopColor="#8e7044" />
+                    <stop offset="1" stopColor="#3f3020" />
                   </linearGradient>
-                  <linearGradient id="goat-horn" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#b99b67" />
-                    <stop offset="1" stopColor="#51402b" />
+                  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#26312b" />
+                    <stop offset="0.45" stopColor="#080b0a" />
+                    <stop offset="1" stopColor="#111713" />
                   </linearGradient>
+                  <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+                    <feDropShadow dx="0" dy="14" stdDeviation="12" floodColor="#000" floodOpacity="0.5" />
+                  </filter>
                 </defs>
 
-                <ellipse cx="260" cy="535" rx="150" ry="20" fill="rgba(0,0,0,.45)" />
+                <ellipse cx="330" cy="585" rx="185" ry="20" fill="#000" opacity="0.42" />
 
-                <path d="M145 390 C92 416 70 480 95 535 L185 535 L215 404 Z" fill="url(#goat-jacket)" stroke="#050806" strokeWidth="8" />
-                <path d="M375 390 C428 416 450 480 425 535 L335 535 L305 404 Z" fill="url(#goat-jacket)" stroke="#050806" strokeWidth="8" />
-                <path d="M175 390 C160 445 145 500 155 540 L205 540 L230 430 Z" fill="#121914" stroke="#080b09" strokeWidth="7" />
-                <path d="M345 390 C360 445 375 500 365 540 L315 540 L290 430 Z" fill="#121914" stroke="#080b09" strokeWidth="7" />
+                {/* jacket */}
+                <path d="M177 404 C110 430 78 505 93 575 L257 575 L269 451 L226 410Z" fill="url(#coat)" stroke="#080b09" strokeWidth="10" filter="url(#softShadow)" />
+                <path d="M443 404 C510 430 542 505 527 575 L363 575 L351 451 L394 410Z" fill="url(#coat)" stroke="#080b09" strokeWidth="10" filter="url(#softShadow)" />
+                <path d="M238 430 L330 535 L382 430 L406 575 L254 575Z" fill="#101612" stroke="#080b09" strokeWidth="8" />
+                <path d="M247 430 L330 520 L373 430" fill="none" stroke="#4b574d" strokeWidth="7" />
+                <path d="M304 510 L356 510" stroke="#a3e635" strokeWidth="6" strokeLinecap="round" />
 
-                <path d="M260 205 C184 205 151 265 168 360 C179 421 213 455 260 455 C307 455 341 421 352 360 C369 265 336 205 260 205 Z" fill="url(#goat-fur)" stroke="#20241f" strokeWidth="9" />
+                {/* neck and head */}
+                <path d="M260 404 C235 447 247 490 330 510 C413 490 425 447 400 404Z" fill="url(#fur)" stroke="#252923" strokeWidth="10" />
+                <path d="M330 128 C241 128 196 207 208 327 C216 414 265 465 330 465 C395 465 444 414 452 327 C464 207 419 128 330 128Z" fill="url(#fur)" stroke="#252923" strokeWidth="10" />
 
-                <path d="M188 246 C130 228 102 190 116 157 C146 169 180 195 207 221 Z" fill="#dddcd4" stroke="#20241f" strokeWidth="8" />
-                <path d="M332 246 C390 228 418 190 404 157 C374 169 340 195 313 221 Z" fill="#dddcd4" stroke="#20241f" strokeWidth="8" />
+                {/* ears */}
+                <path d="M228 220 C155 208 105 159 119 116 C164 128 211 162 250 204Z" fill="#d9d5ca" stroke="#252923" strokeWidth="9" />
+                <path d="M432 220 C505 208 555 159 541 116 C496 128 449 162 410 204Z" fill="#d9d5ca" stroke="#252923" strokeWidth="9" />
+                <path d="M217 196 C171 182 146 160 139 140 C170 151 198 169 224 195Z" fill="#a99f91" opacity="0.65" />
+                <path d="M443 196 C489 182 514 160 521 140 C490 151 462 169 436 195Z" fill="#a99f91" opacity="0.65" />
 
-                <path d="M214 207 C185 151 189 93 226 62 C251 94 262 151 246 211 Z" fill="url(#goat-horn)" stroke="#20241f" strokeWidth="9" />
-                <path d="M306 207 C335 151 331 93 294 62 C269 94 258 151 274 211 Z" fill="url(#goat-horn)" stroke="#20241f" strokeWidth="9" />
+                {/* horns */}
+                <path d="M272 143 C232 89 236 35 274 14 C311 49 318 101 302 157Z" fill="url(#horn)" stroke="#252923" strokeWidth="10" />
+                <path d="M388 143 C428 89 424 35 386 14 C349 49 342 101 358 157Z" fill="url(#horn)" stroke="#252923" strokeWidth="10" />
+                <path d="M263 94 Q278 75 281 44 M357 94 Q342 75 339 44" fill="none" stroke="#e0c792" strokeWidth="5" opacity="0.35" />
 
-                <path d="M191 278 Q230 247 260 279 Q290 247 329 278 L318 332 Q260 350 202 332 Z" fill="#080b0b" stroke="#1d241f" strokeWidth="8" />
-                <path d="M205 286 L244 279 L246 325 L208 321 Z" fill="#171b19" />
-                <path d="M315 286 L276 279 L274 325 L312 321 Z" fill="#171b19" />
-                <path d="M247 281 L273 281" stroke="#a3e635" strokeWidth="7" strokeLinecap="round" />
+                {/* beard */}
+                <path d="M281 376 Q330 420 379 376 L367 458 Q330 505 293 458Z" fill="#c7c2b7" stroke="#252923" strokeWidth="8" />
+                <path d="M304 419 Q330 454 356 419" fill="none" stroke="#8f897e" strokeWidth="5" opacity="0.8" />
 
-                <ellipse cx="229" cy="303" rx="7" ry="5" fill="#a3e635" />
-                <ellipse cx="291" cy="303" rx="7" ry="5" fill="#a3e635" />
+                {/* sunglasses */}
+                <g>
+                  <path d="M229 253 Q279 226 325 254 L318 325 Q274 345 237 325Z" fill="url(#glass)" stroke="#171c19" strokeWidth="10" />
+                  <path d="M335 254 Q381 226 431 253 L423 325 Q386 345 342 325Z" fill="url(#glass)" stroke="#171c19" strokeWidth="10" />
+                  <path d="M319 267 Q330 260 341 267" fill="none" stroke="#141a16" strokeWidth="11" strokeLinecap="round" />
+                  <path d="M248 267 L292 249 M354 267 L398 249" stroke="#d8e5da" strokeWidth="7" opacity="0.22" strokeLinecap="round" />
+                  <path d="M276 332 Q330 352 384 332" fill="none" stroke="#252923" strokeWidth="8" strokeLinecap="round" />
+                </g>
 
-                <path d="M235 355 Q260 368 285 355" fill="none" stroke="#20241f" strokeWidth="8" strokeLinecap="round" />
-                <path d="M225 382 Q260 430 295 382 Q260 402 225 382Z" fill="#d1d0c8" stroke="#20241f" strokeWidth="7" />
+                {/* muzzle */}
+                <path d="M270 349 Q330 325 390 349 Q385 398 330 410 Q275 398 270 349Z" fill="#d4cec2" stroke="#252923" strokeWidth="8" />
+                <ellipse cx="303" cy="370" rx="10" ry="7" fill="#4c463d" />
+                <ellipse cx="357" cy="370" rx="10" ry="7" fill="#4c463d" />
+                <path d="M302 393 Q330 409 358 393" fill="none" stroke="#252923" strokeWidth="7" strokeLinecap="round" />
 
-                <path d="M194 405 L157 445" stroke="#20241f" strokeWidth="9" strokeLinecap="round" />
-                <path d="M326 405 L363 445" stroke="#20241f" strokeWidth="9" strokeLinecap="round" />
-                <circle cx="156" cy="446" r="7" fill="#a3e635" />
-                <circle cx="364" cy="446" r="7" fill="#a3e635" />
-
-                <path d="M205 425 Q260 465 315 425 L332 500 Q260 525 188 500 Z" fill="url(#goat-jacket)" stroke="#050806" strokeWidth="8" />
-                <path d="M218 429 L260 477 L302 429" fill="none" stroke="#3e4a40" strokeWidth="6" />
-                <path d="M242 474 L278 474" stroke="#a3e635" strokeWidth="5" strokeLinecap="round" />
+                {/* subtle AdVibe accents */}
+                <circle cx="224" cy="435" r="7" fill="#a3e635" />
+                <circle cx="436" cy="435" r="7" fill="#a3e635" />
               </svg>
             </motion.div>
           </motion.div>
