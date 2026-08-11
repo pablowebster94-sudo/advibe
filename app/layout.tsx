@@ -29,23 +29,15 @@ export const metadata: Metadata = {
     "desarrollo web Ecuador",
     "producción audiovisual Ecuador",
   ],
-  alternates: {
-    canonical: siteUrl,
-  },
+  alternates: { canonical: siteUrl },
+  robots: { index: true, follow: true },
   openGraph: {
     title: "AdVibe Agencia | Marketing, IA y Automatización",
     description:
       "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",
     url: siteUrl,
     siteName: "AdVibe Agencia",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "AdVibe Agencia",
-      },
-    ],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AdVibe Agencia" }],
     locale: "es_EC",
     type: "website",
   },
@@ -64,7 +56,7 @@ const organizationSchema = {
   url: siteUrl,
   description:
     "Agencia creativa y tecnológica especializada en marketing, producción audiovisual, desarrollo web, inteligencia artificial y automatización.",
-  areaServed: "EC",
+  areaServed: { "@type": "Country", name: "Ecuador" },
   address: {
     "@type": "PostalAddress",
     addressLocality: "Gualaceo",
@@ -94,10 +86,7 @@ const organizationSchema = {
       "Branding e identidad visual",
     ].map((name) => ({
       "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name,
-      },
+      itemOffered: { "@type": "Service", name },
     })),
   },
 };
@@ -108,33 +97,17 @@ const faqSchema = {
   mainEntity: faq.map(({ question, answer }) => ({
     "@type": "Question",
     name: question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: answer,
-    },
+    acceptedAnswer: { "@type": "Answer", text: answer },
   })),
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased text-white`}
-    >
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased text-white`}>
       <body className="min-h-full bg-[#050505] text-white">
         {children}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       </body>
     </html>
   );
