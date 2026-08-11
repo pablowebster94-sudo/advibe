@@ -73,11 +73,11 @@ export default function Hero() {
 
               <div className="relative mt-16">
                 <p className="text-xs uppercase tracking-[0.28em] text-blue-300">Una sola dirección</p>
-                <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-5xl">Marca, adquisición y tecnología trabajando juntas.</h2>
+                <h2 className="mt-4 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-5xl">Contenido, publicidad y tecnología trabajando juntas.</h2>
               </div>
 
               <div className="relative mt-12 grid grid-cols-2 gap-2">
-                {disciplines.map((item, index) => <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"><span className="text-[10px] tracking-[0.2em] text-slate-600">0{index + 1}</span><p className="mt-5 text-sm font-semibold text-white">{item}</p></div>)}
+                {disciplines.map((item) => <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.04] p-5"><p className="text-sm font-semibold text-white">{item}</p></div>)}
               </div>
 
               <div className="relative mt-7 flex items-center justify-between border-t border-white/10 pt-5">
