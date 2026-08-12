@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
 const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización"];
-const GOAT_IMAGE = "/images/goat-advibe.png";
+const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología"];
 
 export default function Hero() {
   return (
@@ -14,6 +14,7 @@ export default function Hero() {
       <div className="absolute inset-0 -z-10 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:80px_80px]" />
       <div className="pointer-events-none absolute -right-48 top-1/2 -z-10 h-[44rem] w-[44rem] -translate-y-1/2 rounded-full border border-lime-300/10 animate-ring-pulse" />
       <div className="pointer-events-none absolute -right-20 top-1/2 -z-10 h-[30rem] w-[30rem] -translate-y-1/2 rounded-full border border-lime-300/10" />
+
       <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-4">
         <div className="max-w-4xl">
           <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-5 text-xs font-semibold uppercase tracking-[0.34em] text-lime-300/85">Agencia creativa y tecnológica · Ecuador</motion.p>
@@ -31,13 +32,26 @@ export default function Hero() {
             {highlights.map((item) => <span key={item} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-lime-300" />{item}</span>)}
           </div>
         </div>
+
         <motion.div initial={{ opacity: 0, scale: .96, x: 24 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ duration: .9, delay: .12, ease: [0.22,1,0.36,1] }} className="relative mx-auto w-full max-w-2xl">
-          <div className="absolute inset-[5%] rounded-[3rem] bg-lime-300/12 blur-3xl" />
-          <div className="relative flex min-h-[500px] items-end justify-center overflow-hidden rounded-[2.5rem] border border-white/10 bg-transparent">
-            <img src={GOAT_IMAGE} alt="Cabra AdVibe" className="relative z-10 h-auto max-h-[680px] w-full object-contain object-bottom drop-shadow-[0_35px_80px_rgba(0,0,0,0.35)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_52%_44%,rgba(163,230,53,0.18),transparent_34%)]" />
-            <div className="pointer-events-none absolute right-4 top-10 h-44 w-44 rounded-full border border-lime-300/10 animate-ring-pulse" />
-            <div className="pointer-events-none absolute bottom-8 left-10 h-px w-24 bg-lime-300/70" />
+          <div className="absolute inset-[5%] rounded-[3rem] bg-lime-300/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#08111d]/95 p-8 shadow-[0_35px_100px_-50px_rgba(0,0,0,.9)] sm:p-10">
+            <div className="pointer-events-none absolute -right-10 -top-8 h-52 w-52 rounded-full border border-lime-300/10" />
+            <div className="pointer-events-none absolute right-8 top-10 h-28 w-28 rounded-full border border-lime-300/10 animate-ring-pulse" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-500">ADVIBE / WORKFLOW</p>
+            <h2 className="mt-16 max-w-md text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-white sm:text-5xl">Publicamos.<br />Medimos.<br />Mejoramos.</h2>
+            <div className="mt-10 grid gap-3">
+              {workflowItems.map((item, index) => (
+                <motion.div key={item} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .45, delay: .45 + index * .07 }} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm font-semibold text-white/90">
+                  <span>{item}</span>
+                  <span className="text-lime-300">↗</span>
+                </motion.div>
+              ))}
+            </div>
+            <div className="mt-8 flex items-center gap-4 border-t border-white/10 pt-6 text-xs text-slate-500">
+              <span className="h-px w-10 bg-lime-300/70" />
+              <span>Una idea. Una ejecución. Un siguiente paso.</span>
+            </div>
           </div>
         </motion.div>
       </div>
