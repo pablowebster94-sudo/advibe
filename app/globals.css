@@ -55,10 +55,44 @@ section[aria-label="Cierre AdVibe"] p:first-of-type { display: none; }
   0%, 100% { opacity: .18; transform: scale(.97); }
   50% { opacity: .5; transform: scale(1.02); }
 }
+@keyframes goat-mobile-reveal {
+  0% { opacity: 0; transform: translate3d(0, 54px, 0) scale(.98); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
 .animate-logo-in { animation: logo-in .9s cubic-bezier(.22,1,.36,1) both; }
 .animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
 .animate-reveal-line { animation: reveal-line 1.1s cubic-bezier(.22,1,.36,1) both; }
 .animate-ring-pulse { animation: ring-pulse 5s ease-in-out infinite; }
+
+/* Mobile fallback: the goat must never remain hidden if Framer Motion's
+   viewport observer misses the first intersection on a mobile browser. */
+@media (max-width: 639px) {
+  section[aria-label="Cierre AdVibe"] {
+    min-height: 0;
+  }
+
+  section[aria-label="Cierre AdVibe"] div:has(> div > img[alt^="Cabra AdVibe"]) {
+    right: -8% !important;
+    width: 82% !important;
+    max-width: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    animation: goat-mobile-reveal .9s cubic-bezier(.22,1,.36,1) .08s both !important;
+  }
+
+  section[aria-label="Cierre AdVibe"] div:has(> img[alt^="Cabra AdVibe"]) {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  section[aria-label="Cierre AdVibe"] img[alt^="Cabra AdVibe"] {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    visibility: visible !important;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
