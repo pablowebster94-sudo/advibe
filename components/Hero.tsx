@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
 const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización"];
-const GOAT_IMAGE = "/images/goat-advibe.webp";
+const GOAT_IMAGE = "/images/goat-advibe.png";
 
 export default function Hero() {
   return (
