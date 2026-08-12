@@ -1,13 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
-const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización"];
-const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología"];
+const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización", "Cobertura de eventos"];
+const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología", "Eventos"];
+const rotatingWords = ["destacan", "venden", "crecen"];
 
 export default function Hero() {
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setWordIndex((index) => (index + 1) % rotatingWords.length), 2200);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <section id="home" className="relative isolate overflow-hidden bg-[#07101a] px-6 pb-20 pt-14 sm:pb-24 sm:pt-16 lg:px-10 lg:pb-24 lg:pt-20">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(120,217,79,0.12),transparent_26%),radial-gradient(circle_at_75%_55%,rgba(120,217,79,0.14),transparent_28%),linear-gradient(135deg,#07101a_0%,#0a1723_62%,#0b1a16_100%)]" />
@@ -20,12 +29,21 @@ export default function Hero() {
           <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-5 text-xs font-semibold uppercase tracking-[0.34em] text-lime-300/85">Agencia creativa y tecnológica · Ecuador</motion.p>
           <h1 className="text-[clamp(3.35rem,7.2vw,6.5rem)] font-semibold leading-[0.9] tracking-[-0.06em] text-white">
             <motion.span initial={{ opacity: 0, y: 42 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas que</motion.span>
-            <motion.span initial={{ opacity: 0, y: 42 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, delay: .08, ease: [0.22,1,0.36,1] }} className="block text-white/55">destacan, venden</motion.span>
-            <motion.span initial={{ opacity: 0, y: 42 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, delay: .16, ease: [0.22,1,0.36,1] }} className="block text-lime-300">y crecen.</motion.span>
+            <span className="mt-2 block text-lime-300">
+              <motion.span
+                key={rotatingWords[wordIndex]}
+                initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: .45, ease: [0.22,1,0.36,1] }}
+                className="inline-block"
+              >
+                {rotatingWords[wordIndex]}.
+              </motion.span>
+            </span>
           </h1>
-          <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .3 }} className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">Contenido audiovisual, campañas publicitarias, desarrollo web y tecnología para empresas que quieren verse mejor, llegar a más personas y generar oportunidades.</motion.p>
+          <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .3 }} className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">Contenido audiovisual, campañas publicitarias, desarrollo web, inteligencia artificial y cobertura de eventos para empresas que quieren verse mejor, llegar a más personas y generar oportunidades.</motion.p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "final_identity_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_50px_-24px_rgba(120,217,79,.75)] hover:-translate-y-1 hover:bg-lime-300">Solicitar diagnóstico gratuito <span className="ml-2">↗</span></EventButton>
+            <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_50px_-24px_rgba(120,217,79,.75)] hover:-translate-y-1 hover:bg-lime-300">Solicitar diagnóstico gratuito <span className="ml-2">↗</span></EventButton>
             <Button href="#portafolio" variant="secondary" className="border-white/10 bg-white/[0.04] text-white hover:border-white/20 hover:bg-white/[0.08]">Ver trabajo real</Button>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-400">

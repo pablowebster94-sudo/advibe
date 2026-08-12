@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Clients from "@/components/Clients";
+import ClientsMarquee from "@/components/ClientsMarquee";
 import Services from "@/components/Services";
 import AIShowcase from "@/components/AIShowcase";
 import Process from "@/components/Process";
@@ -27,6 +28,7 @@ export default function Home() {
         <Portfolio />
         <Process />
         <Stats />
+        <ClientsMarquee />
         <Clients />
         <Testimonials />
         <DigitalAudit />
