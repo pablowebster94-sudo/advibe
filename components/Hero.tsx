@@ -2,75 +2,109 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
+import Button from "@/components/ui/Button";
 
-const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización", "Cobertura de eventos"];
-const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología", "Eventos"];
 const rotatingWords = ["destacan", "venden", "crecen"];
+const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología", "Eventos"];
+
+const ease = [0.22, 1, 0.36, 1] as const;
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  visible: (delay = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.7, delay, ease } }),
+};
 
 export default function Hero() {
   const [wordIndex, setWordIndex] = useState(0);
 
   useEffect(() => {
-    const interval = window.setInterval(() => setWordIndex((index) => (index + 1) % rotatingWords.length), 2200);
+    const interval = window.setInterval(() => setWordIndex((index) => (index + 1) % rotatingWords.length), 2400);
     return () => window.clearInterval(interval);
   }, []);
 
   return (
-    <section id="home" className="relative isolate overflow-hidden bg-[#07101a] px-6 pb-20 pt-14 sm:pb-24 sm:pt-16 lg:px-10 lg:pb-24 lg:pt-20">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(120,217,79,0.12),transparent_26%),radial-gradient(circle_at_75%_55%,rgba(120,217,79,0.14),transparent_28%),linear-gradient(135deg,#07101a_0%,#0a1723_62%,#0b1a16_100%)]" />
-      <div className="absolute inset-0 -z-10 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:80px_80px]" />
-      <div className="pointer-events-none absolute -right-48 top-1/2 -z-10 h-[44rem] w-[44rem] -translate-y-1/2 rounded-full border border-lime-300/10 animate-ring-pulse" />
-      <div className="pointer-events-none absolute -right-20 top-1/2 -z-10 h-[30rem] w-[30rem] -translate-y-1/2 rounded-full border border-lime-300/10" />
+    <section id="home" className="relative isolate min-h-[calc(100svh-73px)] overflow-hidden bg-[#050505]">
+      <div className="absolute inset-0 -z-20 bg-[#050505]" />
+      <video
+        className="absolute inset-0 -z-10 h-full w-full object-cover opacity-45"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+      >
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260517_222138_3e3205be-3364-417b-a64a-bfe087acbec4.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,5,5,.94)_0%,rgba(5,5,5,.76)_43%,rgba(5,5,5,.45)_100%)]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(5,5,5,.92)_0%,transparent_42%,rgba(5,5,5,.35)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-25 [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:96px_96px]" />
 
-      <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-4">
-        <div className="max-w-4xl">
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-5 text-xs font-semibold uppercase tracking-[0.34em] text-lime-300/85">Agencia creativa y tecnológica · Ecuador</motion.p>
-          <h1 className="text-[clamp(3.35rem,7.2vw,6.5rem)] font-semibold leading-[0.9] tracking-[-0.06em] text-white">
-            <motion.span initial={{ opacity: 0, y: 42 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas que</motion.span>
-            <span className="mt-2 block text-lime-300">
-              <motion.span
-                key={rotatingWords[wordIndex]}
-                initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: .45, ease: [0.22,1,0.36,1] }}
-                className="inline-block"
-              >
-                {rotatingWords[wordIndex]}.
-              </motion.span>
-            </span>
-          </h1>
-          <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .3 }} className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">Contenido audiovisual, campañas publicitarias, desarrollo web, inteligencia artificial y cobertura de eventos para empresas que quieren verse mejor, llegar a más personas y generar oportunidades.</motion.p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_50px_-24px_rgba(120,217,79,.75)] hover:-translate-y-1 hover:bg-lime-300">Solicitar diagnóstico gratuito <span className="ml-2">↗</span></EventButton>
-            <Button href="#portafolio" variant="secondary" className="border-white/10 bg-white/[0.04] text-white hover:border-white/20 hover:bg-white/[0.08]">Ver trabajo real</Button>
-          </div>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-400">
-            {highlights.map((item) => <span key={item} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-lime-300" />{item}</span>)}
-          </div>
+      <div className="mx-auto flex min-h-[calc(100svh-73px)] max-w-[1500px] flex-col justify-between px-5 pb-7 pt-10 sm:px-8 sm:pb-9 sm:pt-14 lg:px-12 lg:pb-12 lg:pt-16">
+        <div className="flex items-start justify-between gap-8">
+          <motion.p custom={0} initial="hidden" animate="visible" variants={fadeUp} className="max-w-[250px] text-[10px] font-semibold uppercase tracking-[0.32em] text-white/65 sm:text-xs">
+            Agencia creativa y tecnológica · Ecuador
+          </motion.p>
+          <motion.p custom={0.12} initial="hidden" animate="visible" variants={fadeUp} className="hidden text-right text-[10px] font-semibold uppercase tracking-[0.32em] text-white/45 sm:block">
+            Estrategia / Contenido / Tecnología
+          </motion.p>
         </div>
 
-        <motion.div initial={{ opacity: 0, scale: .96, x: 24 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ duration: .9, delay: .12, ease: [0.22,1,0.36,1] }} className="relative mx-auto w-full max-w-2xl">
-          <div className="absolute inset-[5%] rounded-[3rem] bg-lime-300/10 blur-3xl" />
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#08111d]/95 p-8 shadow-[0_35px_100px_-50px_rgba(0,0,0,.9)] sm:p-10">
-            <div className="pointer-events-none absolute -right-10 -top-8 h-52 w-52 rounded-full border border-lime-300/10" />
-            <div className="pointer-events-none absolute right-8 top-10 h-28 w-28 rounded-full border border-lime-300/10 animate-ring-pulse" />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-500">ADVIBE / WORKFLOW</p>
-            <h2 className="mt-16 max-w-md text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-white sm:text-5xl">Publicamos.<br />Medimos.<br />Mejoramos.</h2>
-            <div className="mt-10 grid gap-3">
-              {workflowItems.map((item, index) => (
-                <motion.div key={item} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .45, delay: .45 + index * .07 }} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm font-semibold text-white/90">
-                  <span>{item}</span>
-                  <span className="text-lime-300">↗</span>
-                </motion.div>
-              ))}
-            </div>
-            <div className="mt-8 flex items-center gap-4 border-t border-white/10 pt-6 text-xs text-slate-500">
-              <span className="h-px w-10 bg-lime-300/70" />
-              <span>Una idea. Una ejecución. Un siguiente paso.</span>
-            </div>
+        <div className="grid items-end gap-8 lg:grid-cols-[1fr_auto] lg:gap-16">
+          <div className="max-w-[1100px]">
+            <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0.18} className="mb-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.34em] text-lime-300 sm:mb-7 sm:text-xs">
+              <span className="h-px w-8 bg-lime-300 sm:w-12" />
+              Creamos marcas que
+            </motion.div>
+
+            <h1 className="text-[clamp(3.7rem,9.2vw,9.2rem)] font-semibold uppercase leading-[0.79] tracking-[-0.075em] text-white">
+              <span className="block overflow-hidden pb-2">
+                <motion.span initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.78, delay: 0.32, ease }} className="block">destacan.</motion.span>
+              </span>
+              <span className="block overflow-hidden pb-2 text-white/92">
+                <motion.span initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.78, delay: 0.46, ease }} className="block">
+                  {rotatingWords[wordIndex]}.
+                </motion.span>
+              </span>
+              <span className="block overflow-hidden pb-2 text-lime-300">
+                <motion.span initial={{ y: "110%" }} animate={{ y: 0 }} transition={{ duration: 0.78, delay: 0.60, ease }} className="block">crecen.</motion.span>
+              </span>
+            </h1>
+
+            <motion.p initial="hidden" animate="visible" custom={0.78} variants={fadeUp} className="mt-7 max-w-2xl text-sm font-medium leading-6 text-white/70 sm:mt-9 sm:text-base sm:leading-7 lg:text-lg">
+              Contenido audiovisual, Meta Ads, desarrollo web, inteligencia artificial y cobertura de eventos para empresas que quieren ir un paso adelante.
+            </motion.p>
+
+            <motion.div initial="hidden" animate="visible" custom={0.9} variants={fadeUp} className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "premium_hero" }} className="group inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_70px_-28px_rgba(120,217,79,.9)] hover:-translate-y-1 hover:bg-lime-300">
+                Solicitar diagnóstico gratuito <span className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1">↗</span>
+              </EventButton>
+              <Button href="#portafolio" variant="secondary" className="rounded-full border-white/15 bg-white/[0.05] px-7 py-4 text-white hover:border-white/25 hover:bg-white/10">Ver trabajo real</Button>
+            </motion.div>
           </div>
+
+          <motion.aside initial={{ opacity: 0, y: 30, x: 20 }} animate={{ opacity: 1, y: 0, x: 0 }} transition={{ duration: 0.9, delay: 0.72, ease }} className="hidden w-[290px] lg:block xl:w-[320px]">
+            <div className="border-t border-white/20 pt-5">
+              <div className="mb-7 flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/45">AdVibe / Workflow</span>
+                <span className="text-[10px] font-semibold tracking-widest text-lime-300">01—05</span>
+              </div>
+              <div className="space-y-1">
+                {workflowItems.map((item, index) => (
+                  <motion.a key={item} href={index === 0 ? "#servicios" : "#portafolio"} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.95 + index * 0.07, ease }} className="group flex items-center justify-between border-b border-white/10 py-3.5 text-sm font-semibold text-white/65 hover:text-white">
+                    <span className="flex items-center gap-3"><span className="text-[9px] font-medium text-white/30">0{index + 1}</span>{item}</span>
+                    <span className="text-lime-300 opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:opacity-100">↗</span>
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+          </motion.aside>
+        </div>
+
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 1.15 }} className="mt-8 flex items-end justify-between border-t border-white/10 pt-4 text-[9px] font-semibold uppercase tracking-[0.28em] text-white/40 sm:text-[10px]">
+          <span>Contenido / Publicidad / Web / IA / Eventos</span>
+          <span className="hidden sm:block">Scroll para descubrir</span>
         </motion.div>
       </div>
     </section>
