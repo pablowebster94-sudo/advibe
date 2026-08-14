@@ -1,100 +1,40 @@
 @import "tailwindcss";
 
-:root {
-  color-scheme: dark;
-  --background: #050a12;
-  --foreground: #f7f8f5;
-  --surface: rgba(10, 18, 28, 0.82);
-  --surface-strong: #07101a;
-  --border: rgba(255, 255, 255, 0.1);
-  --accent: #78d94f;
-  --accent-strong: #5fc62f;
-  --accent-soft: #a4ef84;
-  --navy: #07101a;
-  --text-muted: #94a3ad;
-}
+:root{color-scheme:dark;--background:#070707;--foreground:#f7f7f3;--surface:#101010;--surface-strong:#0b0b0b;--border:rgba(255,255,255,.12);--accent:#b7ff38;--accent-strong:#9fe522;--accent-soft:#d4ff9b;--navy:#070707;--text-muted:#9b9b95}
+@theme inline{--color-background:var(--background);--color-foreground:var(--foreground);--font-sans:var(--font-geist-sans);--font-mono:var(--font-geist-mono)}
+html{scroll-behavior:smooth}body{min-height:100vh;overflow-x:hidden;background:#070707;color:var(--foreground);font-family:var(--font-sans),Inter,system-ui,sans-serif}*{box-sizing:border-box}::selection{background:rgba(183,255,56,.3);color:#fff}button,a{transition:all 220ms ease}
+section[aria-label="Cierre AdVibe"] p:first-of-type{display:none}
+@keyframes logo-in{0%{opacity:0;transform:translateY(14px) scale(.96);filter:blur(8px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes float-soft{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-8px,0)}}
+@keyframes reveal-line{0%{transform:scaleX(0);transform-origin:left}100%{transform:scaleX(1);transform-origin:left}}
+@keyframes ring-pulse{0%,100%{opacity:.18;transform:scale(.97)}50%{opacity:.5;transform:scale(1.02)}}
+@keyframes goat-mobile-reveal{0%{opacity:0;transform:translate3d(0,54px,0) scale(.98)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+.animate-logo-in{animation:logo-in .9s cubic-bezier(.22,1,.36,1) both}.animate-float-soft{animation:float-soft 5s ease-in-out infinite}.animate-reveal-line{animation:reveal-line 1.1s cubic-bezier(.22,1,.36,1) both}.animate-ring-pulse{animation:ring-pulse 5s ease-in-out infinite}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* TOTAL ADVIBE REDESIGN: editorial, cinematic, less dashboard-like */
+.advibe-redesign{background:#070707;color:#f7f7f3}
+.advibe-redesign main{background:#070707}
+.advibe-redesign main>section:not(#home){border-top:1px solid rgba(255,255,255,.08)}
+.advibe-redesign section[id="servicios"]{background:#f3f2ed!important;color:#090909!important;border-top:0!important}
+.advibe-redesign section[id="servicios"] .text-blue-600{color:#090909!important}
+.advibe-redesign section[id="servicios"]>div>div:first-child{align-items:end}
+.advibe-redesign section[id="servicios"] h2{font-size:clamp(3rem,7vw,7rem)!important;line-height:.88!important;letter-spacing:-.065em!important}
+.advibe-redesign section[id="servicios"]>div>div:nth-child(2){border-radius:0!important}
+.advibe-redesign section[id="servicios"] article{min-height:290px!important;border:0!important;border-radius:0!important;background:#e9e8e2!important;padding:clamp(1.5rem,3vw,2.5rem)!important}
+.advibe-redesign section[id="servicios"] article:hover{background:#b7ff38!important;color:#090909!important}
+.advibe-redesign section[id="servicios"] article h3{font-size:clamp(1.5rem,2.5vw,2.4rem)!important;letter-spacing:-.04em!important}
+.advibe-redesign section[id="servicios"] article p{font-size:.9rem!important;line-height:1.65!important}
+.advibe-redesign section[id="portafolio"]{background:#070707!important}
+.advibe-redesign section[id="portafolio"] article{border:1px solid rgba(255,255,255,.14)!important;border-radius:0!important;background:#101010!important}
+.advibe-redesign section[id="portafolio"] article h3{font-size:clamp(2.5rem,5vw,5.5rem)!important;line-height:.9!important;letter-spacing:-.06em!important}
+.advibe-redesign section[id="portafolio"] article:hover{border-color:rgba(183,255,56,.55)!important}
+.advibe-redesign section[aria-label="Cierre AdVibe"]{border-top:1px solid rgba(255,255,255,.12)}
+.advibe-redesign h1,.advibe-redesign h2,.advibe-redesign h3{text-wrap:balance}
+.advibe-redesign article{box-shadow:none!important}
+.advibe-redesign a[class*="rounded-full"],.advibe-redesign button[class*="rounded-full"]{transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .35s ease,border-color .35s ease}
+.advibe-redesign a[class*="rounded-full"]:hover,.advibe-redesign button[class*="rounded-full"]:hover{transform:translateY(-2px)}
+.advibe-redesign [class*="animate-pulse-ring"]{animation:none!important}
 
-html { scroll-behavior: smooth; }
-body {
-  min-height: 100vh;
-  overflow-x: hidden;
-  background:
-    radial-gradient(circle at 12% 10%, rgba(120, 217, 79, 0.07), transparent 22%),
-    radial-gradient(circle at 88% 22%, rgba(41, 92, 160, 0.12), transparent 26%),
-    linear-gradient(180deg, #050a12 0%, #07101a 42%, #04070d 100%);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
-}
-* { box-sizing: border-box; }
-::selection { background: rgba(120, 217, 79, 0.28); color: #fff; }
-button, a { transition: all 220ms ease; }
-
-/* The closing goat is intentionally image-led; remove the old tagline visually. */
-section[aria-label="Cierre AdVibe"] p:first-of-type { display: none; }
-
-@keyframes logo-in {
-  0% { opacity: 0; transform: translateY(14px) scale(.96); filter: blur(8px); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-}
-@keyframes float-soft {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -8px, 0); }
-}
-@keyframes reveal-line {
-  0% { transform: scaleX(0); transform-origin: left; }
-  100% { transform: scaleX(1); transform-origin: left; }
-}
-@keyframes ring-pulse {
-  0%, 100% { opacity: .18; transform: scale(.97); }
-  50% { opacity: .5; transform: scale(1.02); }
-}
-@keyframes goat-mobile-reveal {
-  0% { opacity: 0; transform: translate3d(0, 54px, 0) scale(.98); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-}
-.animate-logo-in { animation: logo-in .9s cubic-bezier(.22,1,.36,1) both; }
-.animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
-.animate-reveal-line { animation: reveal-line 1.1s cubic-bezier(.22,1,.36,1) both; }
-.animate-ring-pulse { animation: ring-pulse 5s ease-in-out infinite; }
-
-/* Mobile fallback: the goat must never remain hidden if Framer Motion's
-   viewport observer misses the first intersection on a mobile browser. */
-@media (max-width: 639px) {
-  section[aria-label="Cierre AdVibe"] {
-    min-height: 0;
-  }
-
-  section[aria-label="Cierre AdVibe"] div:has(> div > img[alt^="Cabra AdVibe"]) {
-    right: -8% !important;
-    width: 82% !important;
-    max-width: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-    animation: goat-mobile-reveal .9s cubic-bezier(.22,1,.36,1) .08s both !important;
-  }
-
-  section[aria-label="Cierre AdVibe"] div:has(> img[alt^="Cabra AdVibe"]) {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-  }
-
-  section[aria-label="Cierre AdVibe"] img[alt^="Cabra AdVibe"] {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    visibility: visible !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-}
+@media(max-width:767px){html{scroll-padding-top:72px}.advibe-redesign main{padding-bottom:5.5rem}.advibe-redesign section{scroll-margin-top:5rem}.advibe-redesign section[id="servicios"] h2{font-size:clamp(3rem,14vw,5rem)!important}.advibe-redesign section[id="portafolio"] article h3{font-size:clamp(2.7rem,13vw,5rem)!important}}
+@media(max-width:639px){section[aria-label="Cierre AdVibe"]{min-height:0}section[aria-label="Cierre AdVibe"] div:has(> div > img[alt^="Cabra AdVibe"]){right:-8%!important;width:82%!important;max-width:none!important;opacity:1!important;transform:none!important;animation:goat-mobile-reveal .9s cubic-bezier(.22,1,.36,1) .08s both!important}section[aria-label="Cierre AdVibe"] div:has(> img[alt^="Cabra AdVibe"]){opacity:1!important;transform:none!important;animation:none!important}section[aria-label="Cierre AdVibe"] img[alt^="Cabra AdVibe"]{display:block!important;width:100%!important;height:auto!important;visibility:visible!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

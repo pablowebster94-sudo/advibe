@@ -1,77 +1,60 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import Button from "@/components/ui/Button";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import EventButton from "@/components/EventButton";
 
-const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización", "Cobertura de eventos"];
-const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología", "Eventos"];
-const rotatingWords = ["destacan", "venden", "crecen"];
+const videoUrl = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260517_222138_3e3205be-3364-417b-a64a-bfe087acbec4.mp4";
+
+const services = ["Contenido", "Meta Ads", "Web", "IA", "Eventos"];
+
+const reveal = {
+  hidden: { opacity: 0, y: "110%" },
+  show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: 0.35 + i * 0.13, duration: 0.78, ease: [0.22, 1, 0.36, 1] } }),
+};
 
 export default function Hero() {
-  const [wordIndex, setWordIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setWordIndex((index) => (index + 1) % rotatingWords.length), 2200);
-    return () => window.clearInterval(interval);
-  }, []);
-
   return (
-    <section id="home" className="relative isolate overflow-hidden bg-[#07101a] px-6 pb-20 pt-14 sm:pb-24 sm:pt-16 lg:px-10 lg:pb-24 lg:pt-20">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(120,217,79,0.12),transparent_26%),radial-gradient(circle_at_75%_55%,rgba(120,217,79,0.14),transparent_28%),linear-gradient(135deg,#07101a_0%,#0a1723_62%,#0b1a16_100%)]" />
-      <div className="absolute inset-0 -z-10 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:80px_80px]" />
-      <div className="pointer-events-none absolute -right-48 top-1/2 -z-10 h-[44rem] w-[44rem] -translate-y-1/2 rounded-full border border-lime-300/10 animate-ring-pulse" />
-      <div className="pointer-events-none absolute -right-20 top-1/2 -z-10 h-[30rem] w-[30rem] -translate-y-1/2 rounded-full border border-lime-300/10" />
+    <section id="home" className="relative isolate min-h-[calc(100svh-72px)] overflow-hidden bg-black text-white">
+      <motion.video
+        initial={{ scale: 1.08, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute inset-0 -z-20 h-full w-full object-cover"
+        autoPlay muted loop playsInline preload="metadata" aria-hidden="true"
+      >
+        <source src={videoUrl} type="video/mp4" />
+      </motion.video>
+      <div className="absolute inset-0 -z-10 bg-black/48" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(0,0,0,.25)_0%,rgba(0,0,0,.12)_38%,rgba(0,0,0,.82)_100%)]" />
 
-      <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-4">
-        <div className="max-w-4xl">
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-5 text-xs font-semibold uppercase tracking-[0.34em] text-lime-300/85">Agencia creativa y tecnológica · Ecuador</motion.p>
-          <h1 className="text-[clamp(3.35rem,7.2vw,6.5rem)] font-semibold leading-[0.9] tracking-[-0.06em] text-white">
-            <motion.span initial={{ opacity: 0, y: 42 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas que</motion.span>
-            <span className="mt-2 block text-lime-300">
-              <motion.span
-                key={rotatingWords[wordIndex]}
-                initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: .45, ease: [0.22,1,0.36,1] }}
-                className="inline-block"
-              >
-                {rotatingWords[wordIndex]}.
-              </motion.span>
-            </span>
-          </h1>
-          <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .3 }} className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">Contenido audiovisual, campañas publicitarias, desarrollo web, inteligencia artificial y cobertura de eventos para empresas que quieren verse mejor, llegar a más personas y generar oportunidades.</motion.p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_50px_-24px_rgba(120,217,79,.75)] hover:-translate-y-1 hover:bg-lime-300">Solicitar diagnóstico gratuito <span className="ml-2">↗</span></EventButton>
-            <Button href="#portafolio" variant="secondary" className="border-white/10 bg-white/[0.04] text-white hover:border-white/20 hover:bg-white/[0.08]">Ver trabajo real</Button>
-          </div>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-400">
-            {highlights.map((item) => <span key={item} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-lime-300" />{item}</span>)}
-          </div>
-        </div>
-
-        <motion.div initial={{ opacity: 0, scale: .96, x: 24 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ duration: .9, delay: .12, ease: [0.22,1,0.36,1] }} className="relative mx-auto w-full max-w-2xl">
-          <div className="absolute inset-[5%] rounded-[3rem] bg-lime-300/10 blur-3xl" />
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#08111d]/95 p-8 shadow-[0_35px_100px_-50px_rgba(0,0,0,.9)] sm:p-10">
-            <div className="pointer-events-none absolute -right-10 -top-8 h-52 w-52 rounded-full border border-lime-300/10" />
-            <div className="pointer-events-none absolute right-8 top-10 h-28 w-28 rounded-full border border-lime-300/10 animate-ring-pulse" />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-500">ADVIBE / WORKFLOW</p>
-            <h2 className="mt-16 max-w-md text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-white sm:text-5xl">Publicamos.<br />Medimos.<br />Mejoramos.</h2>
-            <div className="mt-10 grid gap-3">
-              {workflowItems.map((item, index) => (
-                <motion.div key={item} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .45, delay: .45 + index * .07 }} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm font-semibold text-white/90">
-                  <span>{item}</span>
-                  <span className="text-lime-300">↗</span>
-                </motion.div>
-              ))}
-            </div>
-            <div className="mt-8 flex items-center gap-4 border-t border-white/10 pt-6 text-xs text-slate-500">
-              <span className="h-px w-10 bg-lime-300/70" />
-              <span>Una idea. Una ejecución. Un siguiente paso.</span>
-            </div>
+      <div className="mx-auto flex min-h-[calc(100svh-72px)] max-w-[1600px] flex-col justify-between px-5 pb-7 pt-10 sm:px-8 sm:pb-9 lg:px-12 lg:pt-14">
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6, ease: [0.22,1,0.36,1] }} className="flex items-start justify-between gap-8">
+          <p className="max-w-[230px] text-[10px] font-semibold uppercase tracking-[.28em] text-white/70 sm:text-xs">Creative technology studio · Ecuador</p>
+          <div className="hidden items-center gap-5 md:flex">
+            {services.map((item, i) => <span key={item} className="text-[10px] font-semibold uppercase tracking-[.24em] text-white/65">{item}{i < services.length - 1 ? " ·" : ""}</span>)}
           </div>
         </motion.div>
+
+        <div className="relative mt-auto pt-20">
+          <div className="mb-5 flex items-end justify-between gap-5 sm:mb-7">
+            <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .45, duration: .65, ease: [0.22,1,0.36,1] }} className="max-w-[150px] text-[10px] font-semibold uppercase leading-[1.45] tracking-[.22em] text-white/65 sm:max-w-[210px] sm:text-xs">Shaping bold visions into power for your tribe.</motion.p>
+            <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "cinematic_hero" }} className="group hidden items-center gap-2 text-sm font-semibold uppercase tracking-[.2em] text-[#b7ff38] sm:flex">Work With Us <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></EventButton>
+          </div>
+
+          <h1 className="text-right font-semibold uppercase tracking-[-.065em] text-white" style={{ fontSize: "clamp(3.2rem, 10.4vw, 10.5rem)", lineHeight: .82 }}>
+            {["Fearless", "Vision", "Delivered"].map((word, index) => (
+              <span key={word} className="block overflow-hidden py-[.035em]">
+                <motion.span custom={index} variants={reveal} initial="hidden" animate="show" className="block">{word}</motion.span>
+              </span>
+            ))}
+          </h1>
+
+          <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/20 pt-4 sm:mt-8 sm:pt-5">
+            <p className="max-w-[220px] text-[9px] font-semibold uppercase leading-[1.55] tracking-[.2em] text-white/65 sm:max-w-sm sm:text-xs">Contenido audiovisual, Meta Ads, desarrollo web, inteligencia artificial y cobertura de eventos para marcas que quieren ir un paso adelante.</p>
+            <a href="#servicios" className="group flex shrink-0 items-center gap-2 text-[10px] font-semibold uppercase tracking-[.22em] text-white sm:text-xs">Explore <ArrowDownRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-1 group-hover:translate-x-1" /></a>
+          </div>
+        </div>
       </div>
     </section>
   );
