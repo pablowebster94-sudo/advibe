@@ -5,7 +5,6 @@ import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
 const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
-const rotatingWords = ["destacan", "venden", "crecen"];
 
 export default function Hero() {
   return (
