@@ -17,36 +17,41 @@ export default function AIShowcase() {
   const demo = demos[active];
 
   return (
-    <section id="ia-showcase" className="relative overflow-hidden py-28 sm:py-32 lg:py-40">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_rgba(91,124,255,0.13),transparent_55%)]" />
+    <section id="ia-showcase" className="relative overflow-hidden border-y border-white/6 py-28 sm:py-32 lg:py-40">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_75%_35%,rgba(174,255,0,0.055),transparent_35%)]" />
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading eyebrow="Tecnología aplicada" title="La inteligencia artificial debe resolver problemas reales de negocio." description="Diseñamos automatizaciones que conectan marketing, ventas y atención sin añadir tecnología innecesaria." />
 
-        <div className="mt-12 flex flex-wrap justify-center gap-3">
+        <div className="mt-20 border-y border-white/10">
           {demos.map((item, index) => (
-            <button key={item.id} onClick={() => setActive(index)} aria-pressed={index === active} className={`flex items-center gap-3 rounded-2xl border px-5 py-3 text-sm font-semibold transition-all ${index === active ? "border-blue-300/40 bg-blue-300/10 text-white" : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-white"}`}>
-              <span className="text-[10px] tracking-[0.2em] text-blue-300" aria-hidden="true">{item.index}</span>{item.label}
+            <button key={item.id} onClick={() => setActive(index)} aria-pressed={index === active} className={`group relative grid w-full gap-4 border-b border-white/10 py-7 text-left last:border-b-0 sm:grid-cols-[90px_1fr_auto] sm:items-center sm:py-8 ${index === active ? "bg-white/[0.025]" : "hover:bg-white/[0.015]"}`}>
+              <span className={`font-mono text-xs tracking-[0.22em] ${index === active ? "text-lime-300" : "text-slate-600"}`}>{item.index}</span>
+              <span className={`text-2xl font-semibold tracking-[-0.035em] transition-transform duration-300 group-hover:translate-x-1 sm:text-3xl ${index === active ? "text-white" : "text-slate-400"}`}>{item.label}</span>
+              <span className={`text-lg transition-all duration-300 ${index === active ? "translate-x-1 text-lime-300" : "text-white/15 group-hover:translate-x-1 group-hover:text-white/50"}`} aria-hidden="true">↗</span>
+              {index === active && <span className="absolute bottom-0 left-0 h-px w-full bg-lime-300" aria-hidden="true" />}
             </button>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
-          <motion.div key={demo.id} initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: 0.35 }} className="mt-10 overflow-hidden rounded-[2.6rem] border border-white/10 bg-[#080c14] shadow-[0_30px_100px_-60px_rgba(91,124,255,0.45)]">
-            <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="p-8 sm:p-10">
-                <div className="flex items-center gap-4"><span className="text-xs font-semibold tracking-[0.25em] text-blue-300">{demo.index}</span><div><p className="text-xs uppercase tracking-[0.28em] text-violet-300">Caso de uso</p><h3 className="text-2xl font-semibold text-white">{demo.label}</h3></div></div>
-                <p className="mt-5 leading-7 text-slate-300">{demo.description}</p>
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[1.75rem] border border-white/10 bg-black/30 p-5"><p className="text-xs uppercase tracking-[0.28em] text-slate-500">Antes</p><p className="mt-3 text-sm leading-6 text-slate-400">{demo.before}</p></div>
-                  <div className="rounded-[1.75rem] border border-blue-300/20 bg-blue-300/5 p-5"><p className="text-xs uppercase tracking-[0.28em] text-blue-300">Con AdVibe</p><p className="mt-3 text-sm font-semibold leading-6 text-white">{demo.after}</p></div>
-                </div>
-                <div className="mt-6 rounded-[1.75rem] border border-violet-400/20 bg-violet-400/5 p-5"><p className="text-xs uppercase tracking-[0.26em] text-violet-300">Cómo funciona</p><p className="mt-3 text-sm leading-7 text-slate-300">{demo.insight}</p></div>
+          <motion.div key={demo.id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }} className="mt-10 grid overflow-hidden border border-white/10 lg:grid-cols-[1.25fr_0.75fr]">
+            <div className="p-7 sm:p-10 lg:p-12">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-lime-300">Caso de uso / {demo.index}</p>
+              <h3 className="mt-4 text-3xl font-semibold tracking-[-0.045em] text-white sm:text-4xl">{demo.label}</h3>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">{demo.description}</p>
+
+              <div className="mt-10 grid gap-8 border-t border-white/10 pt-8 sm:grid-cols-2">
+                <div><p className="text-[10px] uppercase tracking-[0.28em] text-slate-600">Antes</p><p className="mt-3 text-sm leading-6 text-slate-500">{demo.before}</p></div>
+                <div><p className="text-[10px] uppercase tracking-[0.28em] text-lime-300">Con AdVibe</p><p className="mt-3 text-sm font-semibold leading-6 text-white">{demo.after}</p></div>
               </div>
-              <div className="flex flex-col items-center justify-center gap-6 border-t border-white/10 bg-black/20 p-8 lg:border-l lg:border-t-0">
-                <div className="text-center"><p className="text-xs uppercase tracking-[0.3em] text-slate-500">Enfoque AdVibe</p><p className="mt-4 bg-gradient-to-r from-blue-300 via-white to-violet-300 bg-clip-text text-6xl font-bold text-transparent sm:text-7xl">{demo.metric}</p><p className="mt-3 text-sm text-slate-400">{demo.metricLabel}</p></div>
-                <div className="w-full rounded-[2rem] border border-white/10 bg-white/5 p-5 text-center"><p className="text-xs uppercase tracking-[0.24em] text-blue-300">Importante</p><p className="mt-2 text-sm font-semibold text-white">Cada sistema se diseña a medida</p><p className="mt-1 text-xs text-slate-500">No prometemos resultados sin datos.</p></div>
-                <EventButton href="#diagnostico" eventName="ai_showcase_cta" eventParams={{ source: "ai_showcase", demo: demo.id }} className="inline-flex w-full items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 hover:-translate-y-0.5 hover:bg-slate-100">Implementar en mi marca</EventButton>
-              </div>
+
+              <div className="mt-8 border-t border-white/10 pt-8"><p className="text-[10px] uppercase tracking-[0.28em] text-slate-600">Cómo funciona</p><p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">{demo.insight}</p></div>
+            </div>
+
+            <div className="flex flex-col justify-between border-t border-white/10 bg-white/[0.02] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-slate-600">Enfoque AdVibe</p><p className="mt-6 text-6xl font-semibold tracking-[-0.07em] text-lime-300 sm:text-7xl">{demo.metric}</p><p className="mt-2 text-sm text-slate-500">{demo.metricLabel}</p></div>
+              <div className="mt-12 border-t border-white/10 pt-6"><p className="text-sm font-semibold text-white">Cada sistema se diseña a medida.</p><p className="mt-2 text-xs leading-5 text-slate-600">No añadimos tecnología por moda. La usamos cuando resuelve un problema real.</p></div>
+              <EventButton href="#diagnostico" eventName="ai_showcase_cta" eventParams={{ source: "ai_showcase", demo: demo.id }} className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-lime-300 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-200">Implementar en mi marca ↗</EventButton>
             </div>
           </motion.div>
         </AnimatePresence>
