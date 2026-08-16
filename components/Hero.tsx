@@ -1,12 +1,23 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
 const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
+const rotatingWords = ["destacan.", "venden.", "crecen."];
 
 export default function Hero() {
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setWordIndex((current) => (current + 1) % rotatingWords.length);
+    }, 2400);
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <section id="home" className="relative isolate overflow-hidden bg-[#05070a] px-6 pb-24 pt-12 sm:pb-28 sm:pt-16 lg:px-10 lg:pb-32 lg:pt-20">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_75%_35%,rgba(120,217,79,0.13),transparent_27%),radial-gradient(circle_at_15%_75%,rgba(36,86,145,0.12),transparent_30%),linear-gradient(135deg,#05070a_0%,#071018_58%,#07100b_100%)]" />
@@ -22,7 +33,13 @@ export default function Hero() {
             </motion.p>
             <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
               <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas</motion.span>
-              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22,1,0.36,1] }} className="block">que <span className="text-lime-300">destacan.</span></motion.span>
+              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22,1,0.36,1] }} className="block">que <span className="relative inline-block min-w-[4.6ch] text-lime-300 align-baseline">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="inline-block">
+                    {rotatingWords[wordIndex]}
+                  </motion.span>
+                </AnimatePresence>
+              </span></motion.span>
             </h1>
             <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .25 }} className="mt-9 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
               Contenido, estrategia y tecnología para empresas que quieren verse mejor, llegar a más personas y convertir su presencia digital en oportunidades.
