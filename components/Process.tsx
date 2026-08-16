@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import SectionHeading from "@/components/ui/SectionHeading";
 
 const steps = [
@@ -22,12 +19,8 @@ export default function Process() {
 
         <div className="mt-20 divide-y divide-white/10 border-y border-white/10">
           {steps.map((step, index) => (
-            <motion.article
+            <article
               key={step.title}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{ duration: 0.55, delay: index * 0.06 }}
               className="group relative grid gap-6 py-9 sm:grid-cols-[110px_1fr_auto] sm:items-center sm:py-11 lg:grid-cols-[140px_1fr_1.1fr_auto]"
             >
               <span className="font-mono text-sm tracking-[0.2em] text-lime-300">0{index + 1}</span>
@@ -38,7 +31,7 @@ export default function Process() {
               </div>
               <span className="text-xl text-white/20 transition-all duration-300 group-hover:translate-x-2 group-hover:text-lime-300" aria-hidden="true">↗</span>
               <div className="absolute bottom-0 left-0 h-px w-0 bg-lime-300 transition-all duration-700 group-hover:w-full" />
-            </motion.article>
+            </article>
           ))}
         </div>
       </div>
