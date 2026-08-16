@@ -7,6 +7,11 @@ import EventButton from "@/components/EventButton";
 
 const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
 const rotatingWords = ["destacan.", "venden.", "crecen."];
+const system = [
+  { number: "01", title: "Estrategia", text: "Definimos qué decir, a quién y por qué." },
+  { number: "02", title: "Creación", text: "Convertimos ideas en contenido que se recuerda." },
+  { number: "03", title: "Performance", text: "Medimos, optimizamos y hacemos que avance." },
+];
 
 export default function Hero() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -50,16 +55,37 @@ export default function Hero() {
             </div>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .18, ease: [0.22,1,0.36,1] }} className="lg:pb-2">
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .18, ease: [0.22,1,0.36,1] }} className="relative lg:pb-1">
             <div className="border-l border-white/10 pl-6 sm:pl-8">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Lo que conectamos</p>
-              <p className="mt-5 text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Creatividad que comunica.<br />Tecnología que acelera.</p>
-              <div className="mt-8 flex flex-wrap gap-2">
-                {highlights.map((item, index) => (
-                  <span key={item} className="rounded-full border border-white/10 bg-white/[0.035] px-3.5 py-2 text-xs font-medium text-slate-300">0{index + 1} · {item}</span>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Cómo hacemos que pase</p>
+                <span className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-lime-300/70"><span className="h-1.5 w-1.5 rounded-full bg-lime-300 shadow-[0_0_12px_rgba(120,217,79,.8)]" /> AdVibe system</span>
+              </div>
+              <p className="mt-5 max-w-md text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Creatividad que comunica.<br />Tecnología que acelera.</p>
+
+              <div className="mt-8">
+                {system.map((item, index) => (
+                  <motion.div key={item.number} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .5, delay: .35 + index * .1 }} className="group relative border-t border-white/10 py-4 last:border-b">
+                    <div className="flex items-start gap-4">
+                      <span className="pt-0.5 font-mono text-[10px] text-lime-300/80">{item.number}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-white transition-colors group-hover:text-lime-300">{item.title}</p>
+                          <span className="text-slate-600 transition-transform group-hover:translate-x-1">↗</span>
+                        </div>
+                        <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">{item.text}</p>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
-              <div className="mt-10 flex items-center gap-3 text-xs text-slate-500">
+
+              <div className="mt-7 flex flex-wrap gap-2">
+                {highlights.map((item, index) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[10px] font-medium text-slate-400">0{index + 1} · {item}</span>
+                ))}
+              </div>
+              <div className="mt-8 flex items-center gap-3 text-xs text-slate-500">
                 <span className="h-1.5 w-1.5 rounded-full bg-lime-300 shadow-[0_0_14px_rgba(120,217,79,.8)]" />
                 Ecuador + Estados Unidos
               </div>
