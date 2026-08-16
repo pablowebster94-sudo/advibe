@@ -24,9 +24,9 @@ export default function Home() {
         <Navbar />
         <Hero />
         <Services />
-        <AIShowcase />
         <Portfolio />
         <Process />
+        <AIShowcase />
         <Stats />
         <ClientsMarquee />
         <Clients />
