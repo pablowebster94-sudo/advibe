@@ -33,9 +33,9 @@ export default function Hero() {
             </motion.p>
             <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
               <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas</motion.span>
-              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22,1,0.36,1] }} className="block">que <span className="relative inline-block min-w-[4.6ch] text-lime-300 align-baseline">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="inline-block">
+              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22,1,0.36,1] }} className="block">que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
+                <AnimatePresence initial={false}>
+                  <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="[grid-area:1/1] inline-block whitespace-nowrap">
                     {rotatingWords[wordIndex]}
                   </motion.span>
                 </AnimatePresence>
