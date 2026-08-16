@@ -6,63 +6,37 @@ import SectionHeading from "@/components/ui/SectionHeading";
 
 export default function Stats() {
   return (
-    <section
-      id="resultados"
-      className="relative overflow-hidden py-20 sm:py-24 lg:py-28"
-    >
+    <section id="resultados" className="relative overflow-hidden py-28 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6">
         <SectionHeading
-          eyebrow="Nuestra Experiencia"
-          title="Resultados construidos junto a empresas de diferentes sectores."
-          description="Cada proyecto representa una estrategia diseñada para atraer clientes, fortalecer marcas y generar crecimiento sostenible mediante creatividad, tecnología y datos."
+          eyebrow="Experiencia real"
+          title="No hacemos marketing por hacer marketing."
+          description="Construimos sistemas que ayudan a empresas reales a comunicar mejor, vender y crecer."
         />
 
-        <div className="mt-16 rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(10,10,10,0.90))] p-10 backdrop-blur-xl">
+        <div className="mt-20 grid border-y border-white/10 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: index * 0.08 }}
+              className="group relative border-b border-white/10 px-6 py-10 sm:border-r sm:px-8 lg:border-b-0 lg:last:border-r-0 lg:py-14"
+            >
+              <span className="font-mono text-[10px] tracking-[0.25em] text-slate-600">0{index + 1}</span>
+              <p className="mt-8 text-5xl font-semibold tracking-[-0.06em] text-white transition-colors group-hover:text-lime-300 sm:text-6xl">{stat.value}</p>
+              <p className="mt-3 max-w-[16rem] text-sm leading-6 text-slate-500">{stat.label}</p>
+              <div className="absolute bottom-0 left-6 h-px w-0 bg-lime-300 transition-all duration-500 group-hover:w-[calc(100%-3rem)]" />
+            </motion.div>
+          ))}
+        </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.45,
-                  delay: index * 0.08,
-                }}
-                whileHover={{
-                  y: -6,
-                }}
-                className="rounded-[1.5rem] border border-white/10 bg-black/40 p-8 transition-all duration-500 hover:border-cyan-400/30 hover:shadow-[0_20px_60px_-25px_rgba(0,212,255,0.18)]"
-              >
-                <h3 className="text-4xl font-bold text-white">
-                  {stat.value}
-                </h3>
-
-                <p className="mt-4 leading-7 text-slate-300">
-                  {stat.label}
-                </p>
-              </motion.div>
-            ))}
-
-          </div>
-
-          <div className="mt-10 rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/5 p-8">
-
-            <h3 className="text-2xl font-semibold text-white">
-              Más que marketing, construimos sistemas de crecimiento.
-            </h3>
-
-            <p className="mt-4 max-w-4xl leading-8 text-slate-300">
-              Integramos estrategia, Meta Ads, producción audiovisual,
-              desarrollo web, inteligencia artificial y automatización para
-              ayudar a las empresas a vender más, optimizar procesos y
-              fortalecer su presencia digital.
-            </p>
-
-          </div>
-
+        <div className="mt-12 grid gap-8 border-b border-white/10 pb-12 lg:grid-cols-[1fr_auto] lg:items-end">
+          <p className="max-w-3xl text-2xl font-medium leading-tight tracking-[-0.03em] text-white sm:text-3xl">
+            Estrategia + creatividad + tecnología. <span className="text-slate-500">Un mismo sistema para hacer que el negocio avance.</span>
+          </p>
+          <span className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-300">AdVibe / Growth systems</span>
         </div>
       </div>
     </section>
