@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import SectionHeading from "@/components/ui/SectionHeading";
 import EventButton from "@/components/EventButton";
 
@@ -18,8 +15,8 @@ export default function Portfolio() {
         <SectionHeading eyebrow="02 / Trabajo real" title="Ideas que salieron del estudio y llegaron al mercado." description="Proyectos reales de AdVibe. Mostramos qué hicimos, para quién y con qué objetivo, sin atribuirnos trabajos que no realizamos." />
 
         <div className="mt-16 overflow-hidden rounded-[2rem] border border-white/10">
-          {projects.map((project, index) => (
-            <motion.article key={project.title} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true, amount: .12 }} transition={{ duration: .6 }} className="group relative border-b border-white/10 last:border-b-0">
+          {projects.map((project) => (
+            <article key={project.title} className="group relative border-b border-white/10 last:border-b-0">
               <div className="grid min-h-[300px] lg:grid-cols-[92px_1.15fr_0.85fr]">
                 <div className="hidden border-r border-white/10 p-7 lg:block">
                   <span className="font-mono text-xs text-lime-300">{project.number}</span>
@@ -45,7 +42,7 @@ export default function Portfolio() {
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 h-px w-0 bg-lime-300 transition-all duration-700 group-hover:w-full" />
-            </motion.article>
+            </article>
           ))}
         </div>
 
