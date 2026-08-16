@@ -33,7 +33,7 @@ export default function ClientsMarquee() {
       <div className="mt-10 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         <motion.div className="flex w-max gap-4 px-6" animate={{ x: [0, -1980] }} transition={{ duration: 38, repeat: Infinity, ease: "linear" }}>
           {row.map((client, index) => (
-            <div key={`${client}-${index}`} className="flex h-20 min-w-[210px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.025] px-6 text-center text-sm font-semibold text-white/55 transition hover:border-lime-300/30 hover:text-white/90">
+            <div key={`${client}-${index}`} aria-hidden={index >= clients.length} className="flex h-20 min-w-[210px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.025] px-6 text-center text-sm font-semibold text-white/55 transition hover:border-lime-300/30 hover:text-white/90">
               {client}
             </div>
           ))}
