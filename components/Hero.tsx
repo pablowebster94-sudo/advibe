@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
@@ -33,29 +33,29 @@ export default function Hero() {
       <div className="mx-auto max-w-7xl">
         <div className="grid items-end gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
           <div>
-            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
+            <p className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
               <span className="h-px w-8 bg-lime-300" /> Agencia creativa + tecnológica · Ecuador
-            </motion.p>
+            </p>
             <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
-              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas</motion.span>
-              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22,1,0.36,1] }} className="block">que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
+              <span className="block">Creamos marcas</span>
+              <span className="block">que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
                 <AnimatePresence initial={false}>
                   <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="[grid-area:1/1] inline-block whitespace-nowrap">
                     {rotatingWords[wordIndex]}
                   </motion.span>
                 </AnimatePresence>
-              </span></motion.span>
+              </span></span>
             </h1>
-            <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .25 }} className="mt-9 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+            <p className="mt-9 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
               Contenido, estrategia y tecnología para empresas que quieren verse mejor, llegar a más personas y convertir su presencia digital en oportunidades.
-            </motion.p>
+            </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi marca <span className="ml-2">↗</span></EventButton>
               <Button href="#portafolio" variant="secondary" className="rounded-full border-white/10 bg-white/[0.03] px-7 py-4 text-white hover:border-white/20 hover:bg-white/[0.08]">Ver proyectos</Button>
             </div>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .18, ease: [0.22,1,0.36,1] }} className="relative lg:pb-1">
+          <div className="relative lg:pb-1">
             <div className="border-l border-white/10 pl-6 sm:pl-8">
               <div className="flex items-center justify-between gap-4">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Cómo hacemos que pase</p>
@@ -64,8 +64,8 @@ export default function Hero() {
               <p className="mt-5 max-w-md text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Creatividad que comunica.<br />Tecnología que acelera.</p>
 
               <div className="mt-8">
-                {system.map((item, index) => (
-                  <motion.div key={item.number} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .5, delay: .35 + index * .1 }} className="group relative border-t border-white/10 py-4 last:border-b">
+                {system.map((item) => (
+                  <div key={item.number} className="group relative border-t border-white/10 py-4 last:border-b">
                     <div className="flex items-start gap-4">
                       <span className="pt-0.5 font-mono text-[10px] text-lime-300/80">{item.number}</span>
                       <div className="min-w-0 flex-1">
@@ -76,7 +76,7 @@ export default function Hero() {
                         <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">{item.text}</p>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
@@ -90,7 +90,7 @@ export default function Hero() {
                 Ecuador + Estados Unidos
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         <div className="mt-20 border-t border-white/10 pt-5 sm:mt-24">
