@@ -1,0 +1,84 @@
+name: One-time AdVibe optimization
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    if: ${{ !contains(github.event.head_commit.message, '[skip optimize]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply audited cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+          import re
+
+          goat = Path('components/GoatReveal.tsx')
+          text = goat.read_text(encoding='utf-8')
+
+          m = re.search(r'const GOAT_IMAGE = "data:image/webp;base64,([^"]+)";', text)
+          if not m:
+              raise SystemExit('Could not find the original GOAT_IMAGE base64 payload')
+
+          payload = m.group(1)
+          data = base64.b64decode(payload, validate=True)
+          if len(data) != 13482 or data[:4] != b'RIFF' or data[8:12] != b'WEBP':
+              raise SystemExit(f'Unexpected goat asset: {len(data)} bytes')
+
+          Path('public/images/goat-advibe.webp').write_bytes(data)
+
+          text = text.replace('import { motion } from "framer-motion";', 'import Image from "next/image";\nimport { motion } from "framer-motion";')
+          text = re.sub(r'\nconst GOAT_IMAGE = "data:image/webp;base64,[^"]+";\n', '\n', text)
+          text = text.replace('<img src={GOAT_IMAGE}', '<Image src="/images/goat-advibe.webp" width={500} height={405}')
+          goat.write_text(text, encoding='utf-8')
+
+          layout = Path('app/layout.tsx')
+          lt = layout.read_text(encoding='utf-8')
+          lt = re.sub(r'\n    images: \[\{ url: "/og-image\\.png", width: 1200, height: 630, alt: "AdVibe Agencia" \}\],', '', lt)
+          layout.write_text(lt, encoding='utf-8')
+
+          marquee = Path('components/ClientsMarquee.tsx')
+          mt = marquee.read_text(encoding='utf-8')
+          old = '''          {row.map((client, index) => (\n            <div key={`${client}-${index}`} className="flex h-20 min-w-[210px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.025] px-6 text-center text-sm font-semibold text-white/55 transition hover:border-lime-300/30 hover:text-white/90">\n              {client}\n            </div>\n          ))}'''
+          new = '''          {row.map((client, index) => (\n            <div key={`${client}-${index}`} aria-hidden={index >= clients.length} className="flex h-20 min-w-[210px] items-center justify-center rounded-2xl border border-white/10 bg-white/[0.025] px-6 text-center text-sm font-semibold text-white/55 transition hover:border-lime-300/30 hover:text-white/90">\n              {client}\n            </div>\n          ))}'''
+          if old not in mt:
+              raise SystemExit('Unexpected ClientsMarquee structure; refusing automatic edit')
+          marquee.write_text(mt.replace(old, new), encoding='utf-8')
+
+          Path('app/redesign.css').unlink(missing_ok=True)
+          Path('public/images/goat-advibe.png').unlink(missing_ok=True)
+          Path('how --stat 6711cd9137f728c74271a931df15721d6debfa5d').unlink(missing_ok=True)
+          PY
+
+      - name: Verify
+        run: |
+          test -f public/images/goat-advibe.webp
+          test "$(stat -c%s public/images/goat-advibe.webp)" = "13482"
+          ! grep -q 'GOAT_IMAGE' components/GoatReveal.tsx
+          ! grep -q 'og-image.png' app/layout.tsx
+          test ! -e app/redesign.css
+          test ! -e public/images/goat-advibe.png
+          npm ci
+          npx tsc --noEmit
+          npx eslint .
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'perf: optimize goat asset and clean unused files [skip optimize]' || exit 0
+          git push
