@@ -1,77 +1,64 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
-const highlights = ["Contenido audiovisual", "Meta Ads", "Desarrollo Web", "IA + Automatización", "Cobertura de eventos"];
-const workflowItems = ["Contenido", "Publicidad", "Web", "Tecnología", "Eventos"];
+const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
 const rotatingWords = ["destacan", "venden", "crecen"];
 
 export default function Hero() {
-  const [wordIndex, setWordIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setWordIndex((index) => (index + 1) % rotatingWords.length), 2200);
-    return () => window.clearInterval(interval);
-  }, []);
-
   return (
-    <section id="home" className="relative isolate overflow-hidden bg-[#07101a] px-6 pb-20 pt-14 sm:pb-24 sm:pt-16 lg:px-10 lg:pb-24 lg:pt-20">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_18%,rgba(120,217,79,0.12),transparent_26%),radial-gradient(circle_at_75%_55%,rgba(120,217,79,0.14),transparent_28%),linear-gradient(135deg,#07101a_0%,#0a1723_62%,#0b1a16_100%)]" />
-      <div className="absolute inset-0 -z-10 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.45)_1px,transparent_1px)] [background-size:80px_80px]" />
-      <div className="pointer-events-none absolute -right-48 top-1/2 -z-10 h-[44rem] w-[44rem] -translate-y-1/2 rounded-full border border-lime-300/10 animate-ring-pulse" />
-      <div className="pointer-events-none absolute -right-20 top-1/2 -z-10 h-[30rem] w-[30rem] -translate-y-1/2 rounded-full border border-lime-300/10" />
+    <section id="home" className="relative isolate overflow-hidden bg-[#05070a] px-6 pb-24 pt-12 sm:pb-28 sm:pt-16 lg:px-10 lg:pb-32 lg:pt-20">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_75%_35%,rgba(120,217,79,0.13),transparent_27%),radial-gradient(circle_at_15%_75%,rgba(36,86,145,0.12),transparent_30%),linear-gradient(135deg,#05070a_0%,#071018_58%,#07100b_100%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-lime-300/50 to-transparent" />
+      <div className="pointer-events-none absolute -right-64 top-20 -z-10 h-[42rem] w-[42rem] rounded-full border border-white/[0.06]" />
+      <div className="pointer-events-none absolute right-[-10rem] top-48 -z-10 h-[30rem] w-[30rem] rounded-full border border-lime-300/[0.08]" />
 
-      <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-4">
-        <div className="max-w-4xl">
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-5 text-xs font-semibold uppercase tracking-[0.34em] text-lime-300/85">Agencia creativa y tecnológica · Ecuador</motion.p>
-          <h1 className="text-[clamp(3.35rem,7.2vw,6.5rem)] font-semibold leading-[0.9] tracking-[-0.06em] text-white">
-            <motion.span initial={{ opacity: 0, y: 42 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas que</motion.span>
-            <span className="mt-2 block text-lime-300">
-              <motion.span
-                key={rotatingWords[wordIndex]}
-                initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: .45, ease: [0.22,1,0.36,1] }}
-                className="inline-block"
-              >
-                {rotatingWords[wordIndex]}.
-              </motion.span>
-            </span>
-          </h1>
-          <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .3 }} className="mt-7 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">Contenido audiovisual, campañas publicitarias, desarrollo web, inteligencia artificial y cobertura de eventos para empresas que quieren verse mejor, llegar a más personas y generar oportunidades.</motion.p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_50px_-24px_rgba(120,217,79,.75)] hover:-translate-y-1 hover:bg-lime-300">Solicitar diagnóstico gratuito <span className="ml-2">↗</span></EventButton>
-            <Button href="#portafolio" variant="secondary" className="border-white/10 bg-white/[0.04] text-white hover:border-white/20 hover:bg-white/[0.08]">Ver trabajo real</Button>
+      <div className="mx-auto max-w-7xl">
+        <div className="grid items-end gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
+          <div>
+            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55 }} className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
+              <span className="h-px w-8 bg-lime-300" /> Agencia creativa + tecnológica · Ecuador
+            </motion.p>
+            <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
+              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22,1,0.36,1] }} className="block">Creamos marcas</motion.span>
+              <motion.span initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22,1,0.36,1] }} className="block">que <span className="text-lime-300">destacan.</span></motion.span>
+            </h1>
+            <motion.p initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65, delay: .25 }} className="mt-9 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+              Contenido, estrategia y tecnología para empresas que quieren verse mejor, llegar a más personas y convertir su presencia digital en oportunidades.
+            </motion.p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi marca <span className="ml-2">↗</span></EventButton>
+              <Button href="#portafolio" variant="secondary" className="rounded-full border-white/10 bg-white/[0.03] px-7 py-4 text-white hover:border-white/20 hover:bg-white/[0.08]">Ver proyectos</Button>
+            </div>
           </div>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-400">
-            {highlights.map((item) => <span key={item} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-lime-300" />{item}</span>)}
-          </div>
+
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .18, ease: [0.22,1,0.36,1] }} className="lg:pb-2">
+            <div className="border-l border-white/10 pl-6 sm:pl-8">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Lo que conectamos</p>
+              <p className="mt-5 text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Creatividad que comunica.<br />Tecnología que acelera.</p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                {highlights.map((item, index) => (
+                  <span key={item} className="rounded-full border border-white/10 bg-white/[0.035] px-3.5 py-2 text-xs font-medium text-slate-300">0{index + 1} · {item}</span>
+                ))}
+              </div>
+              <div className="mt-10 flex items-center gap-3 text-xs text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-lime-300 shadow-[0_0_14px_rgba(120,217,79,.8)]" />
+                Ecuador + Estados Unidos
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        <motion.div initial={{ opacity: 0, scale: .96, x: 24 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ duration: .9, delay: .12, ease: [0.22,1,0.36,1] }} className="relative mx-auto w-full max-w-2xl">
-          <div className="absolute inset-[5%] rounded-[3rem] bg-lime-300/10 blur-3xl" />
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#08111d]/95 p-8 shadow-[0_35px_100px_-50px_rgba(0,0,0,.9)] sm:p-10">
-            <div className="pointer-events-none absolute -right-10 -top-8 h-52 w-52 rounded-full border border-lime-300/10" />
-            <div className="pointer-events-none absolute right-8 top-10 h-28 w-28 rounded-full border border-lime-300/10 animate-ring-pulse" />
-            <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-500">ADVIBE / WORKFLOW</p>
-            <h2 className="mt-16 max-w-md text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-white sm:text-5xl">Publicamos.<br />Medimos.<br />Mejoramos.</h2>
-            <div className="mt-10 grid gap-3">
-              {workflowItems.map((item, index) => (
-                <motion.div key={item} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .45, delay: .45 + index * .07 }} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm font-semibold text-white/90">
-                  <span>{item}</span>
-                  <span className="text-lime-300">↗</span>
-                </motion.div>
-              ))}
-            </div>
-            <div className="mt-8 flex items-center gap-4 border-t border-white/10 pt-6 text-xs text-slate-500">
-              <span className="h-px w-10 bg-lime-300/70" />
-              <span>Una idea. Una ejecución. Un siguiente paso.</span>
+        <div className="mt-20 border-t border-white/10 pt-5 sm:mt-24">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-600">AdVibe / Creative systems</p>
+            <div className="flex items-center gap-3 text-xs text-slate-500">
+              <span>Contenido</span><span className="text-lime-300">×</span><span>Performance</span><span className="text-lime-300">×</span><span>Technology</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
