@@ -12,28 +12,35 @@ const contactItems = [
 
 export default function CTA() {
   return (
-    <section id="contacto" className="relative overflow-hidden bg-[#075BFF] py-24 text-white sm:py-32 lg:py-40">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_80%,rgba(255,255,255,0.12),transparent_30%),linear-gradient(135deg,#075BFF,#4320C8)]" />
-      <div className="pointer-events-none absolute -right-44 top-1/2 h-[46rem] w-[46rem] -translate-y-1/2 rounded-full border border-white/15" />
-      <div className="pointer-events-none absolute -right-12 top-1/2 h-[30rem] w-[30rem] -translate-y-1/2 rounded-full border border-white/15 animate-pulse-ring" />
-      <div className="pointer-events-none absolute right-20 top-1/2 h-[15rem] w-[15rem] -translate-y-1/2 rounded-full border border-white/15" />
+    <section id="contacto" className="relative overflow-hidden border-t border-white/10 bg-[#050505] py-28 text-white sm:py-36 lg:py-44">
+      <div className="pointer-events-none absolute -right-64 top-1/2 h-[52rem] w-[52rem] -translate-y-1/2 rounded-full border border-lime-300/[0.08]" />
+      <div className="pointer-events-none absolute -right-16 top-1/2 h-[34rem] w-[34rem] -translate-y-1/2 rounded-full border border-white/[0.06]" />
+      <div className="pointer-events-none absolute right-24 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-lime-300/[0.035] blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-6">
-        <div className="grid gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+        <div className="grid gap-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.34em] text-white/60">Hablemos de tu proyecto</p>
-            <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="mt-5 max-w-4xl text-5xl font-semibold leading-[0.88] tracking-[-0.06em] sm:text-7xl lg:text-[6rem]">¿Listo para hacer que tu marca se vea y venda mejor?</motion.h2>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/72">Cuéntanos qué necesitas. Revisamos tu situación y te proponemos el siguiente paso con claridad.</p>
-            <Button href="https://wa.me/593984966335?text=Hola,%20quiero%20agendar%20un%20diagnóstico%20estratégico." variant="primary" className="mt-9 bg-white text-slate-950 hover:bg-slate-100">Agendar diagnóstico ↗</Button>
+            <p className="text-xs font-bold uppercase tracking-[0.34em] text-lime-300">Hablemos de tu proyecto</p>
+            <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="mt-6 max-w-5xl text-5xl font-semibold leading-[0.88] tracking-[-0.065em] sm:text-7xl lg:text-[6.2rem]">
+              ¿Listo para hacer que tu marca <span className="text-lime-300">se vea y venda mejor?</span>
+            </motion.h2>
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-500">Cuéntanos qué necesitas. Revisamos tu situación y te proponemos el siguiente paso con claridad.</p>
+            <Button href="https://wa.me/593984966335?text=Hola,%20quiero%20agendar%20un%20diagnóstico%20estratégico." variant="primary" className="mt-9 bg-lime-300 text-slate-950 hover:bg-lime-200">Agendar diagnóstico ↗</Button>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
-            {contactItems.map((item, index) => (
-              <motion.a key={item.label} href={item.href} target="_blank" rel="noreferrer" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.07 }} className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm transition hover:-translate-y-1 hover:bg-white/15">
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/55">{item.label}</p>
-                <p className="mt-3 text-base font-semibold text-white">{item.value}</p>
-              </motion.a>
-            ))}
+          <div className="border-t border-white/10 lg:border-t-0 lg:border-l lg:pl-10">
+            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">AdVibe / Contacto</p>
+            <div className="divide-y divide-white/10 border-y border-white/10">
+              {contactItems.map((item, index) => (
+                <motion.a key={item.label} href={item.href} target="_blank" rel="noreferrer" initial={{ opacity: 0, x: 12 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, delay: index * 0.06 }} className="group flex items-center justify-between gap-5 py-5">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-600">{item.label}</p>
+                    <p className="mt-2 text-sm font-semibold text-white transition-colors group-hover:text-lime-300">{item.value}</p>
+                  </div>
+                  <span className="text-white/20 transition-all group-hover:translate-x-1 group-hover:text-lime-300" aria-hidden="true">↗</span>
+                </motion.a>
+              ))}
+            </div>
           </div>
         </div>
       </div>
