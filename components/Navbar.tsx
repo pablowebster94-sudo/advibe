@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import Button from "@/components/ui/Button";
+import EventButton from "@/components/EventButton";
 
 const navLinks = [
   { label: "Servicios", href: "#servicios" },
@@ -54,7 +54,14 @@ export default function Navbar() {
           <div className="hidden items-center gap-2 sm:flex">
             {socials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[10px] font-bold text-slate-400 hover:border-lime-300/30 hover:text-lime-300">{item.icon}</a>)}
           </div>
-          <Button href="#contacto" variant="primary" className="bg-lime-400 text-[#07101a] hover:bg-lime-300">Agenda un diagnóstico</Button>
+          <EventButton
+            href="#diagnostico"
+            eventName="navbar_diagnostic_cta"
+            eventParams={{ source: "navbar" }}
+            className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white px-7 py-3 text-sm font-semibold text-slate-950 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:bg-[#f3f3f0] hover:shadow-[0_16px_60px_-30px_rgba(255,255,255,0.45)] bg-lime-400 text-[#07101a] hover:bg-lime-300"
+          >
+            Agenda un diagnóstico
+          </EventButton>
         </div>
       </div>
     </motion.header>
