@@ -37,7 +37,6 @@ export const metadata: Metadata = {
       "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",
     url: siteUrl,
     siteName: "AdVibe Agencia",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AdVibe Agencia" }],
     locale: "es_EC",
     type: "website",
   },
