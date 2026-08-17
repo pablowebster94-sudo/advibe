@@ -2,6 +2,8 @@ import { testimonials } from "@/lib/content";
 import SectionHeading from "@/components/ui/SectionHeading";
 
 export default function Testimonials() {
+  if (testimonials.length === 0) return null;
+
   return (
     <section id="casos" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/5 to-transparent" />
