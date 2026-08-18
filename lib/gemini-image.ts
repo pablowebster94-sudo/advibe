@@ -14,11 +14,13 @@ import { GoogleGenAI } from "@google/genai";
 import type { AspectRatio, GeneratedImage, ReferenceImage, Resolution } from "./image-studio";
 
 /**
- * Nano Banana 2. Verified against Google's model documentation for the Gemini
- * Developer API; override with GEMINI_IMAGE_MODEL if Google renames it
- * (the Vertex AI / Gemini Enterprise id is `gemini-3.1-flash-image`).
+ * Nano Banana 2, generally available since 2026-05-28 and the id Google's
+ * deprecation table names as the replacement for the retired
+ * `gemini-3.1-flash-image-preview` (shut down 2026-06-25). Same id on the
+ * Gemini Developer API and on Vertex AI. Override with GEMINI_IMAGE_MODEL if
+ * Google renames it again.
  */
-export const DEFAULT_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
+export const DEFAULT_IMAGE_MODEL = "gemini-3.1-flash-image";
 
 /** A 4K generation can take a while; fail loudly instead of hanging forever. */
 const REQUEST_TIMEOUT_MS = 180_000;

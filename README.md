@@ -1,6 +1,6 @@
 # AdVibe Web
 
-Sitio de AdVibe (Next.js 16 + Tailwind CSS 4) que incluye el **Estudio de imagen**: un generador de imágenes con Google Gemini — Nano Banana 2 (`gemini-3.1-flash-image-preview`).
+Sitio de AdVibe (Next.js 16 + Tailwind CSS 4) que incluye el **Estudio de imagen**: un generador de imágenes con Google Gemini — Nano Banana 2 (`gemini-3.1-flash-image`).
 
 ## Puesta en marcha
 
@@ -20,8 +20,10 @@ Para producción: `npm run build && npm start`.
 | Variable | Obligatoria | Descripción |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | Sí | Clave de Google AI Studio. Se lee **solo en el servidor**. |
-| `GEMINI_IMAGE_MODEL` | No | Identificador del modelo. Por defecto `gemini-3.1-flash-image-preview`. |
+| `GEMINI_IMAGE_MODEL` | No | Identificador del modelo. Por defecto `gemini-3.1-flash-image`. |
 | `GEMINI_MOCK_MODE` | No | `1` para probar con imágenes simuladas, sin llamar a Gemini ni gastar créditos. |
+
+> **Sobre el modelo:** `gemini-3.1-flash-image` es la versión GA de Nano Banana 2 (disponible desde el 28-05-2026). El identificador anterior, `gemini-3.1-flash-image-preview`, fue retirado por Google el 25-06-2026 y ya no debe usarse. El mismo identificador funciona en la Gemini Developer API y en Vertex AI.
 
 `.env.local` está en `.gitignore`; la clave nunca llega al navegador, ni al HTML, ni a los logs, ni a las respuestas del API (los mensajes de error se filtran antes de salir).
 
