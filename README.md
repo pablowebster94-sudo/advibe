@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AdVibe Web
 
-## Getting Started
+Sitio de AdVibe (Next.js 16 + Tailwind CSS 4) que incluye el **Estudio de imagen**: un generador de imágenes con Google Gemini — Nano Banana 2 (`gemini-3.1-flash-image-preview`).
 
-First, run the development server:
+## Puesta en marcha
 
 ```bash
+npm install
+cp .env.example .env.local   # pega tu clave dentro
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Sitio: http://localhost:3000
+- **Estudio de imagen: http://localhost:3000/estudio**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para producción: `npm run build && npm start`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variables de entorno
 
-## Learn More
+| Variable | Obligatoria | Descripción |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | Sí | Clave de Google AI Studio. Se lee **solo en el servidor**. |
+| `GEMINI_IMAGE_MODEL` | No | Identificador del modelo. Por defecto `gemini-3.1-flash-image-preview`. |
+| `GEMINI_MOCK_MODE` | No | `1` para probar con imágenes simuladas, sin llamar a Gemini ni gastar créditos. |
 
-To learn more about Next.js, take a look at the following resources:
+`.env.local` está en `.gitignore`; la clave nunca llega al navegador, ni al HTML, ni a los logs, ni a las respuestas del API (los mensajes de error se filtran antes de salir).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estudio de imagen
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Pantalla única, pensada para móvil (`/estudio`):
 
-## Deploy on Vercel
+1. Prompt libre — sin necesidad de saber ingeniería de prompts.
+2. Una imagen de referencia opcional (se redimensiona en el navegador antes de subirla).
+3. Formato: `1:1`, `4:5`, `9:16`, `16:9`, `3:2`.
+4. Resolución: `1K` (por defecto), `2K`, `4K`.
+5. **Generar imagen** → una imagen, con botones **Descargar** y **Nueva imagen**.
+6. Historial local en el dispositivo (IndexedDB): imagen, prompt, formato y fecha. Sin base de datos.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Control de costes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+El principio es **1 solicitud del usuario = 1 llamada a Nano Banana 2 = 1 imagen**:
+
+- una sola llamada a `generateContent` por pulsación, con `candidateCount: 1`;
+- reintentos automáticos del SDK desactivados (`retryOptions: { attempts: 1 }`);
+- sin variantes, sin upscale, sin regeneración automática y sin un segundo modelo que reescriba el prompt (el prompt se estructura con texto fijo en `lib/gemini-image.ts`);
+- si la generación falla, se muestra el error y se detiene;
+- límite de 10 solicitudes por minuto y por IP en el backend.
+
+### Desarrollo sin gastar créditos
+
+```bash
+GEMINI_MOCK_MODE=1 npm run dev
+```
+
+Con esa variable el backend devuelve un marcador de posición local (`lib/mock-image.ts`) y **nunca** contacta con Gemini. La interfaz avisa con un banner cuando el modo simulado está activo.
+
+## Estructura relevante
+
+| Ruta | Contenido |
+| --- | --- |
+| `app/estudio/page.tsx` | Interfaz del estudio (client component). |
+| `app/api/generate-image/route.ts` | Backend: validación, rate limit y una única generación. |
+| `lib/gemini-image.ts` | Llamada a Gemini y construcción del prompt (solo servidor). |
+| `lib/image-studio.ts` | Formatos, resoluciones y tipos compartidos. |
+| `lib/image-history.ts` | Historial en IndexedDB (navegador). |
+| `lib/client-image.ts` | Redimensionado de la referencia y descargas. |
+| `lib/mock-image.ts` | Generador simulado para desarrollo. |
