@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --import ./tests/register.mjs --test --test-reporter=spec \"tests/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "node tests/e2e/e2e.mjs",
+    "test:batch": "node tests/e2e/batch.mjs",
+    "test:fixtures": "node --import ./tests/register.mjs tests/e2e/make-fixtures.mjs && node --import ./tests/register.mjs tests/e2e/make-batch.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.42.2",
