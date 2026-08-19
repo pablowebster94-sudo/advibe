@@ -163,8 +163,11 @@ export async function scanForJpeg(
   const window = await source.read(0, Math.min(limit, source.size));
   let best: EmbeddedPreview | null = null;
 
-  for (let index = 0; index + 1 < window.length; index += 1) {
-    if (window[index] !== 0xff || window[index + 1] !== 0xd8) continue;
+  for (let index = 0; index + 2 < window.length; index += 1) {
+    // Every real JPEG opens FF D8 FF: the SOI is immediately followed by
+    // another marker. Requiring the third byte rejects most of the FF D8 pairs
+    // that turn up by chance inside compressed pixel data.
+    if (window[index] !== 0xff || window[index + 1] !== 0xd8 || window[index + 2] !== 0xff) continue;
     const slice = window.subarray(index);
     const size = readJpegSize(slice);
     if (!size || size.width < 320 || size.height < 320) continue;

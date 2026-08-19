@@ -72,9 +72,11 @@ export function Panel({
 export function Badge({
   children,
   tone = "neutral",
+  title,
 }: {
   children: ReactNode;
   tone?: "neutral" | "good" | "warn" | "bad" | "accent";
+  title?: string;
 }) {
   const tones = {
     neutral: "bg-neutral-800 text-neutral-300 border-neutral-700",
@@ -85,6 +87,7 @@ export function Badge({
   } as const;
   return (
     <span
+      title={title}
       className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium leading-5 ${tones[tone]}`}
     >
       {children}

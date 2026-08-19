@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Adjustments, PhotoRecord, ProjectSettings } from "@/lib/photo/types";
 import { SCENE_LABELS, STRATEGIES, WEDDING_CATEGORY_LABELS } from "@/lib/photo/editing/strategies";
-import { estimateAsShotKelvin } from "@/lib/photo/raw/exif";
+import { metadataRows } from "@/lib/photo/raw/exifDisplay";
 import { strategyLabelFor } from "@/lib/photo/pipeline";
 import { DevelopCanvas } from "./DevelopCanvas";
 import { AdjustmentPanel } from "./AdjustmentPanel";
@@ -45,6 +45,7 @@ export function DevelopView({
   const [compare, setCompare] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [fullscreen, setFullscreen] = useState(false);
+  const [backend, setBackend] = useState<"webgl2" | "canvas2d" | null>(null);
 
   // Reset the zoom when the photographer moves to another photo. Adjusting
   // state during render is React's documented pattern for "derive from a prop
@@ -101,7 +102,6 @@ export function DevelopView({
 
   const index = photos.findIndex((item) => item.id === photo.id);
   const analysis = photo.analysis;
-  const kelvin = analysis ? estimateAsShotKelvin(photo.exif) : null;
 
   const canvas = (
     <div className={fullscreen ? "fixed inset-0 z-50 bg-black p-2" : "h-[46vh] min-h-64 lg:h-[62vh]"}>
@@ -111,6 +111,7 @@ export function DevelopView({
         compare={compare}
         zoom={zoom}
         onZoomChange={setZoom}
+        onBackend={setBackend}
       />
       {fullscreen && (
         <Button
@@ -186,8 +187,29 @@ export function DevelopView({
           </div>
         </div>
 
+        <Panel title="Metadatos del archivo">
+          <dl className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
+            {metadataRows(photo.exif).map((row) => (
+              <div key={row.label} className="flex gap-2 text-xs">
+                <dt className="w-36 shrink-0 text-neutral-500">{row.label}</dt>
+                <dd
+                  className={`min-w-0 flex-1 break-words ${
+                    row.missing ? "text-neutral-600" : "text-neutral-300"
+                  }`}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-3 text-[11px] leading-relaxed text-neutral-500">
+            Lo que el archivo no registró aparece como «—». No se sustituye por valores
+            plausibles.
+          </p>
+        </Panel>
+
         {analysis && (
-          <Panel title="Lo que midió la IA">
+          <Panel title="Análisis automático">
             <div className="grid gap-3 sm:grid-cols-2">
               <dl className="space-y-1 text-xs">
                 <Row label="Estrategia" value={strategyLabelFor(photo, settings)} />
@@ -228,18 +250,8 @@ export function DevelopView({
                         : "sin detección"
                   })`}
                 />
-                {kelvin && (
-                  <Row
-                    label="Balance origen"
-                    value={`≈ ${kelvin.kelvin} K (estimado desde EXIF)`}
-                  />
-                )}
-                <Row label="ISO" value={photo.exif.iso ? String(photo.exif.iso) : "—"} />
-                <Row
-                  label="Cámara"
-                  value={[photo.exif.make, photo.exif.model].filter(Boolean).join(" ") || "—"}
-                />
-                <Row label="Objetivo" value={photo.exif.lensModel ?? "—"} />
+                <Row label="Nitidez" value={`${(analysis.sharpness * 100).toFixed(0)}%`} />
+                <Row label="Ruido" value={`${(analysis.noise * 100).toFixed(0)}%`} />
                 <Row label="Calidad" value={`${(analysis.quality * 100).toFixed(0)}%`} />
               </dl>
             </div>
@@ -281,8 +293,20 @@ export function DevelopView({
               <Badge>{`${photo.exif.width} × ${photo.exif.height}`}</Badge>
             )}
             <Badge tone={photo.manual ? "accent" : "neutral"}>
-              {photo.manual ? "Editada a mano" : "Ajustes de la IA"}
+              {photo.manual ? "Editada a mano" : "Propuesta automática"}
             </Badge>
+            {backend && (
+              <Badge
+                tone="neutral"
+                title={
+                  backend === "webgl2"
+                    ? "Previsualización revelada por la GPU."
+                    : "Previsualización revelada por CPU (Canvas 2D). Aplica los mismos ajustes."
+                }
+              >
+                {backend === "webgl2" ? "GPU" : "CPU"}
+              </Badge>
+            )}
           </div>
         </div>
 

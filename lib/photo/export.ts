@@ -13,7 +13,7 @@
 import type { Adjustments, PhotoRecord, ProjectRecord } from "./types";
 import { isRawFormat } from "./types";
 import { effectiveAdjustments } from "./pipeline";
-import { DevelopRenderer } from "./render/renderer";
+import { type DevelopRendererLike, createDevelopRenderer, targetSizeFor } from "./render";
 import { buildXmp, sidecarName } from "./xmp/write";
 import { ZipWriter } from "./zip";
 import * as db from "./storage/db";
@@ -53,7 +53,7 @@ export const JPEG_PRESETS: Record<string, JpegOptions & { label: string; note: s
 export async function renderJpeg(
   photo: PhotoRecord,
   options: JpegOptions,
-  renderer: DevelopRenderer,
+  renderer: DevelopRendererLike,
 ): Promise<Blob> {
   const proxy = await db.getProxy(photo.id);
   if (!proxy) {
@@ -66,11 +66,20 @@ export async function renderJpeg(
 
   const bitmap = await createImageBitmap(proxy);
   try {
-    const scale = Math.min(1, options.maxEdge / Math.max(bitmap.width, bitmap.height));
-    if (scale < 1) {
+    // Two independent caps: what the photographer asked for, and what the
+    // backend can develop. On the Canvas 2D path the second one is the binding
+    // constraint, which the export UI states before the job starts.
+    const requested = Math.min(1, options.maxEdge / Math.max(bitmap.width, bitmap.height));
+    const budget = targetSizeFor(
+      renderer.backend,
+      Math.round(bitmap.width * requested),
+      Math.round(bitmap.height * requested),
+    );
+
+    if (budget.width !== bitmap.width || budget.height !== bitmap.height) {
       const resized = await createImageBitmap(bitmap, {
-        resizeWidth: Math.max(1, Math.round(bitmap.width * scale)),
-        resizeHeight: Math.max(1, Math.round(bitmap.height * scale)),
+        resizeWidth: budget.width,
+        resizeHeight: budget.height,
         resizeQuality: "high",
       });
       try {
@@ -119,13 +128,13 @@ export async function exportZip(
 ): Promise<ExportResult> {
   const writer = new ZipWriter();
   const failures: ExportResult["failures"] = [];
-  const renderer = selection.jpeg ? DevelopRenderer.create() : null;
+  const renderer = selection.jpeg ? createDevelopRenderer() : null;
 
   if (selection.jpeg && !renderer) {
     failures.push({
       fileName: "—",
       message:
-        "Este navegador no soporta WebGL2, así que no se pueden generar JPG. " +
+        "Este navegador no permite ni WebGL2 ni Canvas 2D, así que no se pueden generar JPG. " +
         "Los archivos XMP sí se exportan y contienen la edición completa.",
     });
   }

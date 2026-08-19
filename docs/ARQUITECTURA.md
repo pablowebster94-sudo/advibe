@@ -51,7 +51,7 @@ El archivo original se lee una vez y nunca se modifica, ni se copia, ni se sube.
 | Análisis | `lib/photo/analysis/` | Estadística tonal y de color, nitidez, ruido, piel, rostros, escena, exposición, huellas perceptuales |
 | Edición | `lib/photo/editing/` | Modelo de ajustes, estrategias por escena, motor, guardián de piel, perfiles de estilo |
 | XMP | `lib/photo/xmp/` | Mapeo al esquema `crs` de Camera Raw, escritura y lectura de sidecars |
-| Render | `lib/photo/render/` | Shaders GLSL, renderizador WebGL2, mapeo de uniformes |
+| Render | `lib/photo/render/` | Matemática compartida del revelado, renderizador WebGL2, renderizador Canvas 2D y la fábrica que elige |
 | Agrupación | `lib/photo/grouping/` | Detección de duplicados y ranking de la mejor toma |
 | Persistencia | `lib/photo/storage/` | IndexedDB: proyectos, fotos, blobs, grupos, estilos |
 | Trabajos | `lib/photo/jobs/` | Cola con concurrencia, pool de workers, tarea de análisis |
@@ -60,6 +60,28 @@ El archivo original se lee una vez y nunca se modifica, ni se copia, ni se sube.
 
 Todo lo que no toca APIs del navegador es **puro y con pruebas unitarias**: el
 parser TIFF, la estadística, el motor, el XMP y el ZIP se ejecutan en Node.
+
+## Dos motores de revelado, una sola matemática
+
+El preview se revela por GPU cuando el dispositivo da un contexto WebGL2, y por
+CPU con Canvas 2D cuando no. Eso segundo no es un caso raro: un teléfono de
+gama media puede negar un contexto GL simplemente por falta de memoria, y el
+producto entero existe para funcionar en el teléfono que ya tienes.
+
+Los dos aplican **todos** los ajustes, no un subconjunto, porque la matemática
+vive una sola vez en `render/pipeline.ts` y la comparten el shader y el bucle de
+píxeles. `tests/e2e/render-parity.mjs` los enfrenta en un navegador real y exige
+que produzcan la misma imagen: fue precisamente esa comparación la que destapó
+que el camino WebGL2 llevaba tiempo mostrando la foto **boca abajo**, algo que
+ninguna prueba anterior podía ver porque todas comparaban un backend consigo
+mismo.
+
+Puedes forzar cualquiera de los dos con `?render=canvas2d` o `?render=webgl2`
+en la URL. No es un truco de pruebas: es la única forma de revisar el camino de
+CPU en un teléfono que sí tiene WebGL2.
+
+El Canvas 2D revela al tamaño que se muestra, no a la resolución del proxy, y
+salta el paso de color entero cuando ningún control de color está tocado.
 
 ## Local primero, y por qué eso también resuelve la privacidad
 
@@ -116,8 +138,11 @@ Dicho sin rodeos, porque condiciona qué esperar del producto:
 - **Revelar el RAW de verdad.** No hay demosaicing ni interpretación del sensor.
   Los JPG exportados salen de la previsualización embebida. La ruta de calidad
   total es el `.xmp` abierto en Lightroom.
-- **TIFF sin previsualización JPEG.** Si un `.tif` no trae una previsualización
-  decodificable, se rechaza con un mensaje claro en vez de fingir.
+- **Algunos TIFF.** `raw/tiffImage.ts` decodifica los que salen de Photoshop,
+  Lightroom y los escáneres: sin comprimir, LZW, PackBits y Deflate; 8 y 16
+  bits; gris, RGB y paleta; en bandas. Lo que queda fuera se nombra en vez de
+  fallar de forma opaca: mosaicos (tiles), disposición planar, CMYK/YCbCr y
+  muestras en coma flotante.
 - **Reducción de ruido en la vista previa.** El proxy ya viene procesado y
   reducido; simular ahí la reducción de ruido enseñaría algo que el RAW no va a
   hacer. El valor sí viaja en el XMP y Lightroom lo aplica sobre el sensor.

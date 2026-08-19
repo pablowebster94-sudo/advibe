@@ -21,6 +21,8 @@ interface Pass {
 }
 
 export class DevelopRenderer {
+  readonly backend = "webgl2" as const;
+
   private readonly gl: WebGL2RenderingContext;
   private readonly canvas: Canvas;
   private readonly developProgram: WebGLProgram;
@@ -97,13 +99,13 @@ export class DevelopRenderer {
     if (this.sourceTexture) gl.deleteTexture(this.sourceTexture);
     this.sourceTexture = createTexture(gl);
     gl.bindTexture(gl.TEXTURE_2D, this.sourceTexture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+    // Uploaded unflipped; the vertex shader inverts Y instead, so that the
+    // source texture and the render-target textures share one convention.
     if (typeof ImageData !== "undefined" && source instanceof ImageData) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, source.data);
     } else {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source as ImageBitmap);
     }
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0);
 
     if (width !== this.sourceWidth || height !== this.sourceHeight) {
       this.releasePasses();
@@ -161,7 +163,8 @@ export class DevelopRenderer {
       gl.UNSIGNED_BYTE,
       new Uint8Array(pixels.buffer),
     );
-    // WebGL reads bottom-up; flip so the result matches the source orientation.
+    // readPixels returns rows from the framebuffer's bottom edge, which the
+    // vertex shader maps to the top of the image; flip to match the source.
     const flipped = new Uint8ClampedArray(pixels.length);
     const stride = this.sourceWidth * 4;
     for (let row = 0; row < this.sourceHeight; row += 1) {

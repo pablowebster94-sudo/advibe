@@ -81,6 +81,33 @@ Esto es tan importante como lo que sí hace:
   actúa en extremos inutilizables o cuando la piel está claramente peor iluminada
   que la escena (relación de luz, no brillo absoluto).
 
+## Cómo se enchufa un modelo más adelante
+
+El editor nunca llama a un analizador directamente: pide el proveedor activo al
+registro de `lib/photo/analysis/provider.ts`. Hoy hay exactamente uno,
+`LocalAnalysisProvider`, que se ejecuta en el dispositivo y no toca la red.
+
+Añadir uno hospedado (Gemini o cualquier otro) es implementar `AnalysisProvider`
+y registrarlo. Nada del editor, del motor de ajustes, del generador de XMP ni de
+la interfaz cambia, porque todos consumen `PhotoAnalysis` y les da igual de
+dónde salió.
+
+La interfaz está deliberadamente moldeada alrededor de dos reglas:
+
+1. **La API key no llega nunca al navegador.** Un proveedor hospedado debe
+   hablar con una ruta de este mismo origen (una función serverless) que guarda
+   la clave en servidor. El campo `requiresNetwork` existe para que la interfaz
+   pueda decir claramente que una fotografía está a punto de salir del
+   dispositivo, y para que la garantía de «todo local» siga siendo comprobable.
+2. **Un modelo hospedado añade, no sustituye.** El paso local produce las
+   mediciones que el motor necesita y que un modelo de lenguaje no puede medir.
+   Un proveedor remoto debería ejecutar el paso local primero y después
+   enriquecer `scene`. `enrich` es exactamente esa costura.
+
+Hasta que exista y esté configurado, `activeProvider()` devuelve el local y no
+se hace ninguna petición. No hay clave de marcador, ni respuesta simulada, ni
+ninguna ruta de código que finja que un modelo se ejecutó.
+
 ## Si algún día se añade un modelo de visión
 
 Precios de la API de Claude, junio 2026 (entrada / salida por millón de tokens):

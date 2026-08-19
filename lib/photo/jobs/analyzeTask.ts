@@ -5,7 +5,7 @@
  * browser without workers produces identical results, just more slowly.
  */
 import type { ExifData, PhotoAnalysis, SourceFormat } from "../types";
-import { analyzeImage } from "../analysis/analyze";
+import { runAnalysis } from "../analysis/provider";
 import { decodeProxy, makeThumbnail, readSourceMeta } from "../raw/decode";
 
 export interface AnalyzeInput {
@@ -104,9 +104,13 @@ export async function analyzeFile(input: AnalyzeInput): Promise<AnalyzeOutput> {
     encodeProxy(meta.preview, orientation, proxyEdge),
   ]);
 
-  const analysis = await analyzeImage(analysisProxy.data, {
+  // Goes through the provider registry rather than calling the local analyser
+  // directly, so a hosted provider can be added later without touching this.
+  const analysis = await runAnalysis({
+    image: analysisProxy.data,
     exif: meta.exif,
     format: meta.format,
+    fileName: input.fileName,
   });
 
   return {

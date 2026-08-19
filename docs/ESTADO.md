@@ -42,6 +42,24 @@ existencia de un botón.
 | Persistencia | Cerrar y reabrir el proyecto conserva las 40 |
 | Exportación en lote | 40 sidecars en el ZIP, 0,1 s |
 
+`tests/e2e/render-parity.mjs` — 21 comprobaciones en navegador real. Los dos
+motores de revelado producen la misma imagen (0,22/255 de diferencia en color
+medio, 5/255 por zonas), ninguno la invierte, y los **14 controles** —exposición,
+contraste, altas luces, sombras, blancos, negros, temperatura, matiz, saturación,
+intensidad, claridad, textura, neblina y viñeta— cambian visiblemente el preview
+en el camino Canvas 2D.
+
+`tests/e2e/workflow.mjs` — 33 comprobaciones sobre seis formatos reales
+(JPG, PNG sin metadatos, JPEG de 15 MP, TIFF sin comprimir, TIFF LZW y ARW):
+todos se detectan y analizan; el TIFF se decodifica de verdad y el LZW da el
+mismo resultado que el plano; una imagen sin EXIF se analiza igual y su panel
+muestra «—» en los 12 campos que no trae; copiar, sincronizar sobre una
+selección, restaurar original, seleccionar y descartar funcionan y persisten;
+tras recargar la página siguen el proyecto, las seis fotografías, el ajuste
+manual y los estados de selección; el XMP descargado no es JSON renombrado y
+cada parámetro corresponde al ajuste guardado; y **cero peticiones a servidores
+externos** durante todo el recorrido.
+
 `tests/e2e/mobile.mjs` — 13 comprobaciones en viewport de teléfono (360×800,
 dpr 3, entrada táctil, user-agent de Galaxy A16). Todas pasan: sin scroll
 horizontal en ninguna pantalla, rejilla de 2 columnas, canvas de revelado con
@@ -61,27 +79,51 @@ cola).
 
 ## Defectos encontrados durante la verificación y corregidos
 
-Los datos reales destaparon cuatro problemas que las pruebas sintéticas no
-habían visto. Se anotan porque eran exactamente el fallo que había que evitar:
+Los datos y los navegadores reales destaparon problemas que las pruebas
+sintéticas no veían. Se anotan porque son justo el tipo de fallo que hay que
+evitar.
+
+**Del motor**
 
 1. **`blacks` en −35 en las tres fotografías** — un valor fijo con apariencia de
-   decisión. La fórmula usaba un objetivo único y saturaba en el tope. Sustituida
-   por banda de tolerancia: ahora da −4 / −22 / −14 según el percentil medido.
-2. **`contrast` saturado en −40** — la corrección no descontaba el aplanado que
-   ya provocan la recuperación de luces y sombras, así que las contaba dos veces.
-   Ahora mide el contraste efectivo posterior: −10 / +9 / −7.
-3. **`dehaze` aplicado a todo** — el umbral del canal oscuro era demasiado bajo.
-   Ahora exige tres señales simultáneas y se retira en interiores.
-4. **Contraluz no detectado** (confianza 0,009 en un contraluz evidente) — el
-   indicador geométrico se diluye con un suelo oscuro. Añadida la **relación de
-   luz sujeto/escena**, que además arregla un problema de fondo: la exposición
-   del sujeto ahora se decide por cuánto peor iluminado está respecto a la
-   escena, no por su brillo absoluto, de modo que un tono de piel oscuro
-   correctamente expuesto ya no se confunde con subexposición.
+   decisión. Sustituido por banda de tolerancia: ahora da −4 / −22 / −14 según
+   el percentil medido.
+2. **`contrast` saturado en −40** — no descontaba el aplanado que ya provocan la
+   recuperación de luces y sombras. Ahora mide el contraste efectivo: −10 / +9 / −7.
+3. **`dehaze` aplicado a todo** — ahora exige tres señales simultáneas y se
+   retira en interiores.
+4. **Contraluz no detectado** (confianza 0,009 en un contraluz evidente).
+   Añadida la relación de luz sujeto/escena, que además evita confundir un tono
+   de piel oscuro correctamente expuesto con subexposición.
 
-También se corrigió un fallo de interfaz: las miniaturas no cargaban porque el
-`IntersectionObserver` estaba en un ref callback inline, que React reconstruye
-en cada render.
+**Del revelado**
+
+5. **El preview WebGL2 mostraba la foto boca abajo.** Llevaba así desde el
+   principio y ninguna prueba lo veía, porque todas comparaban un backend
+   consigo mismo. Lo destapó la comparación entre WebGL2 y Canvas 2D: color
+   medio idéntico, distribución por zonas completamente distinta, que es la
+   firma exacta de un volteo vertical.
+
+**De la lectura de archivos**
+
+6. **Un TIFF LZW se rompía** porque el escáner ciego de bytes encontraba una
+   secuencia `FF D8` por azar dentro de los datos comprimidos y la tomaba por
+   una previsualización JPEG. Ahora se intenta primero la decodificación
+   estructurada y el escaneo queda como último recurso, y además exige `FF D8 FF`,
+   que es como empieza todo JPEG real.
+
+**De la interfaz**
+
+7. **Las miniaturas no cargaban** porque el `IntersectionObserver` estaba en un
+   ref callback inline, que React reconstruye en cada render.
+8. **Los sliders medían 20 px de alto** — en un editor de fotos, arrastrar un
+   slider es *la* interacción. Ahora 44 px en pantallas táctiles. Igual los
+   enlaces de navegación (36 px) y los botones de estrategia (27 px).
+9. **El selector de archivos ocultaba los `.ARW` en Android**, porque `.ARW` no
+   tiene tipo MIME registrado y *My Files* de Samsung ignora las extensiones.
+10. **Descartar no desmarcaba la selección** desde la vista de revelado, aunque
+    sí desde la rejilla: dos caminos con reglas distintas. La exclusión mutua
+    vive ahora en un solo sitio.
 
 ## Implementado, no verificado end-to-end
 

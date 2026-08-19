@@ -7,7 +7,8 @@ import type { ExifData, SourceFormat } from "../types";
 import { blobSource } from "./bytes";
 import { extractExif } from "./exif";
 import { extractLargestPreview, readPngSize, scanForJpeg } from "./preview";
-import { findJpegExifStart, parseTiff } from "./tiff";
+import { findJpegExifStart, parseTiff, type TiffFile } from "./tiff";
+import { decodeTiffImage, findLargestDecodableIfd } from "./tiffImage";
 
 export interface SourceMeta {
   format: SourceFormat;
@@ -96,10 +97,12 @@ export async function readSourceMeta(file: Blob, fileName: string): Promise<Sour
   if (format === "arw" || format === "dng" || format === "tiff") {
     let exif: ExifData = {};
     let previewInfo: Awaited<ReturnType<typeof extractLargestPreview>> = null;
+    let tiffFile: TiffFile | null = null;
+    let decodeWarning: string | undefined;
     try {
-      const tiff = await parseTiff(source, 0);
-      exif = await extractExif(tiff);
-      previewInfo = await extractLargestPreview(tiff);
+      tiffFile = await parseTiff(source, 0);
+      exif = await extractExif(tiffFile);
+      previewInfo = await extractLargestPreview(tiffFile);
     } catch (error) {
       throw new Error(
         `No se pudo leer la estructura del archivo: ${
@@ -108,6 +111,21 @@ export async function readSourceMeta(file: Blob, fileName: string): Promise<Sour
       );
     }
     if (!previewInfo) {
+      // Decode the image data itself before falling back to a byte scan. Order
+      // matters: compressed pixel data contains FF D8 byte pairs by chance, so
+      // scanning an LZW strip can "find" a JPEG that is not there. Structure
+      // first, guessing only as a last resort.
+      const decoded = await decodeTiffToBlob(tiffFile);
+      if (decoded) {
+        return {
+          format,
+          exif,
+          preview: decoded.blob,
+          previewWidth: decoded.width,
+          previewHeight: decoded.height,
+          previewSource: "tiff:decoded",
+        };
+      }
       previewInfo = await scanForJpeg(source);
     }
     if (!previewInfo) {
@@ -116,8 +134,9 @@ export async function readSourceMeta(file: Blob, fileName: string): Promise<Sour
         exif,
         preview: null,
         warning:
-          "El archivo no contiene una previsualización JPEG embebida. Se necesita " +
-          "decodificación RAW en servidor para analizarlo (ver docs/ARCHITECTURE.md).",
+          decodeWarning ??
+          "El archivo no contiene una previsualización utilizable y su formato interno no se " +
+            "puede decodificar en el navegador (ver docs/ARQUITECTURA.md).",
       };
     }
     // Re-slice from the file so we hand over a Blob backed by the original,
@@ -134,6 +153,52 @@ export async function readSourceMeta(file: Blob, fileName: string): Promise<Sour
   }
 
   throw new Error(`Formato no soportado: ${fileName}`);
+}
+
+/** Largest pixel count we will decode in the browser without a backend. */
+const MAX_DECODE_PIXELS = 40_000_000;
+
+/**
+ * Decodes a TIFF's own image data to a JPEG blob, so the rest of the pipeline
+ * can treat it exactly like any other preview.
+ */
+async function decodeTiffToBlob(
+  file: TiffFile | null,
+): Promise<{ blob: Blob; width: number; height: number } | null> {
+  if (!file) return null;
+  try {
+    const index = await findLargestDecodableIfd(file);
+    if (index === -1) return null;
+
+    const image = await decodeTiffImage(file, index);
+    if (image.width * image.height > MAX_DECODE_PIXELS) {
+      throw new Error(
+        `Imagen de ${image.width}x${image.height}: demasiado grande para decodificar en el navegador`,
+      );
+    }
+
+    const canvas = createCanvas(image.width, image.height);
+    const context = canvas.getContext("2d") as
+      | OffscreenCanvasRenderingContext2D
+      | CanvasRenderingContext2D
+      | null;
+    if (!context) return null;
+    context.putImageData(new ImageData(image.data, image.width, image.height), 0, 0);
+
+    const blob =
+      canvas instanceof OffscreenCanvas
+        ? await canvas.convertToBlob({ type: "image/jpeg", quality: 0.92 })
+        : await new Promise<Blob>((resolve, reject) => {
+            (canvas as HTMLCanvasElement).toBlob(
+              (result) => (result ? resolve(result) : reject(new Error("toBlob devolvió null"))),
+              "image/jpeg",
+              0.92,
+            );
+          });
+    return { blob, width: image.width, height: image.height };
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -11,8 +11,10 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "node tests/e2e/e2e.mjs",
     "test:batch": "node tests/e2e/batch.mjs",
-    "test:fixtures": "node --import ./tests/register.mjs tests/e2e/make-fixtures.mjs && node --import ./tests/register.mjs tests/e2e/make-batch.mjs",
-    "test:mobile": "node tests/e2e/mobile.mjs"
+    "test:fixtures": "node --import ./tests/register.mjs tests/e2e/make-fixtures.mjs && node --import ./tests/register.mjs tests/e2e/make-batch.mjs && node --import ./tests/register.mjs tests/e2e/make-formats.mjs",
+    "test:mobile": "node tests/e2e/mobile.mjs",
+    "test:parity": "node tests/e2e/render-parity.mjs",
+    "test:workflow": "node tests/e2e/workflow.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.42.2",

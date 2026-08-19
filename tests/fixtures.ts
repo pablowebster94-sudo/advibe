@@ -295,3 +295,180 @@ export function skinImage(
     return dx * dx + dy * dy <= 1 ? rgb : [96, 98, 102];
   });
 }
+
+// ---------------------------------------------------------------------------
+// TIFF image fixtures
+// ---------------------------------------------------------------------------
+
+export interface TiffImageOptions {
+  width: number;
+  height: number;
+  /** 1 none, 5 LZW, 8 Deflate, 32773 PackBits. */
+  compression: number;
+  /** 0 WhiteIsZero, 1 BlackIsZero, 2 RGB, 3 palette. */
+  photometric: number;
+  bitsPerSample?: 8 | 16;
+  predictor?: number;
+  rowsPerStrip?: number;
+  /** Raw sample bytes, already in the layout the header describes. */
+  samples: Uint8Array;
+  /** Compressed strip payloads; when absent `samples` is stored uncompressed. */
+  strips?: Uint8Array[];
+  palette?: number[];
+}
+
+/** Builds a single-IFD TIFF whose image data lives in strips. */
+export function makeImageTiff(options: TiffImageOptions): Uint8Array {
+  const {
+    width,
+    height,
+    compression,
+    photometric,
+    bitsPerSample = 8,
+    predictor = 1,
+    palette,
+  } = options;
+  const samplesPerPixel = photometric === 2 ? 3 : 1;
+  const rowBytes = width * samplesPerPixel * (bitsPerSample / 8);
+  const rowsPerStrip = options.rowsPerStrip ?? height;
+  const stripCount = Math.ceil(height / rowsPerStrip);
+
+  const strips: Uint8Array[] =
+    options.strips ??
+    Array.from({ length: stripCount }, (_, index) => {
+      const start = index * rowsPerStrip * rowBytes;
+      const rows = Math.min(rowsPerStrip, height - index * rowsPerStrip);
+      return options.samples.subarray(start, start + rows * rowBytes);
+    });
+
+  const le16 = (v: number) => [v & 0xff, (v >> 8) & 0xff];
+  const le32 = (v: number) => [v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, (v >>> 24) & 0xff];
+
+  const tags: Array<[number, number, number, number[]]> = [];
+  const heap: number[] = [];
+  const HEADER = 8;
+
+  // Entry count + entries + next-IFD pointer, then the heap.
+  const entryCount = 9 + (palette ? 1 : 0) + (predictor !== 1 ? 1 : 0);
+  const ifdSize = 2 + entryCount * 12 + 4;
+  const heapStart = HEADER + ifdSize;
+
+  // Appended one element at a time: a real image strip is megabytes, and
+  // `push(...bytes)` on that overflows the call stack.
+  const pushHeap = (bytes: ArrayLike<number>): number => {
+    const at = heapStart + heap.length;
+    for (let index = 0; index < bytes.length; index += 1) heap.push(bytes[index]);
+    if (heap.length % 2 === 1) heap.push(0);
+    return at;
+  };
+
+  const stripOffsets: number[] = [];
+  for (const strip of strips) stripOffsets.push(pushHeap(strip));
+  const stripCounts = strips.map((strip) => strip.length);
+
+  const add = (tag: number, type: number, values: number[]) => {
+    const size = type === 3 ? 2 : 4;
+    const payload = values.flatMap((v) => (type === 3 ? le16(v) : le32(v)));
+    if (payload.length <= 4) {
+      while (payload.length < 4) payload.push(0);
+      tags.push([tag, type, values.length, payload]);
+    } else {
+      tags.push([tag, type, values.length, le32(pushHeap(payload))]);
+    }
+    void size;
+  };
+
+  add(0x0100, 4, [width]);
+  add(0x0101, 4, [height]);
+  add(0x0102, 3, new Array(samplesPerPixel).fill(bitsPerSample));
+  add(0x0103, 3, [compression]);
+  add(0x0106, 3, [photometric]);
+  add(0x0111, 4, stripOffsets);
+  add(0x0115, 3, [samplesPerPixel]);
+  add(0x0116, 4, [rowsPerStrip]);
+  add(0x0117, 4, stripCounts);
+  if (predictor !== 1) add(0x013d, 3, [predictor]);
+  if (palette) add(0x0140, 3, palette);
+
+  tags.sort((a, b) => a[0] - b[0]);
+  const body = [...le16(tags.length)];
+  for (const [tag, type, count, payload] of tags) {
+    body.push(...le16(tag), ...le16(type), ...le32(count), ...payload);
+  }
+  body.push(...le32(0));
+  while (body.length < ifdSize) body.push(0);
+
+  const header = [0x49, 0x49, 0x2a, 0x00, ...le32(HEADER)];
+  const total = header.length + ifdSize + heap.length;
+  const out = new Uint8Array(total);
+  out.set(header, 0);
+  out.set(body.slice(0, ifdSize), header.length);
+  for (let index = 0; index < heap.length; index += 1) {
+    out[header.length + ifdSize + index] = heap[index];
+  }
+  return out;
+}
+
+/** Minimal TIFF-flavour LZW encoder, used to test the decoder independently. */
+export function encodeLzw(input: Uint8Array): Uint8Array {
+  const out: number[] = [];
+  let bitBuffer = 0;
+  let bitCount = 0;
+  let codeWidth = 9;
+  const write = (code: number) => {
+    bitBuffer = (bitBuffer << codeWidth) | code;
+    bitCount += codeWidth;
+    while (bitCount >= 8) {
+      out.push((bitBuffer >> (bitCount - 8)) & 0xff);
+      bitCount -= 8;
+    }
+  };
+
+  let dictionary = new Map<string, number>();
+  const reset = () => {
+    dictionary = new Map();
+    for (let index = 0; index < 256; index += 1) dictionary.set(String.fromCharCode(index), index);
+  };
+  reset();
+  let next = 258;
+  write(256);
+
+  let current = "";
+  for (const byte of input) {
+    const char = String.fromCharCode(byte);
+    const candidate = current + char;
+    if (dictionary.has(candidate)) {
+      current = candidate;
+      continue;
+    }
+    write(dictionary.get(current)!);
+    dictionary.set(candidate, next++);
+    // TIFF's "early change": the decoder is always one entry behind, so it
+    // widens at 2^n - 1 while the encoder widens at 2^n. Getting this asymmetry
+    // wrong desynchronises the two after the first 254 new entries.
+    if (next >= 1 << codeWidth) {
+      if (codeWidth < 12) codeWidth += 1;
+      else {
+        write(256);
+        reset();
+        next = 258;
+        codeWidth = 9;
+      }
+    }
+    current = char;
+  }
+  if (current) write(dictionary.get(current)!);
+  write(257);
+  if (bitCount > 0) out.push((bitBuffer << (8 - bitCount)) & 0xff);
+  return new Uint8Array(out);
+}
+
+/** PackBits encoder producing only literal runs, which is always valid. */
+export function encodePackBits(input: Uint8Array): Uint8Array {
+  const out: number[] = [];
+  for (let index = 0; index < input.length; index += 128) {
+    const chunk = input.subarray(index, index + 128);
+    out.push(chunk.length - 1, ...chunk);
+  }
+  return new Uint8Array(out);
+}

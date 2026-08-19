@@ -9,6 +9,31 @@ import {
   readString,
 } from "./tiff";
 
+/**
+ * Sony MakerNote tags we can read.
+ *
+ * Sony encrypts or leaves undocumented most of this block, so only the handful
+ * that are plainly readable are used. `ColorTemperature` is the valuable one:
+ * it is the temperature the camera actually recorded, which standard EXIF does
+ * not carry, and it turns the white-balance readout from an estimate into a
+ * measurement whenever the shot was not on auto.
+ */
+const SONY_WHITE_BALANCE = 0x0115;
+const SONY_COLOR_TEMPERATURE = 0xb021;
+const SONY_LENS_TYPE = 0xb027;
+
+const SONY_WB_LABELS: Record<number, string> = {
+  0x00: "Automático",
+  0x01: "Temperatura de color",
+  0x10: "Luz de día",
+  0x20: "Nublado",
+  0x30: "Sombra",
+  0x40: "Tungsteno",
+  0x50: "Flash",
+  0x60: "Fluorescente",
+  0x70: "Personalizado",
+};
+
 /** `2026:08:18 14:03:11` -> epoch ms in the viewer's local timezone. */
 export function parseExifDate(value: string | undefined): number | undefined {
   if (!value) return undefined;
@@ -54,6 +79,24 @@ export async function extractExif(file: TiffFile): Promise<ExifData> {
   exif.whiteBalanceMode = await readNumber(file, findEntry(file, TIFF_TAGS.WhiteBalance, ["exif"]));
   exif.orientation = await readNumber(file, findEntry(file, TIFF_TAGS.Orientation, ["ifd0"]));
 
+  // --- vendor MakerNotes ---------------------------------------------------
+  const makerNoteIfd = file.ifds.find((ifd) => ifd.kind === "makernote");
+  if (makerNoteIfd) {
+    exif.makerNotes = true;
+    const temperature = await readNumber(file, makerNoteIfd.entries.get(SONY_COLOR_TEMPERATURE));
+    // Sony writes 0 when the camera was on auto white balance; that is "not
+    // recorded", not "0 K", so it is left undefined rather than shown as a value.
+    if (temperature && temperature >= 1000 && temperature <= 50000) {
+      exif.colorTemperature = temperature;
+    }
+    const setting = await readNumber(file, makerNoteIfd.entries.get(SONY_WHITE_BALANCE));
+    if (setting !== undefined && SONY_WB_LABELS[setting]) {
+      exif.whiteBalanceSetting = SONY_WB_LABELS[setting];
+    }
+    const lensType = await readNumber(file, makerNoteIfd.entries.get(SONY_LENS_TYPE));
+    if (lensType !== undefined && lensType > 0) exif.lensTypeId = lensType;
+  }
+
   const dateTime = await readString(file, findEntry(file, TIFF_TAGS.DateTimeOriginal, ["exif"]));
   if (dateTime) {
     exif.dateTimeOriginal = dateTime;
@@ -97,6 +140,10 @@ export async function extractExif(file: TiffFile): Promise<ExifData> {
  * ever used for display, never for XMP output.
  */
 export function estimateAsShotKelvin(exif: ExifData): { kelvin: number; estimated: boolean } {
+  // A MakerNote reading is the real thing; prefer it over any estimate.
+  if (exif.colorTemperature) {
+    return { kelvin: exif.colorTemperature, estimated: false };
+  }
   const nominal: Record<number, number> = {
     1: 5500, // Daylight
     2: 4000, // Fluorescent

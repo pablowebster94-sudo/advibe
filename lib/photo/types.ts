@@ -51,6 +51,20 @@ export interface ExifData {
   /** Full-resolution sensor dimensions when the file advertises them. */
   width?: number;
   height?: number;
+
+  // --- vendor MakerNotes ---------------------------------------------------
+  /** True when a MakerNote block was found and parsed at all. */
+  makerNotes?: boolean;
+  /**
+   * As-shot colour temperature in Kelvin, read from the Sony MakerNote.
+   * This is a *measured* value, unlike the EXIF LightSource estimate, and is
+   * absent (not zero) when the camera was on auto white balance.
+   */
+  colorTemperature?: number;
+  /** Sony white-balance setting, decoded to a label. */
+  whiteBalanceSetting?: string;
+  /** Raw Sony LensType id; the readable name comes from EXIF LensModel. */
+  lensTypeId?: number;
 }
 
 export function flashFired(exif: ExifData): boolean {

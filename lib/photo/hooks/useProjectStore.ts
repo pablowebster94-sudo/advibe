@@ -210,7 +210,7 @@ export function useProjectStore(projectId: string) {
     [photos, upsertPhoto],
   );
 
-  const reapplyAi = useCallback(
+  const reanalyze = useCallback(
     async (photoId: string, strategyOverride?: string) => {
       const photo = photos.find((item) => item.id === photoId);
       if (!photo || !project) return;
@@ -222,7 +222,7 @@ export function useProjectStore(projectId: string) {
     [photos, project, activeStyle, upsertPhoto],
   );
 
-  const reapplyAll = useCallback(async () => {
+  const reanalyzeAll = useCallback(async () => {
     if (!project) return;
     const updated = photos.map((photo) =>
       photo.analysis ? regenerateEdit(photo, project.settings, activeStyle) : photo,
@@ -266,8 +266,15 @@ export function useProjectStore(projectId: string) {
 
   const setFlags = useCallback(
     async (photoIds: readonly string[], flags: { picked?: boolean; rejected?: boolean }) => {
+      // A photograph cannot be both a keeper and a reject, so setting one
+      // clears the other. Enforced here rather than at each call site, which is
+      // how the two paths drifted apart in the first place.
+      const normalised = { ...flags };
+      if (flags.picked === true) normalised.rejected = false;
+      if (flags.rejected === true) normalised.picked = false;
+
       const updated = photos.map((photo) =>
-        photoIds.includes(photo.id) ? { ...photo, ...flags } : photo,
+        photoIds.includes(photo.id) ? { ...photo, ...normalised } : photo,
       );
       setPhotos(updated);
       await db.putPhotos(updated.filter((photo) => photoIds.includes(photo.id)));
@@ -305,8 +312,8 @@ export function useProjectStore(projectId: string) {
       updateSettings,
       setManual,
       clearManual,
-      reapplyAi,
-      reapplyAll,
+      reanalyze,
+      reanalyzeAll,
       copyAdjustments,
       pasteAdjustments,
       setFlags,

@@ -20,7 +20,11 @@ export const VERTEX_SHADER = `#version 300 es
 in vec2 aPosition;
 out vec2 vUv;
 void main() {
-  vUv = aPosition * 0.5 + 0.5;
+  // Y is inverted on purpose. Textures are uploaded unflipped, so row 0 is the
+  // top of the image, while NDC +1 is the top of the viewport; without this the
+  // preview renders upside down. Every pass shares this vertex shader, so the
+  // base image and the blurred planes stay aligned with each other.
+  vUv = vec2(aPosition.x * 0.5 + 0.5, 0.5 - aPosition.y * 0.5);
   gl_Position = vec4(aPosition, 0.0, 1.0);
 }`;
 

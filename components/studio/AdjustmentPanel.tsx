@@ -68,14 +68,18 @@ export function AdjustmentPanel({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={onReapply} title="Vuelve a generar los ajustes con la IA">
-          Reaplicar IA
+        <Button
+          variant="secondary"
+          onClick={onReapply}
+          title="Vuelve a ejecutar el análisis local y regenera la propuesta"
+        >
+          Reanalizar
         </Button>
         <Button
           variant="ghost"
           onClick={onReset}
           disabled={manualCount === 0}
-          title="Descarta tus cambios manuales y deja los de la IA"
+          title="Descarta tus cambios manuales y deja la propuesta automática"
         >
           Restaurar original
         </Button>
@@ -89,7 +93,7 @@ export function AdjustmentPanel({
 
       {manualCount > 0 && (
         <p className="text-xs text-[#a4ef84]">
-          {manualCount} ajuste(s) modificados a mano sobre la propuesta de la IA.
+          {manualCount} ajuste(s) modificados a mano sobre la propuesta automática.
         </p>
       )}
 
@@ -127,7 +131,7 @@ export function AdjustmentPanel({
         />
       </Section>
 
-      <Section id="why" title="Por qué la IA decidió esto" open={open.why} onToggle={toggle}>
+      <Section id="why" title="Por qué se propone esto" open={open.why} onToggle={toggle}>
         {edit ? (
           <ul className="space-y-2">
             {edit.rationale.map((entry, index) => (
@@ -138,7 +142,7 @@ export function AdjustmentPanel({
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-neutral-500">Todavía no hay ajustes generados.</p>
+          <p className="text-xs text-neutral-500">Todavía no hay propuesta generada.</p>
         )}
       </Section>
     </div>

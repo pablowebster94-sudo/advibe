@@ -125,14 +125,14 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
               <Button
                 variant="ghost"
                 className="h-9 min-h-9"
-                onClick={() => actions.setFlags(selectedIds, { picked: true, rejected: false })}
+                onClick={() => actions.setFlags(selectedIds, { picked: true })}
               >
                 ★ Seleccionar
               </Button>
               <Button
                 variant="ghost"
                 className="h-9 min-h-9"
-                onClick={() => actions.setFlags(selectedIds, { rejected: true, picked: false })}
+                onClick={() => actions.setFlags(selectedIds, { rejected: true })}
               >
                 ✕ Descartar
               </Button>
@@ -183,7 +183,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
             onNavigate={navigate}
             onChange={(patch: Partial<Adjustments>) => actions.setManual(activePhoto.id, patch)}
             onReset={() => actions.clearManual(activePhoto.id)}
-            onReapply={(strategy) => actions.reapplyAi(activePhoto.id, strategy)}
+            onReapply={(strategy) => actions.reanalyze(activePhoto.id, strategy)}
             onCopy={() => actions.copyAdjustments(activePhoto.id)}
             onSync={() => actions.pasteAdjustments(selectedIds)}
             onTogglePick={() => actions.setFlags([activePhoto.id], { picked: !activePhoto.picked })}
@@ -299,8 +299,8 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
                 )}
               </div>
 
-              <Button variant="secondary" onClick={actions.reapplyAll} disabled={stats.analyzed === 0}>
-                Reaplicar IA a todo el proyecto ({stats.analyzed})
+              <Button variant="secondary" onClick={actions.reanalyzeAll} disabled={stats.analyzed === 0}>
+                Reanalizar todo el proyecto ({stats.analyzed})
               </Button>
             </div>
           </Panel>

@@ -10,7 +10,12 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Adjustments } from "@/lib/photo/types";
-import { DevelopRenderer } from "@/lib/photo/render/renderer";
+import {
+  type DevelopRendererLike,
+  backendOverrideFromLocation,
+  createDevelopRenderer,
+  targetSizeFor,
+} from "@/lib/photo/render";
 import * as db from "@/lib/photo/storage/db";
 
 export interface DevelopCanvasProps {
@@ -21,6 +26,8 @@ export interface DevelopCanvasProps {
   zoom: number;
   onZoomChange: (zoom: number) => void;
   onRenderError?: (message: string | null) => void;
+  /** Reports which backend is developing the preview, for the UI badge. */
+  onBackend?: (backend: "webgl2" | "canvas2d" | null) => void;
 }
 
 interface Viewport {
@@ -35,10 +42,11 @@ export function DevelopCanvas({
   zoom,
   onZoomChange,
   onRenderError,
+  onBackend,
 }: DevelopCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendererRef = useRef<DevelopRenderer | null>(null);
+  const rendererRef = useRef<DevelopRendererLike | null>(null);
   const bitmapRef = useRef<ImageBitmap | null>(null);
   const viewportRef = useRef<Viewport>({ offsetX: 0, offsetY: 0 });
   const dragRef = useRef<{ x: number; y: number } | null>(null);
@@ -74,36 +82,71 @@ export function DevelopCanvas({
     let cancelled = false;
 
     void (async () => {
-      let message: string | null = null;
       try {
         const blob = await db.getProxy(photoId);
         if (cancelled) return;
         if (!blob) {
-          setStatus({ loadedId: null, message: "No hay previsualización almacenada para esta fotografía." });
+          setStatus({
+            loadedId: null,
+            message: "No hay previsualización almacenada para esta fotografía.",
+          });
           return;
         }
 
-        const bitmap = await createImageBitmap(blob);
+        const full = await createImageBitmap(blob);
         if (cancelled) {
-          bitmap.close();
+          full.close();
           return;
         }
 
         if (!rendererProbed.current) {
           rendererProbed.current = true;
-          rendererRef.current = DevelopRenderer.create();
+          rendererRef.current = createDevelopRenderer({
+            forceBackend: backendOverrideFromLocation(),
+          });
+          onBackend?.(rendererRef.current?.backend ?? null);
         }
-        if (!rendererRef.current) {
-          message =
-            "Este navegador no soporta WebGL2. Se muestra la previsualización sin editar; " +
-            "los ajustes siguen guardándose y se exportan correctamente en el XMP.";
+        const renderer = rendererRef.current;
+
+        // Develop at the size the backend can sustain: the GPU shades a full
+        // proxy without noticing, the Canvas 2D loop cannot, and neither needs
+        // more pixels than the screen will show.
+        let bitmap = full;
+        if (renderer) {
+          const container = containerRef.current;
+          const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
+          const target = targetSizeFor(
+            renderer.backend,
+            full.width,
+            full.height,
+            Math.round((container?.clientWidth ?? 0) * dpr),
+            Math.round((container?.clientHeight ?? 0) * dpr),
+          );
+          if (target.width !== full.width || target.height !== full.height) {
+            bitmap = await createImageBitmap(full, {
+              resizeWidth: target.width,
+              resizeHeight: target.height,
+              resizeQuality: "high",
+            });
+            full.close();
+            if (cancelled) {
+              bitmap.close();
+              return;
+            }
+          }
         }
 
         bitmapRef.current?.close();
         bitmapRef.current = bitmap;
-        rendererRef.current?.setSource(bitmap);
+        renderer?.setSource(bitmap);
         viewportRef.current = { offsetX: 0, offsetY: 0 };
-        setStatus({ loadedId: photoId, message });
+        setStatus({
+          loadedId: photoId,
+          message: renderer
+            ? null
+            : "Este navegador no permite ni WebGL2 ni Canvas 2D, así que se muestra la " +
+              "previsualización sin editar. Los ajustes se guardan y se exportan igual en el XMP.",
+        });
       } catch (error) {
         if (cancelled) return;
         setStatus({
@@ -116,6 +159,9 @@ export function DevelopCanvas({
     return () => {
       cancelled = true;
     };
+    // `onBackend` is a reporting callback; re-running on its identity would
+    // reload the image on every parent render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photoId]);
 
   const ready = status.loadedId === photoId;
