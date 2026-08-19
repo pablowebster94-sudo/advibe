@@ -4,6 +4,19 @@ import { useCallback, useRef, useState } from "react";
 import { SUPPORTED_EXTENSIONS } from "@/lib/photo/pipeline";
 import { Button } from "./ui";
 
+/**
+ * Deliberately unrestricted.
+ *
+ * `.ARW` has no registered MIME type, and several Android pickers — Samsung's
+ * My Files among them — ignore extension entries in `accept` and grey out
+ * anything they cannot map to a MIME type. On the target device that would grey
+ * out every RAW file, which is the one thing this app exists to open.
+ *
+ * The extension hints stay first so desktop pickers still default to the right
+ * filter, and `*` makes sure nothing is ever hidden. Nothing is lost by being
+ * permissive here: `isSupportedFile` filters the selection and the import panel
+ * lists by name whatever it skipped.
+ */
 const ACCEPT = [
   ".arw",
   ".dng",
@@ -12,9 +25,9 @@ const ACCEPT = [
   ".jpg",
   ".jpeg",
   ".png",
-  "image/jpeg",
-  "image/png",
-  "image/tiff",
+  "image/*",
+  "application/octet-stream",
+  "*",
 ].join(",");
 
 /**
@@ -78,7 +91,8 @@ export function Dropzone({
       </p>
       <p className="max-w-md text-xs leading-relaxed text-neutral-500">
         {SUPPORTED_EXTENSIONS.map((extension) => extension.toUpperCase()).join(" · ")} · Los
-        archivos originales no se modifican ni se suben a ningún servidor.
+        archivos originales no se modifican ni se suben a ningún servidor. Si conectas la cámara
+        por cable, búscala en el selector de archivos como una unidad más.
       </p>
       <Button
         variant="primary"
