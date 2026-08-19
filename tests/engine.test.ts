@@ -218,6 +218,27 @@ test("el guardián de piel corrige una dominante magenta con el matiz", () => {
   assert.ok(adjustments.tint >= -12, "la corrección debe ser contenida");
 });
 
+test("una cobertura de piel dudosa no mueve el matiz de toda la foto", () => {
+  // El falso positivo que producía el tinte: unos pocos píxeles cálidos (metal
+  // de un motor, tapicería beige) clasificados como piel. Por debajo del umbral
+  // significativo el guardián no debe tocar nada global.
+  const base = defaultAdjustments();
+  const skin = {
+    coverage: 0.03, // 3%: por debajo de SIGNIFICANT_COVERAGE
+    regions: [],
+    faceCount: 0,
+    meanLuma: 0.55,
+    meanHue: 45, // amarillo/verde: antes empujaba el matiz hacia magenta
+    meanSaturation: 0.6,
+    cast: "none" as const,
+    detector: "skin-region-heuristic" as const,
+  };
+  const { adjustments, rationale } = applySkinGuard(base, skin, true);
+  assert.equal(adjustments.tint, base.tint, `el matiz no debe cambiar, dio ${adjustments.tint}`);
+  assert.equal(adjustments.saturation, base.saturation);
+  assert.equal(rationale.length, 0, "no debe justificar ninguna corrección");
+});
+
 test("una escena sin piel no activa ningún límite del guardián", () => {
   const skin = {
     coverage: 0,

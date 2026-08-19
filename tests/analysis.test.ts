@@ -58,6 +58,30 @@ test("computeColorStats ignora los píxeles recortados al estimar el balance", (
   assert.ok(Math.abs(stats.temperatureBias) < 1);
 });
 
+test("un sujeto de color que llena el cuadro no se lee como dominante", () => {
+  // El caso real que producía el tinte magenta: una foto dominada por un coche
+  // gris-azulado sobre hormigón. El gris (superficie neutra) tiene que mandar
+  // sobre el azul saturado del sujeto, no al revés.
+  const carScene = makeImage(80, 80, (x) =>
+    x < 56 ? [70, 96, 150] : [150, 150, 150], // 70% carrocería azul, 30% hormigón
+  );
+  const stats = computeColorStats(carScene);
+  assert.ok(
+    Math.abs(stats.temperatureBias) < 18,
+    `un sujeto azul saturado no debe pedir una corrección fuerte, dio ${stats.temperatureBias}`,
+  );
+  // Y la confianza refleja cuánta superficie realmente neutra había.
+  assert.ok(stats.neutralConfidence > 0 && stats.neutralConfidence < 1);
+});
+
+test("una superficie neutra con dominante real sí se detecta", () => {
+  // Control: mismo tipo de escena, pero ahora las superficies neutras están
+  // teñidas de cálido (luz de tungsteno). El balance sí debe reaccionar.
+  const tungsten = makeImage(80, 80, () => [178, 150, 110]);
+  const stats = computeColorStats(tungsten);
+  assert.ok(stats.temperatureBias < -15, `esperaba enfriar, dio ${stats.temperatureBias}`);
+});
+
 test("laplacianVariance ordena nítida > borrosa", () => {
   const sharp = noisyImage(64, 64, 128, 70);
   const flat = solidImage(64, 64, [128, 128, 128]);

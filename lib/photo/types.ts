@@ -124,12 +124,22 @@ export interface ColorStats {
   meanG: number;
   meanB: number;
   /**
-   * Gray-world white balance error, expressed as a relative correction in the
-   * app's -100..100 slider space. Positive = image is too cool, needs warming.
+   * White balance error read from near-neutral bright surfaces (chrome, gray
+   * panels, concrete, white walls — pixels that *should* be neutral), expressed
+   * as a relative correction in the app's -100..100 slider space. Positive =
+   * image is too cool, needs warming. Measuring only near-neutral pixels avoids
+   * the gray-world trap where a frame filled by a coloured subject reads as a
+   * cast and gets "corrected" the wrong way.
    */
   temperatureBias: number;
   /** Positive = image is too green, needs magenta. */
   tintBias: number;
+  /**
+   * How much neutral surface the estimate had to work with, 0..1. Near 0 the
+   * scene has no reliable neutral reference (a genuinely colourful frame), so
+   * the white-balance correction is held back rather than guessed.
+   */
+  neutralConfidence: number;
   /** Mean HSV saturation, 0..1. */
   saturation: number;
   /** Fraction of pixels above 0.85 saturation. */

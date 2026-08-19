@@ -284,17 +284,33 @@ export function generateAdjustments(context: EngineContext): EditResult {
 
   // -- 6. White balance -----------------------------------------------------
   //
-  // Gray-world is a weak prior — it assumes the scene averages to neutral,
-  // which a red-carpet reception simply does not. It is damped hard, and each
-  // strategy damps it further where the colour is intentional.
-  const wbDamping = 0.55 * strategy.whiteBalanceGain;
-  adjustments.temperature = round(clamp(color.temperatureBias * wbDamping, -60, 60), 0);
-  adjustments.tint = round(clamp(color.tintBias * wbDamping, -40, 40), 0);
+  // The bias already comes from near-neutral surfaces only (see
+  // computeColorStats), so it no longer swings wild on a coloured subject. It is
+  // still damped and capped conservatively, and a small deadzone means a photo
+  // that is already close to neutral is left completely alone rather than nudged
+  // into a faint cast. When there was no reliable neutral reference in the frame
+  // (low neutralConfidence) the bias is already near zero, so this stays put.
+  const WB_DEADZONE = 4;
+  const wbDamping = 0.5 * strategy.whiteBalanceGain * color.neutralConfidence;
+  const tempRaw = color.temperatureBias * wbDamping;
+  const tintRaw = color.tintBias * wbDamping;
+  adjustments.temperature =
+    Math.abs(tempRaw) < WB_DEADZONE ? 0 : round(clamp(tempRaw, -45, 45), 0);
+  adjustments.tint = Math.abs(tintRaw) < WB_DEADZONE ? 0 : round(clamp(tintRaw, -28, 28), 0);
   if (adjustments.temperature !== 0 || adjustments.tint !== 0) {
     say(
       "temperature",
       adjustments.temperature,
-      `Dominante medida ${color.temperatureBias > 0 ? "fría" : "cálida"}: corrección amortiguada al ${(wbDamping * 100).toFixed(0)}% (${strategy.label}).`,
+      `Dominante medida en superficies neutras ${color.temperatureBias > 0 ? "fría" : "cálida"} ` +
+        `(confianza ${(color.neutralConfidence * 100).toFixed(0)}%): corrección amortiguada al ` +
+        `${(wbDamping * 100).toFixed(0)}% (${strategy.label}).`,
+    );
+  } else if (color.neutralConfidence < 0.15) {
+    say(
+      "temperature",
+      0,
+      "Sin suficiente superficie neutra para medir el balance de blancos con fiabilidad: " +
+        "se conserva el de la cámara.",
     );
   }
 

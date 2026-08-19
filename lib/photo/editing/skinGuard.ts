@@ -99,6 +99,14 @@ export function applySkinGuard(
   }
 
   const significant = coverage >= SIGNIFICANT_COVERAGE;
+
+  // Below the significant threshold the "skin" is a scatter of warm pixels the
+  // classifier is not sure about — engine-bay metal, wood, beige upholstery all
+  // land in the skin gamut. Moving the whole frame's tint or saturation on that
+  // evidence is exactly how a non-portrait picks up a colour cast, so nothing
+  // global happens until skin occupies a real part of the frame.
+  if (!significant) return { adjustments, rationale };
+
   const hue = skin.meanHue;
   const saturation = skin.meanSaturation;
 
@@ -148,8 +156,6 @@ export function applySkinGuard(
       reason: `Piel apagada (${(saturation * 100).toFixed(0)}%): naranja +${boost} para recuperar color sin subir la saturación global.`,
     });
   }
-
-  if (!significant) return { adjustments, rationale };
 
   // --- Global caps once skin occupies a meaningful part of the frame --------
   // A close subject is defined by how much of the frame is skin, not by whether

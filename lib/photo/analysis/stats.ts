@@ -162,10 +162,22 @@ export function darkChannel(image: RgbaImage, patch = 15): number {
  */
 export function computeColorStats(image: RgbaImage): ColorStats {
   const { data } = image;
+  // Global means (all usable pixels) — kept for the returned meanR/G/B, which
+  // other code uses for exposure/scene reasoning.
   let sumR = 0;
   let sumG = 0;
   let sumB = 0;
   let counted = 0;
+  // Weighted (near-neutral) means: every usable pixel contributes to the white
+  // balance in inverse proportion to its saturation. A saturated car body or a
+  // blue tarp barely counts; concrete, chrome, gray panels and white walls carry
+  // the estimate. This is what keeps a frame full of one colour from reading as
+  // a cast and getting "corrected" the wrong way — the classic gray-world trap.
+  const SAT_LIMIT = 0.55;
+  let wR = 0;
+  let wG = 0;
+  let wB = 0;
+  let wSum = 0;
   let saturationSum = 0;
   let oversaturated = 0;
   const total = image.width * image.height;
@@ -185,40 +197,48 @@ export function computeColorStats(image: RgbaImage): ColorStats {
     sumG += g;
     sumB += b;
     counted += 1;
+
+    // Weight ~1 for a near-gray pixel, fading to 0 by SAT_LIMIT. Squared so the
+    // most neutral surfaces dominate.
+    const nearness = 1 - Math.min(1, s / SAT_LIMIT);
+    const weight = nearness * nearness;
+    wR += r * weight;
+    wG += g * weight;
+    wB += b * weight;
+    wSum += weight;
   }
 
-  if (counted === 0) {
-    // Every pixel was clipped: report neutral rather than invent a correction.
-    return {
-      meanR: 0.5,
-      meanG: 0.5,
-      meanB: 0.5,
-      temperatureBias: 0,
-      tintBias: 0,
-      saturation: round(saturationSum / Math.max(1, total), 4),
-      oversaturated: round(oversaturated / Math.max(1, total), 5),
-      haze: 0,
-    };
+  const globalMeanR = counted > 0 ? sumR / counted : 128;
+  const globalMeanG = counted > 0 ? sumG / counted : 128;
+  const globalMeanB = counted > 0 ? sumB / counted : 128;
+
+  // How much near-neutral surface the frame carried, 0..1. A gray-heavy scene
+  // sits near 1; a saturated, colourful frame near 0, which the engine uses to
+  // hold the correction back rather than guess.
+  const neutralConfidence = round(clamp(counted > 0 ? wSum / counted : 0, 0, 1), 4);
+
+  let temperatureBias = 0;
+  let tintBias = 0;
+  if (wSum > 1e-3) {
+    const mR = wR / wSum;
+    const mG = wG / wSum;
+    const mB = wB / wSum;
+    const reference = Math.max(1, mG);
+    // Blue-heavy neutrals => light was cool => warm the image (positive).
+    const blueExcess = (mB - mR) / reference;
+    // Green-heavy neutrals => need magenta => positive tint in Camera Raw terms.
+    const greenExcess = (mG - (mR + mB) / 2) / reference;
+    temperatureBias = round(clamp(blueExcess * 150, -100, 100), 2);
+    tintBias = round(clamp(greenExcess * 170, -100, 100), 2);
   }
-
-  const meanR = sumR / counted;
-  const meanG = sumG / counted;
-  const meanB = sumB / counted;
-  const reference = Math.max(1, meanG);
-
-  // Blue-heavy image => too cool => positive (warming) correction.
-  const blueExcess = (meanB - meanR) / reference;
-  // Green-heavy image => needs magenta => positive tint in Camera Raw terms.
-  const greenExcess = (meanG - (meanR + meanB) / 2) / reference;
 
   return {
-    meanR: round(meanR / 255, 4),
-    meanG: round(meanG / 255, 4),
-    meanB: round(meanB / 255, 4),
-    // 140 maps a fully neutral-looking cast onto roughly the useful slider range
-    // without ever proposing an extreme correction from a single statistic.
-    temperatureBias: round(clamp(blueExcess * 140, -100, 100), 2),
-    tintBias: round(clamp(greenExcess * 160, -100, 100), 2),
+    meanR: round(globalMeanR / 255, 4),
+    meanG: round(globalMeanG / 255, 4),
+    meanB: round(globalMeanB / 255, 4),
+    temperatureBias,
+    tintBias,
+    neutralConfidence,
     saturation: round(saturationSum / total, 4),
     oversaturated: round(oversaturated / total, 5),
     haze: round(darkChannel(image), 4),
