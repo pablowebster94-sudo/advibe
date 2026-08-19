@@ -40,6 +40,32 @@ aplicación, no en los 25 MB del archivo. Por eso:
 Medido en `tests/e2e/memoria.mjs`: importar tres `.ARW` (uno de 25 MB con
 previsualización de 24 MP) mueve el montón de JS de 7 MB a 8 MB.
 
+### La exportación sí va a resolución completa
+
+Lo anterior vale para *editar*. Al **exportar** el compromiso se invierte: una
+entrega tiene que salir con las dimensiones del original. Para eso la
+exportación vuelve al archivo original —los `File` quedan referenciados en
+`storage/originals.ts`, que cuesta casi nada porque un `File` es un puntero a
+disco, no bytes en memoria— y decodifica su previsualización embebida a tamaño
+nativo, aplicando ahí los ajustes.
+
+A 24 MP eso no cabe de cualquier manera:
+
+- **GPU**: WebGL2 rechaza texturas mayores que `MAX_TEXTURE_SIZE` (normalmente
+  8192; 6000 px entra de sobra).
+- **CPU**: el camino Canvas 2D mantiene seis búferes de cuadro completo, que a
+  24 MP son ~576 MB y matan la pestaña en un Android de gama media.
+
+Cuando el cuadro no cabe, `render/fullRes.ts` lo revela **por bandas
+horizontales** y las compone en un lienzo del tamaño final. Cada banda se corta
+con un margen de solape y se le dice dónde está (`TileContext`), de modo que los
+radios de desenfoque y la viñeta siguen siendo función de la imagen entera y las
+costuras no se ven. La memoria queda acotada por la banda, no por la fotografía.
+
+Verificado en `tests/e2e/fullres.mjs` por los dos caminos: un `.ARW` cuyo proxy
+guardado es de 1600×1067 exporta un JPEG de **6000×4000**, y GPU y CPU coinciden
+en tono (111,65 vs 111,62 sobre 255).
+
 ```
   DSC08487.ARW  (25 MB, en el dispositivo, intacto)
        │
@@ -119,8 +145,11 @@ hoy y la interfaz no lo insinúa.
 
 Por fotografía se guarda: miniatura (~25 KB) + proxy (~300 KB a 1600 px) + JSON
 del análisis (~4 KB). Una boda de 800 fotos ocupa unos **260 MB**. El tamaño del
-proxy es configurable por proyecto (1200 / 1600 / 2560 px) y determina también
-la resolución máxima del JPG exportado. Los `.xmp` no dependen del proxy:
+proxy es configurable por proyecto (1200 / 1600 / 2560 px). **No** limita el JPG
+exportado: con el preset «Resolución completa» la exportación vuelve al archivo
+original y revela sobre la previsualización embebida a su tamaño nativo
+(6000×4000 en una ZV-E10), así que el JPG sale con las dimensiones del original.
+Los `.xmp` no dependen del proxy:
 Lightroom siempre revela el RAW completo.
 
 La aplicación pide `navigator.storage.persist()` al importar para que el
@@ -155,8 +184,11 @@ nada. Ninguna está implementada contra un servidor hoy.
 Dicho sin rodeos, porque condiciona qué esperar del producto:
 
 - **Revelar el RAW de verdad.** No hay demosaicing ni interpretación del sensor.
-  Los JPG exportados salen de la previsualización embebida. La ruta de calidad
-  total es el `.xmp` abierto en Lightroom.
+  Los JPG exportados salen de la previsualización embebida — a su resolución
+  nativa completa, pero sin interpretación del sensor. La ruta de calidad total
+  sigue siendo el `.xmp` abierto en Lightroom. Si la previsualización embebida
+  de un archivo fuese menor que el sensor, el JPG sale a ese tamaño y se dice:
+  ampliarlo sería inventar detalle.
 - **Algunos TIFF.** `raw/tiffImage.ts` decodifica los que salen de Photoshop,
   Lightroom y los escáneres: sin comprimir, LZW, PackBits y Deflate; 8 y 16
   bits; gris, RGB y paleta; en bandas. Lo que queda fuera se nombra en vez de

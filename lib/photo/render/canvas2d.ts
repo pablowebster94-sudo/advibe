@@ -58,6 +58,14 @@ function supportsFilter(context: Context2D): boolean {
   }
 }
 
+/** Where a band sits inside the whole frame it belongs to. */
+export interface TileContext {
+  fullWidth: number;
+  fullHeight: number;
+  offsetX: number;
+  offsetY: number;
+}
+
 export class Canvas2DRenderer {
   readonly backend = "canvas2d" as const;
 
@@ -74,6 +82,13 @@ export class Canvas2DRenderer {
   private fineData: ImageData | null = null;
   private coarseData: ImageData | null = null;
   private blurRadiiFor = "";
+  /**
+   * Set when this renderer is developing one band of a larger frame. Blur radii
+   * and the vignette are functions of the WHOLE image, so a band has to be told
+   * where it sits; without this each band would blur at its own scale and carry
+   * its own vignette, and the seams would show.
+   */
+  private tile: TileContext | null = null;
 
   private constructor(canvas: Canvas, context: Context2D, scratch: Canvas, scratchContext: Context2D) {
     this.canvas = canvas;
@@ -107,6 +122,16 @@ export class Canvas2DRenderer {
   /** True when texture/clarity/dehaze can be shown; false means they are skipped. */
   get supportsLocalContrast(): boolean {
     return this.hasFilter;
+  }
+
+  /**
+   * Declares that the next `setSource` holds a band of a bigger image. Pass
+   * null to go back to developing a whole frame.
+   */
+  setTile(tile: TileContext | null): void {
+    this.tile = tile;
+    // The blur planes are keyed on the radius basis, which the tile changes.
+    this.blurRadiiFor = "";
   }
 
   setSource(source: ImageBitmap | ImageData): void {
@@ -147,9 +172,12 @@ export class Canvas2DRenderer {
 
     // Radii scale with the image so the effect looks the same at any preview
     // size, matching how the shader blurs at a fixed fraction of the frame.
-    const fineRadius = Math.max(1, Math.round(Math.max(this.sourceWidth, this.sourceHeight) / 400));
+    const basis = this.tile
+      ? Math.max(this.tile.fullWidth, this.tile.fullHeight)
+      : Math.max(this.sourceWidth, this.sourceHeight);
+    const fineRadius = Math.max(1, Math.round(basis / 400));
     const coarseRadius = Math.max(3, fineRadius * 6);
-    const key = `${fineRadius}:${coarseRadius}:${this.sourceWidth}x${this.sourceHeight}`;
+    const key = `${fineRadius}:${coarseRadius}:${this.sourceWidth}x${this.sourceHeight}:${this.tile?.offsetY ?? -1}`;
     if (this.blurRadiiFor === key && this.fineData && this.coarseData) return;
 
     this.drawSource(this.scratchContext, `blur(${fineRadius}px)`);
@@ -183,7 +211,13 @@ export class Canvas2DRenderer {
     const doDehaze = Math.abs(u.dehaze) > 0.001 && coarse;
     const doSharpen = u.sharpen > 0.001;
     const doVignette = Math.abs(u.vignette) > 0.001;
-    const aspect = width / Math.max(1, height);
+    // Vignette is positioned against the whole frame, so a band uses the full
+    // image's geometry plus its own offset rather than its local coordinates.
+    const frameWidth = this.tile?.fullWidth ?? width;
+    const frameHeight = this.tile?.fullHeight ?? height;
+    const offsetX = this.tile?.offsetX ?? 0;
+    const offsetY = this.tile?.offsetY ?? 0;
+    const aspect = frameWidth / Math.max(1, frameHeight);
     const dehazeDivisor = Math.max(0.15, 1 - u.dehaze * 0.35);
 
     const rgb: [number, number, number] = [0, 0, 0];
@@ -257,7 +291,12 @@ export class Canvas2DRenderer {
         }
 
         if (doVignette) {
-          const factor = vignetteFactor(u, (x + 0.5) / width, (y + 0.5) / height, aspect);
+          const factor = vignetteFactor(
+            u,
+            (x + offsetX + 0.5) / frameWidth,
+            (y + offsetY + 0.5) / frameHeight,
+            aspect,
+          );
           r *= factor;
           g *= factor;
           b *= factor;
@@ -296,6 +335,7 @@ export class Canvas2DRenderer {
   }
 
   dispose(): void {
+    this.tile = null;
     this.source = null;
     this.baseData = null;
     this.fineData = null;

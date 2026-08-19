@@ -7,7 +7,7 @@
  * either way.
  */
 import type { Adjustments } from "../types";
-import { Canvas2DRenderer } from "./canvas2d";
+import { Canvas2DRenderer, type TileContext } from "./canvas2d";
 import { DevelopRenderer } from "./renderer";
 
 export type RenderBackend = "webgl2" | "canvas2d";
@@ -17,6 +17,14 @@ export interface DevelopRendererLike {
   readonly width: number;
   readonly height: number;
   setSource(source: ImageBitmap | ImageData): void;
+  /**
+   * Declares that the next source is one band of a bigger frame, so effects
+   * that depend on the whole image (blur radii, vignette) stay correct.
+   * Only the Canvas 2D path needs it; the GPU path ignores it.
+   */
+  setTile?(tile: TileContext | null): void;
+  /** Longest edge the backend accepts in one pass, when it has a hard limit. */
+  maxSourceSize?(): number;
   render(adjustments: Adjustments): void;
   readPixels(): ImageData;
   toBlob(type?: string, quality?: number): Promise<Blob>;
@@ -95,5 +103,7 @@ export function targetSizeFor(
   };
 }
 
+export type { TileContext } from "./canvas2d";
+export { renderFullResolution, canvasToBlob } from "./fullRes";
 export { Canvas2DRenderer } from "./canvas2d";
 export { DevelopRenderer } from "./renderer";

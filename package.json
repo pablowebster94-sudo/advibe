@@ -15,7 +15,8 @@
     "test:mobile": "node tests/e2e/mobile.mjs",
     "test:parity": "node tests/e2e/render-parity.mjs",
     "test:workflow": "node tests/e2e/workflow.mjs",
-    "test:memoria": "node tests/e2e/memoria.mjs"
+    "test:memoria": "node tests/e2e/memoria.mjs",
+    "test:fullres": "node tests/e2e/fullres.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.42.2",

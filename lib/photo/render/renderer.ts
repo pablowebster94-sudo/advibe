@@ -82,6 +82,15 @@ export class DevelopRenderer {
     }
   }
 
+  /**
+   * Largest edge this GPU will accept as a texture. Anything bigger has to be
+   * developed in bands; the value is typically 8192 or 16384, so a 6000 px
+   * camera preview fits whole on essentially every device.
+   */
+  maxSourceSize(): number {
+    return this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number;
+  }
+
   get width(): number {
     return this.sourceWidth;
   }
