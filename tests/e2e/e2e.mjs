@@ -24,6 +24,29 @@ mkdirSync(downloads, { recursive: true });
 
 const BASE = "http://localhost:3210";
 const results = [];
+/**
+ * Pulls one STORED (uncompressed) file out of a ZIP by name, straight from the
+ * local file header. The exporter writes JPGs with `compress: false`, so the
+ * bytes between the header and the next entry are the literal JPEG.
+ */
+function extractStoredFile(zip, nameSuffix) {
+  for (let i = 0; i + 30 < zip.length; i += 1) {
+    if (zip.readUInt32LE(i) !== 0x04034b50) continue;
+    const method = zip.readUInt16LE(i + 8);
+    const compSize = zip.readUInt32LE(i + 18);
+    const nameLen = zip.readUInt16LE(i + 26);
+    const extraLen = zip.readUInt16LE(i + 28);
+    const entryName = zip.subarray(i + 30, i + 30 + nameLen).toString("latin1");
+    // The exporter may prefix the JPG with "jpg/" when it also writes sidecars,
+    // so match the file name regardless of its folder.
+    if (method === 0 && entryName.endsWith(nameSuffix)) {
+      const start = i + 30 + nameLen + extraLen;
+      return zip.subarray(start, start + compSize);
+    }
+  }
+  return null;
+}
+
 let failures = 0;
 
 function check(name, condition, detail = "") {
@@ -369,6 +392,76 @@ try {
     zipText.includes("DSC08481.xmp") && zipText.includes("DSC08483.xmp"),
   );
   check("El ZIP contiene los .jpg revelados", zipText.includes("DSC08481.jpg"));
+
+  // The strongest claim, checked on the actual pixels: the exported JPEG is the
+  // real edited result and matches what "Despues" showed, not the untouched
+  // proxy. DSC08481 carries a manual +1.25 EV, so its exported JPEG has to be
+  // clearly brighter than the stored proxy and land near the develop-canvas
+  // luma measured earlier (afterManual.luma).
+  const exportedJpeg = extractStoredFile(zipBytes, "DSC08481.jpg");
+  check("El JPG exportado se pudo extraer del ZIP", exportedJpeg && exportedJpeg.length > 1000, exportedJpeg ? `${exportedJpeg.length} bytes` : "no encontrado");
+  check(
+    "El JPG exportado es un JPEG real (empieza por FFD8)",
+    exportedJpeg && exportedJpeg[0] === 0xff && exportedJpeg[1] === 0xd8,
+  );
+
+  const jpegBase64 = Buffer.from(exportedJpeg).toString("base64");
+  const measured = await page.evaluate(
+    async ({ b64 }) => {
+      const decode = async (bytes) => {
+        const blob = new Blob([bytes], { type: "image/jpeg" });
+        const bmp = await createImageBitmap(blob);
+        const c = document.createElement("canvas");
+        c.width = bmp.width;
+        c.height = bmp.height;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(bmp, 0, 0);
+        bmp.close();
+        const data = ctx.getImageData(0, 0, c.width, c.height).data;
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 4) sum += (data[i] + data[i + 1] + data[i + 2]) / 3;
+        return sum / (data.length / 4);
+      };
+      const binary = atob(b64);
+      const jpegBytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) jpegBytes[i] = binary.charCodeAt(i);
+
+      // The untouched proxy stored at import: what the export would look like if
+      // it were a mockup that skipped the edit.
+      const db = await new Promise((resolve) => {
+        const q = indexedDB.open("advibe-photo-studio");
+        q.onsuccess = () => resolve(q.result);
+      });
+      const photos = await new Promise((resolve) => {
+        const tx = db.transaction("photos", "readonly");
+        const q = tx.objectStore("photos").getAll();
+        q.onsuccess = () => resolve(q.result);
+      });
+      const target = photos.find((p) => p.fileName === "DSC08481.ARW");
+      const proxyBlob = await new Promise((resolve) => {
+        const tx = db.transaction("proxies", "readonly");
+        const q = tx.objectStore("proxies").get(target.id);
+        q.onsuccess = () => resolve(q.result?.blob ?? q.result);
+      });
+
+      return {
+        exportedLuma: await decode(jpegBytes),
+        proxyLuma: proxyBlob ? await decode(proxyBlob) : null,
+      };
+    },
+    { b64: jpegBase64 },
+  );
+
+  check(
+    "El JPG exportado NO es el proxy sin editar: aplica la correccion real",
+    measured.proxyLuma !== null && measured.exportedLuma > measured.proxyLuma + 8,
+    `exportado=${measured.exportedLuma.toFixed(1)} vs proxy sin editar=${measured.proxyLuma?.toFixed(1)}`,
+  );
+  check(
+    "El JPG exportado coincide con lo que mostraba \"Despues\" (mismo revelado)",
+    Math.abs(measured.exportedLuma - afterManual.luma) < 18,
+    `exportado=${measured.exportedLuma.toFixed(1)} vs canvas Despues=${afterManual.luma.toFixed(1)}`,
+  );
 
   writeFileSync(join(here, ".artifacts", "sidecar-descargado.xmp"), xmp);
 } catch (error) {
