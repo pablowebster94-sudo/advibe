@@ -103,10 +103,38 @@ export function DevelopView({
   const index = photos.findIndex((item) => item.id === photo.id);
   const analysis = photo.analysis;
 
-  const canvas = (
+  /**
+   * A file whose metadata we read but whose pixels we could not decode. It is
+   * not an error state: everything the file did give us is still here, so the
+   * view swaps the preview for an explanation and keeps the rest working.
+   */
+  const unreadable = photo.status === "unreadable";
+
+  const canvas = unreadable ? (
+    <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-4">
+      <h3 className="text-sm font-semibold text-amber-200">
+        No se pudieron leer los píxeles de este archivo
+      </h3>
+      <p className="mt-2 text-xs leading-relaxed text-neutral-300">
+        {photo.errorMessage ??
+          "El navegador no pudo decodificar ninguna imagen dentro del archivo."}
+      </p>
+      <ul className="mt-3 space-y-1 text-xs leading-relaxed text-neutral-400">
+        <li>· El archivo original no se ha modificado ni se ha subido a ningún servidor.</li>
+        <li>· Sus metadatos sí se leyeron y se muestran completos más abajo.</li>
+        <li>
+          · Sin píxeles no hay análisis automático, previsualización, comparación
+          antes/después ni exportación a JPG para esta fotografía.
+        </li>
+        <li>· Sí puedes seleccionarla o descartarla, y sigue contando dentro del proyecto.</li>
+      </ul>
+    </div>
+  ) : (
     <div className={fullscreen ? "fixed inset-0 z-50 bg-black p-2" : "h-[46vh] min-h-64 lg:h-[62vh]"}>
       <DevelopCanvas
         photoId={photo.id}
+        proxyWidth={photo.proxyWidth}
+        proxyHeight={photo.proxyHeight}
         adjustments={adjustments}
         compare={compare}
         zoom={zoom}
@@ -131,7 +159,7 @@ export function DevelopView({
         {canvas}
 
         <div className="space-y-2 rounded-lg border border-neutral-800 bg-neutral-900/60 p-3">
-          <div className="flex items-center gap-3">
+          <div className={`items-center gap-3 ${unreadable ? "hidden" : "flex"}`}>
             <span className="w-16 shrink-0 text-xs text-neutral-500">Antes</span>
             <input
               type="range"
@@ -161,7 +189,7 @@ export function DevelopView({
             <span className="px-1 text-xs tabular-nums text-neutral-500">
               {index + 1} / {photos.length}
             </span>
-            <div className="ml-auto flex items-center gap-2">
+            <div className={`ml-auto items-center gap-2 ${unreadable ? "hidden" : "flex"}`}>
               <Button variant="ghost" onClick={() => setZoom(1)} disabled={zoom === 1}>
                 Ajustar
               </Button>
@@ -203,8 +231,8 @@ export function DevelopView({
             ))}
           </dl>
           <p className="mt-3 text-[11px] leading-relaxed text-neutral-500">
-            Lo que el archivo no registró aparece como «—». No se sustituye por valores
-            plausibles.
+            Lo que el archivo no registró aparece como «No disponible». No se sustituye por
+            valores plausibles.
           </p>
         </Panel>
 
@@ -324,9 +352,12 @@ export function DevelopView({
           />
         ) : (
           <Notice tone="warn">
-            {photo.status === "error"
-              ? photo.errorMessage
-              : "Esta fotografía todavía no tiene ajustes generados."}
+            {unreadable
+              ? "Sin píxeles decodificados no se puede proponer ni aplicar ningún ajuste. " +
+                "Los metadatos del archivo siguen disponibles arriba."
+              : photo.status === "error"
+                ? photo.errorMessage
+                : "Esta fotografía todavía no tiene ajustes generados."}
           </Notice>
         )}
       </aside>

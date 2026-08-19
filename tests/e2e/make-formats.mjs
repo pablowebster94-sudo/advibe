@@ -3,6 +3,10 @@
  *   - a PNG with no metadata at all
  *   - a large JPEG (5000x3333, ~15 MP)
  *   - an uncompressed RGB TIFF and an LZW TIFF, neither with a preview
+ *   - a ~25 MB ARW carrying a full 6000x4000 embedded preview, the shape of a
+ *     real Sony ZV-E10 file and the one that actually stresses memory
+ *   - an ARW whose metadata reads but whose pixels cannot be decoded
+ *   - a DNG, the same TIFF container under Adobe's extension
  *
  * The TIFFs are real files built byte by byte, not renamed JPEGs: they are the
  * only way to exercise the decoder, since a TIFF that happens to carry an
@@ -100,9 +104,116 @@ const rgb = Buffer.from(
   "base64",
 );
 
+// ------------------------------------------------- a real-sized Sony-style ARW
+// A camera ARW embeds a full-resolution preview: 6000x4000 is ~96 MB once
+// decoded, which is exactly the case the import path has to survive without
+// three copies alive at a time. The container is then padded to ~25 MB so the
+// Blob is the size of a real file, proving we only ever slice what we need
+// instead of reading the whole thing into memory.
+const bigPreview = await encode(6000, 4000, SCENE, "image/jpeg", 0.94);
+console.log(`Preview 24 MP     (en memoria)      ${(bigPreview.length / 1024 / 1024).toFixed(1)} MB, 6000x4000`);
+
 await browser.close();
 
-const { makeImageTiff, encodeLzw } = await import("../fixtures.ts");
+const { makeImageTiff, encodeLzw, makeTiff, makeUnreadableArw } = await import("../fixtures.ts");
+
+const bigArw = makeTiff(
+  [
+    {
+      name: "ifd0",
+      tags: [
+        [0x010f, { type: "ascii", value: "SONY" }],
+        [0x0110, { type: "ascii", value: "ZV-E10" }],
+        [0x0112, { type: "short", value: [1] }],
+      ],
+    },
+    {
+      name: "exif",
+      tags: [
+        [0x829a, { type: "rational", value: [[1, 250]] }],
+        [0x829d, { type: "rational", value: [[20, 10]] }],
+        [0x8827, { type: "short", value: [400] }],
+        [0x9003, { type: "ascii", value: "2026:08:09 09:14:33" }],
+        [0x920a, { type: "rational", value: [[35, 1]] }],
+        [0xa002, { type: "long", value: [6000] }],
+        [0xa003, { type: "long", value: [4000] }],
+        [0xa434, { type: "ascii", value: "E 35mm F1.8 OSS" }],
+      ],
+    },
+    {
+      name: "sub",
+      tags: [
+        [0x0100, { type: "long", value: [6000] }],
+        [0x0101, { type: "long", value: [4000] }],
+        [0x0103, { type: "short", value: [6] }],
+        [0x0201, { type: "jpegOffset" }],
+        [0x0202, { type: "jpegLength" }],
+      ],
+    },
+  ],
+  new Uint8Array(bigPreview),
+);
+
+// Trailing bytes a TIFF reader never visits, only there to make the file the
+// weight of a camera original.
+const TARGET_BYTES = 25 * 1024 * 1024;
+const padded = Buffer.concat([
+  Buffer.from(bigArw),
+  Buffer.alloc(Math.max(0, TARGET_BYTES - bigArw.length)),
+]);
+writeFileSync(join(out, "DSC09500.ARW"), padded);
+console.log(
+  `ARW 25 MB          DSC09500.ARW       ${(padded.length / 1024 / 1024).toFixed(1)} MB, preview 6000x4000`,
+);
+
+// A DNG is the same TIFF container with Adobe's tags; what the app has to get
+// right is detecting it by extension and reading its preview like any other.
+const dng = makeTiff(
+  [
+    {
+      name: "ifd0",
+      tags: [
+        [0x010f, { type: "ascii", value: "SONY" }],
+        [0x0110, { type: "ascii", value: "ZV-E10" }],
+        [0x0112, { type: "short", value: [1] }],
+        // DNGVersion 1.4.0.0, the tag that makes a TIFF a DNG.
+        [0xc612, { type: "undefined", value: [1, 4, 0, 0] }],
+      ],
+    },
+    {
+      name: "exif",
+      tags: [
+        [0x829a, { type: "rational", value: [[1, 125]] }],
+        [0x829d, { type: "rational", value: [[40, 10]] }],
+        [0x8827, { type: "short", value: [3200] }],
+        [0x9003, { type: "ascii", value: "2026:08:09 20:31:47" }],
+        [0x920a, { type: "rational", value: [[24, 1]] }],
+        [0xa002, { type: "long", value: [6000] }],
+        [0xa003, { type: "long", value: [4000] }],
+        [0xa434, { type: "ascii", value: "E 24mm F2.8 G" }],
+      ],
+    },
+    {
+      name: "sub",
+      tags: [
+        [0x0100, { type: "long", value: [1400] }],
+        [0x0101, { type: "long", value: [900] }],
+        [0x0103, { type: "short", value: [6] }],
+        [0x0201, { type: "jpegOffset" }],
+        [0x0202, { type: "jpegLength" }],
+      ],
+    },
+  ],
+  new Uint8Array(plain),
+);
+writeFileSync(join(out, "DSC09600.dng"), Buffer.from(dng));
+console.log(`DNG                DSC09600.dng       ${(dng.length / 1024).toFixed(0)} KB, preview 1400x900`);
+
+const unreadable = makeUnreadableArw();
+writeFileSync(join(out, "DSC09501.ARW"), Buffer.from(unreadable));
+console.log(
+  `ARW no legible     DSC09501.ARW       ${unreadable.length} bytes, compresion 7 sin preview`,
+);
 const samples = new Uint8Array(rgb);
 
 const uncompressed = makeImageTiff({

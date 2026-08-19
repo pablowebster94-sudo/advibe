@@ -71,9 +71,18 @@ escritorio no podía ver: los sliders medían 20 px de alto (en un editor de fot
 son *la* interacción principal), los enlaces de navegación 36 px y los botones
 de estrategia 27 px. Corregidos.
 
-`npm test` — 92 pruebas unitarias sobre la lógica pura (parser TIFF, EXIF,
+`tests/e2e/memoria.mjs` — 21 comprobaciones, todas pasan. Es la suite de los
+archivos que se parecen a los de la cámara: un `.ARW` de 25 MB con una
+previsualización embebida de 6000×4000 y otro cuyos píxeles no se pueden
+decodificar. Comprueba que el grande entra sin disparar la memoria (montón de JS
+de 7 MB a 8 MB importando tres archivos), que su proxy se guarda a 1600×1067 y
+no a 24 MP, y que el ilegible conserva su EXIF completo, se marca «RAW no
+legible», no inventa análisis y explica el motivo exacto («Compresión TIFF 7: no
+soportada»).
+
+`npm test` — 115 pruebas unitarias sobre la lógica pura (parser TIFF, EXIF,
 estadística, exposición, piel, escena, hashes, motor, estilo, XMP, curva, ZIP,
-cola).
+cola, archivos parcialmente legibles).
 
 `npm run lint` — 0 errores, 0 avisos. `npm run build` — correcto.
 
@@ -125,6 +134,33 @@ evitar.
     sí desde la rejilla: dos caminos con reglas distintas. La exclusión mutua
     vive ahora en un solo sitio.
 
+**De memoria y de archivos parcialmente legibles**
+
+11. **Tres decodificaciones en paralelo de la misma previsualización.** El
+    análisis lanzaba `decodeProxy`, `makeThumbnail` y `encodeProxy` a la vez.
+    Con las pruebas sintéticas (previsualización de 1616×1080) no se notaba;
+    con un `.ARW` real, cuya previsualización embebida es de 6000×4000, son
+    ~96 MB por copia, tres copias por fotografía y cuatro fotografías en vuelo:
+    suficiente para que Chrome mate la pestaña en un teléfono de gama media.
+    Ahora se decodifica **una sola vez**, pidiendo al decodificador el tamaño
+    final (`resizeWidth`/`resizeHeight`), y se libera el bitmap en cuanto salen
+    los píxeles.
+12. **La vista de revelado decodificaba dos veces** el mismo proxy: entero y
+    luego redimensionado. El tamaño del proxy se guarda ahora en el registro de
+    la fotografía, así que se pide directamente el tamaño que el backend va a
+    usar.
+13. **Un `.ARW` cuyos píxeles no se pueden leer se perdía** como error genérico,
+    perdiendo con él un EXIF que sí se había leído. Ahora existe el estado
+    `unreadable`: la fotografía se queda en el proyecto, muestra todos sus
+    metadatos, dice qué no se pudo obtener y por qué, y se excluye de la
+    exportación diciéndolo.
+14. **El motivo del fallo se tragaba en un `catch` vacío.** `undecodableReasons`
+    lee las etiquetas que fallaron la comprobación de soporte, así que el aviso
+    nombra la limitación real en lugar de un «no se pudo».
+15. **Botón `.xmp` de descarga individual a 32 px** en la pestaña de exportar,
+    por debajo del mínimo táctil. La comprobación de móvil no llegaba a esa
+    pestaña; ahora sí.
+
 ## Implementado, no verificado end-to-end
 
 - **«Aprender mi estilo»** — el aprendizaje y la aplicación tienen pruebas
@@ -150,9 +186,11 @@ evitar.
 ## Lo que falta comprobar antes de producción
 
 1. **Archivos `.ARW` de la cámara real.** Los de prueba son contenedores TIFF
-   sintéticos con la estructura correcta y un JPEG real dentro, pero no cubren la
-   variedad de MakerNotes de cámaras reales. Pasa un lote por
-   `tests/e2e/probe.mjs` y revisa que el EXIF y la previsualización se lean bien.
+   sintéticos con la estructura correcta y un JPEG real dentro —uno de ellos ya
+   de 25 MB con previsualización de 24 MP—, pero no cubren la variedad de
+   MakerNotes de cámaras reales. Pasa un lote por `tests/e2e/probe.mjs` y revisa
+   que el EXIF y la previsualización se lean bien. Si algún archivo cae en
+   «RAW no legible», el motivo que muestra la aplicación es el dato a reportar.
 2. **Abrir un `.xmp` en Lightroom Classic** y confirmar que los valores caen
    donde deben.
 3. **Un lote grande en el teléfono real** (Samsung A16). El ritmo medido aquí es

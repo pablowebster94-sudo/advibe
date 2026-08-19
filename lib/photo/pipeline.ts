@@ -151,9 +151,25 @@ export function importFiles(
           });
           if (signal.aborted) return;
 
+          if (!output.ok) {
+            // Keep what we could read. The photograph stays in the project with
+            // its metadata visible and the reason shown, instead of becoming an
+            // opaque failure.
+            photo.format = output.format;
+            photo.exif = output.exif;
+            photo.status = "unreadable";
+            photo.errorMessage = output.reason;
+            await db.putPhoto(photo);
+            callbacks.onPhotoUpdated?.({ ...photo });
+            callbacks.onError?.(file.name, output.reason);
+            return;
+          }
+
           photo.format = output.format;
           photo.exif = output.exif;
           photo.analysis = output.analysis;
+          photo.proxyWidth = output.proxyWidth;
+          photo.proxyHeight = output.proxyHeight;
           photo.status = "analyzed";
 
           photo.auto = generateAdjustments({

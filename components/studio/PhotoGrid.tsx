@@ -13,6 +13,7 @@ const STATUS_LABEL: Record<PhotoRecord["status"], string> = {
   analyzing: "Analizando",
   analyzed: "Analizada",
   edited: "Editada",
+  unreadable: "RAW no legible",
   error: "Error",
 };
 
@@ -21,6 +22,7 @@ const STATUS_TONE: Record<PhotoRecord["status"], "neutral" | "good" | "warn" | "
   analyzing: "warn",
   analyzed: "neutral",
   edited: "accent",
+  unreadable: "warn",
   error: "bad",
 };
 
@@ -141,7 +143,11 @@ export const PhotoTile = memo(function PhotoTile({
             />
           ) : (
             <div className="grid h-full w-full place-items-center text-[11px] text-neutral-600">
-              {photo.status === "error" ? "sin previsualización" : "…"}
+              {photo.status === "error"
+                ? "sin previsualización"
+                : photo.status === "unreadable"
+                  ? "RAW no legible"
+                  : "…"}
             </div>
           )}
           {photo.picked && (
@@ -178,6 +184,10 @@ export const PhotoTile = memo(function PhotoTile({
         {photo.status === "error" ? (
           <p className="truncate text-[10px] text-red-300" title={photo.errorMessage}>
             {photo.errorMessage}
+          </p>
+        ) : photo.status === "unreadable" ? (
+          <p className="truncate text-[10px] text-amber-300" title={photo.errorMessage}>
+            Metadatos leídos, píxeles no
           </p>
         ) : photo.auto && photo.analysis ? (
           <p className="truncate text-[10px] text-neutral-500">

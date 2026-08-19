@@ -234,6 +234,27 @@ export async function findLargestDecodableIfd(file: TiffFile): Promise<number> {
   return best;
 }
 
+/**
+ * Why none of the image directories could be decoded, in the file's own terms.
+ *
+ * Sony's ARW pixel data is a compression variant this decoder does not
+ * implement, so a camera-original ARW normally reaches this only when its
+ * embedded preview is missing too. When that happens the photographer deserves
+ * the actual reason -- "Compresión TIFF 7: no soportada" -- rather than a
+ * generic failure, so they can tell a limitation from a corrupt file.
+ */
+export async function undecodableReasons(file: TiffFile): Promise<string[]> {
+  const reasons: string[] = [];
+  for (let index = 0; index < file.ifds.length; index += 1) {
+    const kind = file.ifds[index].kind;
+    if (kind !== "ifd0" && kind !== "ifd" && kind !== "sub") continue;
+    const support = await inspectTiffImage(file, index);
+    if (support.supported) continue;
+    if (support.reason && !reasons.includes(support.reason)) reasons.push(support.reason);
+  }
+  return reasons;
+}
+
 /** Decodes one IFD to RGBA. Throws with a readable reason when unsupported. */
 export async function decodeTiffImage(file: TiffFile, ifdIndex: number): Promise<DecodedImage> {
   const support = await inspectTiffImage(file, ifdIndex);

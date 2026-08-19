@@ -3,10 +3,11 @@
 /**
  * The develop preview.
  *
- * Renders the stored proxy through the WebGL2 pipeline and blits the result to
- * a display canvas, with a before/after wipe, zoom and pan. When WebGL2 is not
- * available it shows the untouched preview and says so — it never presents an
- * unedited image as if the edit had been applied.
+ * Renders the stored proxy through the develop pipeline and blits the result to
+ * a display canvas, with a before/after wipe, zoom and pan. WebGL2 is used when
+ * the device offers it and Canvas 2D otherwise; both apply the same adjustments.
+ * Only if neither is available does it show the untouched preview, and then it
+ * says so — it never presents an unedited image as if the edit had been applied.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Adjustments } from "@/lib/photo/types";
@@ -21,6 +22,13 @@ import * as db from "@/lib/photo/storage/db";
 export interface DevelopCanvasProps {
   photoId: string;
   adjustments: Adjustments | null;
+  /**
+   * Pixel size of the stored proxy, when known. Lets the decode happen straight
+   * at the size the backend will use, instead of decoding at full proxy size
+   * and resizing afterwards — two bitmaps of the same photo alive at once.
+   */
+  proxyWidth?: number;
+  proxyHeight?: number;
   /** 0 = fully "before", 1 = fully "after". */
   compare: number;
   zoom: number;
@@ -38,6 +46,8 @@ interface Viewport {
 export function DevelopCanvas({
   photoId,
   adjustments,
+  proxyWidth,
+  proxyHeight,
   compare,
   zoom,
   onZoomChange,
@@ -88,17 +98,15 @@ export function DevelopCanvas({
         if (!blob) {
           setStatus({
             loadedId: null,
-            message: "No hay previsualización almacenada para esta fotografía.",
+            message:
+              "No hay previsualización almacenada para esta fotografía. Sus metadatos y sus " +
+              "ajustes siguen disponibles, y el .xmp se exporta igual.",
           });
           return;
         }
 
-        const full = await createImageBitmap(blob);
-        if (cancelled) {
-          full.close();
-          return;
-        }
-
+        // The renderer is probed before the decode, because which backend we
+        // get decides how many pixels are worth decoding at all.
         if (!rendererProbed.current) {
           rendererProbed.current = true;
           rendererRef.current = createDevelopRenderer({
@@ -111,27 +119,51 @@ export function DevelopCanvas({
         // Develop at the size the backend can sustain: the GPU shades a full
         // proxy without noticing, the Canvas 2D loop cannot, and neither needs
         // more pixels than the screen will show.
-        let bitmap = full;
-        if (renderer) {
-          const container = containerRef.current;
-          const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
-          const target = targetSizeFor(
-            renderer.backend,
-            full.width,
-            full.height,
-            Math.round((container?.clientWidth ?? 0) * dpr),
-            Math.round((container?.clientHeight ?? 0) * dpr),
-          );
-          if (target.width !== full.width || target.height !== full.height) {
-            bitmap = await createImageBitmap(full, {
-              resizeWidth: target.width,
-              resizeHeight: target.height,
-              resizeQuality: "high",
-            });
+        //
+        // When the proxy size is on the record we can ask the decoder for that
+        // size directly, so exactly one bitmap of this photo ever exists. The
+        // fallback path (older records, saved before the size was stored)
+        // decodes and then resizes, which is correct but briefly holds two.
+        const container = containerRef.current;
+        const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
+        const viewW = Math.round((container?.clientWidth ?? 0) * dpr);
+        const viewH = Math.round((container?.clientHeight ?? 0) * dpr);
+
+        let bitmap: ImageBitmap;
+        if (renderer && proxyWidth && proxyHeight) {
+          const target = targetSizeFor(renderer.backend, proxyWidth, proxyHeight, viewW, viewH);
+          bitmap =
+            target.width === proxyWidth && target.height === proxyHeight
+              ? await createImageBitmap(blob)
+              : await createImageBitmap(blob, {
+                  resizeWidth: target.width,
+                  resizeHeight: target.height,
+                  resizeQuality: "high",
+                }).catch(() => createImageBitmap(blob));
+          if (cancelled) {
+            bitmap.close();
+            return;
+          }
+        } else {
+          const full = await createImageBitmap(blob);
+          if (cancelled) {
             full.close();
-            if (cancelled) {
-              bitmap.close();
-              return;
+            return;
+          }
+          bitmap = full;
+          if (renderer) {
+            const target = targetSizeFor(renderer.backend, full.width, full.height, viewW, viewH);
+            if (target.width !== full.width || target.height !== full.height) {
+              bitmap = await createImageBitmap(full, {
+                resizeWidth: target.width,
+                resizeHeight: target.height,
+                resizeQuality: "high",
+              });
+              full.close();
+              if (cancelled) {
+                bitmap.close();
+                return;
+              }
             }
           }
         }
@@ -162,7 +194,7 @@ export function DevelopCanvas({
     // `onBackend` is a reporting callback; re-running on its identity would
     // reload the image on every parent render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photoId]);
+  }, [photoId, proxyWidth, proxyHeight]);
 
   const ready = status.loadedId === photoId;
   const message = status.message;

@@ -164,8 +164,12 @@ export function makeTiff(specs: IfdSpec[], jpeg: Uint8Array | null): Uint8Array 
     while (body.length < item.size) body.push(0);
     out.push(...body.slice(0, item.size));
   }
-  out.push(...heap);
-  return new Uint8Array(out);
+  // Copied element by element rather than spread: a 24 MP embedded preview is
+  // millions of bytes, and `push(...heap)` blows the call stack at that size.
+  const bytes = new Uint8Array(out.length + heap.length);
+  bytes.set(out, 0);
+  bytes.set(heap, out.length);
+  return bytes;
 }
 
 /** A minimal ARW-like file: EXIF metadata plus a 1616x1080 embedded preview. */
@@ -221,6 +225,51 @@ export function makeArw(
   );
 
   return { bytes, jpeg };
+}
+
+/**
+ * An ARW whose metadata reads fine but whose pixels are unreachable: no
+ * embedded preview at all, and image data in Sony's lossy compression (7),
+ * which no browser decoder implements.
+ *
+ * This is the shape of a real camera file we can only partially interpret, and
+ * the app has to keep it -- with its EXIF -- rather than dropping it.
+ */
+export function makeUnreadableArw(): Uint8Array {
+  return makeTiff(
+    [
+      {
+        name: "ifd0",
+        tags: [
+          [0x00fe, { type: "long", value: [0] }],
+          [0x0100, { type: "long", value: [6000] }],
+          [0x0101, { type: "long", value: [4000] }],
+          // Compression 7 = lossy JPEG/Sony ARW: the reason we cannot decode.
+          [0x0103, { type: "short", value: [7] }],
+          [0x0106, { type: "short", value: [32803] }],
+          [0x010f, { type: "ascii", value: "SONY" }],
+          [0x0110, { type: "ascii", value: "ZV-E10" }],
+          [0x0112, { type: "short", value: [1] }],
+          [0x0111, { type: "long", value: [4096] }],
+          [0x0117, { type: "long", value: [1024] }],
+        ],
+      },
+      {
+        name: "exif",
+        tags: [
+          [0x829a, { type: "rational", value: [[1, 320]] }],
+          [0x829d, { type: "rational", value: [[28, 10]] }],
+          [0x8827, { type: "short", value: [800] }],
+          [0x9003, { type: "ascii", value: "2026:08:09 11:05:02" }],
+          [0x920a, { type: "rational", value: [[50, 1]] }],
+          [0xa002, { type: "long", value: [6000] }],
+          [0xa003, { type: "long", value: [4000] }],
+          [0xa434, { type: "ascii", value: "E 50mm F1.8 OSS" }],
+        ],
+      },
+    ],
+    null,
+  );
 }
 
 // ---------------------------------------------------------------------------

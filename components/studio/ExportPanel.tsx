@@ -35,7 +35,11 @@ export function ExportPanel({
   const [result, setResult] = useState<string | null>(null);
   const [failures, setFailures] = useState<Array<{ fileName: string; message: string }>>([]);
 
+  // Only photographs that actually have adjustments can be exported. A file
+  // whose pixels the browser could not decode has metadata but no adjustments,
+  // so it is left out -- and said so, rather than silently missing from the ZIP.
   const editable = photos.filter((photo) => photo.auto);
+  const skipped = photos.length - editable.length;
   const target =
     scope === "picked"
       ? editable.filter((photo) => photo.picked)
@@ -222,6 +226,12 @@ export function ExportPanel({
         <p className="mb-3 text-xs text-neutral-500">
           Un .xmp suelto, sin pasar por el ZIP.
         </p>
+        {skipped > 0 && (
+          <p className="mb-3 text-xs text-amber-300">
+            {skipped} fotografía(s) quedan fuera de la exportación porque no se pudieron
+            decodificar sus píxeles y por tanto no tienen ajustes que escribir.
+          </p>
+        )}
         <div className="max-h-64 space-y-1 overflow-y-auto">
           {editable.slice(0, 200).map((photo) => (
             <div
@@ -231,7 +241,7 @@ export function ExportPanel({
               <span className="truncate font-mono text-xs text-neutral-300">{photo.fileName}</span>
               <Button
                 variant="ghost"
-                className="h-8 min-h-8 px-2 text-[11px]"
+                className="min-h-11 px-4 text-[11px]"
                 onClick={() => downloadSingleXmp(photo)}
                 data-testid={`download-xmp-${photo.baseName}`}
               >

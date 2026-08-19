@@ -6,7 +6,13 @@
  */
 import type { ExifData, PhotoAnalysis, SourceFormat } from "../types";
 import { runAnalysis } from "../analysis/provider";
-import { decodeProxy, makeThumbnail, readSourceMeta } from "../raw/decode";
+import {
+  canvasToJpeg,
+  decodePreviewBitmap,
+  readCanvasPixels,
+  readSourceMeta,
+  renderOriented,
+} from "../raw/decode";
 
 export interface AnalyzeInput {
   fileName: string;
@@ -19,7 +25,8 @@ export interface AnalyzeInput {
   analysisEdge?: number;
 }
 
-export interface AnalyzeOutput {
+export interface AnalyzeSuccess {
+  ok: true;
   format: SourceFormat;
   exif: ExifData;
   analysis: PhotoAnalysis;
@@ -32,95 +39,102 @@ export interface AnalyzeOutput {
   warning?: string;
 }
 
+/**
+ * The file was structurally readable — we have its metadata — but no image data
+ * could be decoded. A RAW variant we cannot unpack still belongs in the
+ * project with its EXIF visible and the reason stated, rather than vanishing
+ * behind a generic failure.
+ */
+export interface AnalyzePartial {
+  ok: false;
+  format: SourceFormat;
+  exif: ExifData;
+  reason: string;
+}
+
+export type AnalyzeOutput = AnalyzeSuccess | AnalyzePartial;
+
 export const DEFAULT_PROXY_EDGE = 1600;
 export const DEFAULT_THUMBNAIL_EDGE = 320;
 export const DEFAULT_ANALYSIS_EDGE = 512;
 
-/** Re-encodes the embedded preview at `edge` px so storage stays predictable. */
-async function encodeProxy(
-  preview: Blob,
-  orientation: number,
-  edge: number,
-): Promise<{ blob: Blob; width: number; height: number }> {
-  const bitmap = await createImageBitmap(preview);
-  try {
-    const { swap, matrix } = await import("../raw/decode").then((module) =>
-      module.orientationTransform(orientation),
-    );
-    const orientedW = swap ? bitmap.height : bitmap.width;
-    const orientedH = swap ? bitmap.width : bitmap.height;
-    const scale = Math.min(1, edge / Math.max(orientedW, orientedH));
-    const width = Math.max(1, Math.round(orientedW * scale));
-    const height = Math.max(1, Math.round(orientedH * scale));
-
-    const canvas =
-      typeof OffscreenCanvas !== "undefined"
-        ? new OffscreenCanvas(width, height)
-        : Object.assign(document.createElement("canvas"), { width, height });
-    const context = canvas.getContext("2d") as
-      | OffscreenCanvasRenderingContext2D
-      | CanvasRenderingContext2D
-      | null;
-    if (!context) throw new Error("No se pudo crear el contexto 2D");
-
-    const [a, b, c, d, e, f] = matrix;
-    context.setTransform(a, b, c, d, e * width, f * height);
-    context.drawImage(bitmap, 0, 0, swap ? height : width, swap ? width : height);
-    context.setTransform(1, 0, 0, 1, 0, 0);
-
-    const blob =
-      canvas instanceof OffscreenCanvas
-        ? await canvas.convertToBlob({ type: "image/jpeg", quality: 0.86 })
-        : await new Promise<Blob>((resolve, reject) => {
-            (canvas as HTMLCanvasElement).toBlob(
-              (result) => (result ? resolve(result) : reject(new Error("toBlob devolvió null"))),
-              "image/jpeg",
-              0.86,
-            );
-          });
-    return { blob, width, height };
-  } finally {
-    bitmap.close();
-  }
-}
-
 export async function analyzeFile(input: AnalyzeInput): Promise<AnalyzeOutput> {
   const meta = await readSourceMeta(input.blob, input.fileName);
   if (!meta.preview) {
-    throw new Error(
-      meta.warning ??
-        "No se encontró una imagen legible dentro del archivo. El RAW original no se ha modificado.",
-    );
+    return {
+      ok: false,
+      format: meta.format,
+      exif: meta.exif,
+      reason:
+        meta.warning ??
+        "No se pudo decodificar ninguna imagen dentro del archivo. Los metadatos sí se leyeron " +
+          "y el archivo original no se ha modificado.",
+    };
   }
 
   const orientation = meta.exif.orientation ?? 1;
   const proxyEdge = input.proxyEdge ?? DEFAULT_PROXY_EDGE;
+  const thumbnailEdge = input.thumbnailEdge ?? DEFAULT_THUMBNAIL_EDGE;
+  const analysisEdge = input.analysisEdge ?? DEFAULT_ANALYSIS_EDGE;
 
-  // The analysis buffer, the thumbnail and the stored proxy all come from the
-  // same embedded preview; the original file is read once and then released.
-  const [analysisProxy, thumbnail, proxy] = await Promise.all([
-    decodeProxy(meta.preview, orientation, input.analysisEdge ?? DEFAULT_ANALYSIS_EDGE),
-    makeThumbnail(meta.preview, orientation, input.thumbnailEdge ?? DEFAULT_THUMBNAIL_EDGE),
-    encodeProxy(meta.preview, orientation, proxyEdge),
-  ]);
+  // One decode, three outputs, in that order.
+  //
+  // The previous version ran three decodes of the same preview in parallel.
+  // With synthetic 1616x1080 fixtures that was invisible; with a real Sony ARW,
+  // whose MakerNote carries a full 6000x4000 preview, it meant three ~96 MB
+  // bitmaps at once per photo and four photos in flight — enough for Chrome to
+  // kill the tab on a mid-range Android. Decoding once, downscaled by the
+  // decoder itself, keeps the peak near 7 MB.
+  const bitmap = await decodePreviewBitmap(meta.preview, proxyEdge, {
+    width: meta.previewWidth,
+    height: meta.previewHeight,
+  });
+
+  let analysisImage: ImageData;
+  let thumbnail: Blob;
+  let proxy: Blob;
+  let proxyWidth: number;
+  let proxyHeight: number;
+
+  try {
+    const proxyRender = renderOriented(bitmap, orientation, proxyEdge);
+    proxy = await canvasToJpeg(proxyRender.canvas, 0.86);
+    proxyWidth = proxyRender.width;
+    proxyHeight = proxyRender.height;
+
+    const thumbRender = renderOriented(bitmap, orientation, thumbnailEdge);
+    thumbnail = await canvasToJpeg(thumbRender.canvas, 0.72);
+
+    const analysisRender = renderOriented(bitmap, orientation, analysisEdge);
+    analysisImage = readCanvasPixels(
+      analysisRender.canvas,
+      analysisRender.width,
+      analysisRender.height,
+    );
+  } finally {
+    // Released as soon as the pixels are out, so the next photo in the queue
+    // does not have to wait for the garbage collector.
+    bitmap.close();
+  }
 
   // Goes through the provider registry rather than calling the local analyser
   // directly, so a hosted provider can be added later without touching this.
   const analysis = await runAnalysis({
-    image: analysisProxy.data,
+    image: analysisImage,
     exif: meta.exif,
     format: meta.format,
     fileName: input.fileName,
   });
 
   return {
+    ok: true,
     format: meta.format,
     exif: meta.exif,
     analysis,
     thumbnail,
-    proxy: proxy.blob,
-    proxyWidth: proxy.width,
-    proxyHeight: proxy.height,
+    proxy,
+    proxyWidth,
+    proxyHeight,
     previewSource: meta.previewSource,
     warning: meta.warning,
   };

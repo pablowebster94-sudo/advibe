@@ -85,6 +85,7 @@ try {
     "escaneo.tif",
     "capa.tif",
     "DSC08481.ARW",
+    "DSC09600.dng",
   ].map((name) => join(fixtures, name));
 
   const started = Date.now();
@@ -97,7 +98,7 @@ try {
   const photos = await readPhotos();
   const byName = Object.fromEntries(photos.map((p) => [p.fileName, p]));
 
-  check("Se importaron los 6 archivos", photos.length === 6, `n=${photos.length} en ${elapsed}s`);
+  check("Se importaron los 7 archivos", photos.length === 7, `n=${photos.length} en ${elapsed}s`);
   const errored = photos.filter((p) => p.status === "error");
   check(
     "Ningún formato falló",
@@ -112,6 +113,7 @@ try {
     ["escaneo.tif", "tiff"],
     ["capa.tif", "tiff"],
     ["DSC08481.ARW", "arw"],
+    ["DSC09600.dng", "dng"],
   ]) {
     check(
       `${name} se detecta como ${format} y se analiza`,
@@ -144,7 +146,7 @@ try {
     JSON.stringify({ exposure: noExif?.auto?.exposure, contrast: noExif?.auto?.contrast }),
   );
 
-  // The metadata panel must show dashes, not blanks or invented values.
+  // The metadata panel must say "No disponible", not blanks or invented values.
   await page.goto(projectUrl, { waitUntil: "networkidle" });
   await page.waitForSelector("img[alt='sin-exif.png']", { timeout: 30000 });
   await page.click("img[alt='sin-exif.png']");
@@ -155,11 +157,11 @@ try {
     const block = text.slice(text.indexOf("Metadatos del archivo"));
     return {
       hasPanel: text.includes("Metadatos del archivo"),
-      dashCount: (block.match(/—/g) ?? []).length,
+      dashCount: (block.match(/No disponible/g) ?? []).length,
     };
   });
   check(
-    "El panel de metadatos muestra «—» en todo lo que el PNG no trae",
+    "El panel de metadatos dice «No disponible» en todo lo que el PNG no trae",
     dashes.hasPanel && dashes.dashCount >= 9,
     JSON.stringify(dashes),
   );
@@ -289,8 +291,8 @@ try {
   const reloaded = await readPhotos();
   const reloadedSource = reloaded.find((p) => p.fileName === "DSC08481.ARW");
   check(
-    "Tras recargar, siguen las 6 fotografías con sus análisis",
-    reloaded.length === 6 && reloaded.every((p) => p.hasAnalysis),
+    "Tras recargar, siguen las 7 fotografías con sus análisis",
+    reloaded.length === 7 && reloaded.every((p) => p.hasAnalysis),
     `n=${reloaded.length}`,
   );
   check(

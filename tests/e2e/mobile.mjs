@@ -86,6 +86,10 @@ const overflow = () =>
  * action -- tapping it only focuses the input -- so requiring 44 px there would
  * inflate every row of the develop panel for no usability gain. Range inputs
  * are checked, since dragging them is the primary interaction.
+ *
+ * A checkbox or radio wrapped in a label is measured by that label instead: a
+ * tap anywhere on it toggles the control, so the label *is* the touch target
+ * and the 16 px box inside it is only its marker.
  */
 const smallTargets = () =>
   page.evaluate(() => {
@@ -94,6 +98,10 @@ const smallTargets = () =>
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) continue;
       if (getComputedStyle(el).display === "none") continue;
+      if (el.tagName === "INPUT" && (el.type === "checkbox" || el.type === "radio")) {
+        const wrapper = el.closest("label");
+        if (wrapper && wrapper.getBoundingClientRect().height >= 40) continue;
+      }
       if (rect.height < 40) {
         small.push(
           `${el.tagName.toLowerCase()}("${(el.textContent ?? "").trim().slice(0, 18)}") ${Math.round(rect.height)}px`,
@@ -226,6 +234,8 @@ try {
     flow.scrollWidth <= flow.clientWidth + 1,
     `scroll=${flow.scrollWidth} ${flow.offenders.join(" | ")}`,
   );
+  const exportSmall = await smallTargets();
+  check("Exportar sin objetivos táctiles pequeños", exportSmall.length === 0, exportSmall.join(" | "));
 
   const [download] = await Promise.all([
     page.waitForEvent("download", { timeout: 20000 }),

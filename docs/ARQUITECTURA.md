@@ -21,6 +21,25 @@ Así que la aplicación:
 
 El archivo original se lee una vez y nunca se modifica, ni se copia, ni se sube.
 
+### El presupuesto de memoria
+
+La previsualización embebida de una ZV-E10 es de 6000×4000: comprimida ocupa
+poco, pero **descomprimida son ~96 MB**. Ahí es donde se gasta la memoria de la
+aplicación, no en los 25 MB del archivo. Por eso:
+
+- Se decodifica **una vez por fotografía**, no una vez por salida. De ese único
+  bitmap salen el proxy, la miniatura y el buffer de análisis.
+- Se le pide al decodificador el tamaño final (`resizeWidth`/`resizeHeight` en
+  `createImageBitmap`), así que nunca llega a existir el bitmap de 96 MB: el
+  pico queda en ~7 MB.
+- El bitmap se cierra (`close()`) en cuanto salen los píxeles, sin esperar al
+  recolector.
+- La cola limita cuántas fotografías se procesan a la vez, de modo que el pico
+  es el de unas pocas y no el del lote entero.
+
+Medido en `tests/e2e/memoria.mjs`: importar tres `.ARW` (uno de 25 MB con
+previsualización de 24 MP) mueve el montón de JS de 7 MB a 8 MB.
+
 ```
   DSC08487.ARW  (25 MB, en el dispositivo, intacto)
        │
@@ -147,3 +166,10 @@ Dicho sin rodeos, porque condiciona qué esperar del producto:
   reducido; simular ahí la reducción de ruido enseñaría algo que el RAW no va a
   hacer. El valor sí viaja en el XMP y Lightroom lo aplica sobre el sensor.
 - **Detección de rostros de grado ML.** Ver `docs/IA-Y-COSTOS.md`.
+- **Los píxeles del sensor de un `.ARW`.** Sony los guarda en una compresión
+  propia (TIFF 7) que ningún navegador decodifica. Mientras el archivo lleve su
+  previsualización embebida —lo normal en una ZV-E10— eso no se nota. Cuando no
+  la lleva, la fotografía **no se descarta**: pasa al estado `unreadable`,
+  conserva y muestra todo su EXIF, dice qué no se pudo obtener y por qué, y
+  queda fuera de la exportación diciéndolo. Sin píxeles no hay análisis,
+  previsualización ni JPG, y la aplicación lo dice en lugar de rellenarlo.

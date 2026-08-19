@@ -5,7 +5,10 @@ import { bufferSource } from "../lib/photo/raw/bytes";
 import { parseTiff, TIFF_TAGS, findEntry, readString } from "../lib/photo/raw/tiff";
 import { extractExif, parseExifDate, estimateAsShotKelvin } from "../lib/photo/raw/exif";
 import { extractLargestPreview, readJpegSize } from "../lib/photo/raw/preview";
-import { makeArw, makeJpeg } from "./fixtures";
+import { parseTiff as parseTiffFile } from "../lib/photo/raw/tiff";
+import { undecodableReasons } from "../lib/photo/raw/tiffImage";
+import { readSourceMeta } from "../lib/photo/raw/decode";
+import { makeArw, makeJpeg, makeUnreadableArw } from "./fixtures";
 
 test("readJpegSize lee dimensiones desde el marcador SOF0", () => {
   const jpeg = makeJpeg(1616, 1080);
@@ -83,4 +86,50 @@ test("extractLargestPreview descarta previsualizaciones diminutas", async () => 
   const { bytes } = makeArw({ previewWidth: 120, previewHeight: 80 });
   const tiff = await parseTiff(bufferSource(bytes));
   assert.equal(await extractLargestPreview(tiff), null);
+});
+
+// ---------------------------------------------------------------------------
+// Partially readable files
+// ---------------------------------------------------------------------------
+
+test("un ARW sin preview ni compresión soportada explica el motivo exacto", async () => {
+  const tiff = await parseTiffFile(bufferSource(makeUnreadableArw()));
+  const reasons = await undecodableReasons(tiff);
+
+  assert.ok(reasons.length > 0, "debería dar al menos un motivo");
+  assert.ok(
+    reasons.some((reason) => reason.includes("7")),
+    `el motivo debería nombrar la compresión 7, no uno genérico: ${reasons.join("; ")}`,
+  );
+});
+
+test("readSourceMeta conserva el EXIF aunque no pueda decodificar los píxeles", async () => {
+  const bytes = makeUnreadableArw();
+  const meta = await readSourceMeta(
+    new Blob([bytes as unknown as BlobPart]),
+    "DSC09000.ARW",
+  );
+
+  assert.equal(meta.format, "arw");
+  assert.equal(meta.preview, null, "no debería inventar una previsualización");
+
+  // Everything the file *did* record survives: this is the whole point of the
+  // partial state -- the photograph stays usable as metadata.
+  assert.equal(meta.exif.make, "SONY");
+  assert.equal(meta.exif.model, "ZV-E10");
+  assert.equal(meta.exif.iso, 800);
+  assert.equal(meta.exif.focalLength, 50);
+  assert.equal(meta.exif.lensModel, "E 50mm F1.8 OSS");
+  assert.equal(meta.exif.width, 6000);
+  assert.equal(meta.exif.height, 4000);
+
+  assert.ok(meta.warning, "debería explicar por qué no hay imagen");
+  assert.ok(
+    meta.warning!.includes("Motivo:"),
+    `el aviso debería nombrar el motivo concreto: ${meta.warning}`,
+  );
+  assert.ok(
+    meta.warning!.includes("no se ha modificado"),
+    "el aviso debería confirmar que el original está intacto",
+  );
 });

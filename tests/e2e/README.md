@@ -35,7 +35,11 @@ node tests/e2e/batch.mjs
 # 4. Móvil: mismo flujo en viewport de teléfono con entrada táctil.
 node tests/e2e/mobile.mjs
 
-# 5. Auditoría: vuelca el análisis completo y las razones de cada decisión.
+# 5. RAW reales: un ARW de 25 MB con preview de 24 MP y un ARW cuyos píxeles
+#    no se pueden decodificar (se conserva su EXIF y se explica el motivo).
+node tests/e2e/memoria.mjs
+
+# 6. Auditoría: vuelca el análisis completo y las razones de cada decisión.
 node tests/e2e/probe.mjs
 ```
 

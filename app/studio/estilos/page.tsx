@@ -103,6 +103,14 @@ export default function StylesPage() {
             proxyEdge: 800,
           });
 
+          // A file whose pixels the browser cannot decode still has EXIF, but a
+          // style sample needs the "before" measurements, so this pair is
+          // skipped with the reason stated instead of silently dropped.
+          if (!analyzed.ok) {
+            messages.push(`${pair.baseName}: ${analyzed.reason}`);
+            continue;
+          }
+
           samples.push({
             id: createId("smp"),
             fileName: pair.image!.name,

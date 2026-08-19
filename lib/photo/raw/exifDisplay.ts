@@ -1,14 +1,15 @@
 /**
  * Formatting for the metadata panel.
  *
- * One rule throughout: a value that the file did not record is shown as "—".
- * Nothing here substitutes a plausible default, because a wrong ISO or a
- * guessed aperture is worse than an honest blank when you are deciding how to
- * treat a photograph.
+ * One rule throughout: a value the file did not record is shown as
+ * "No disponible", spelled out rather than left as a dash, so it reads as a
+ * statement about the file instead of an empty cell. Nothing here substitutes a
+ * plausible default: a wrong ISO or a guessed aperture is worse than an honest
+ * blank when you are deciding how to treat a photograph.
  */
 import type { ExifData } from "../types";
 
-export const MISSING = "—";
+export const MISSING = "No disponible";
 
 export function formatCamera(exif: ExifData): string {
   const parts = [exif.make, exif.model].filter(Boolean);
