@@ -1,0 +1,376 @@
+/**
+ * File ingestion: format detection, metadata + preview extraction, and proxy
+ * generation. Browser-only (uses `createImageBitmap` / `OffscreenCanvas`), so
+ * it runs in the analysis worker and in the develop view, never on the server.
+ */
+import type { ExifData, SourceFormat } from "../types";
+import { blobSource } from "./bytes";
+import { extractExif } from "./exif";
+import { extractLargestPreview, readJpegSize, readPngSize, scanForJpeg } from "./preview";
+import { findJpegExifStart, parseTiff, type TiffFile } from "./tiff";
+import { decodeTiffImage, findLargestDecodableIfd, undecodableReasons } from "./tiffImage";
+
+export interface SourceMeta {
+  format: SourceFormat;
+  exif: ExifData;
+  /** JPEG bytes we can hand to the decoder, or null when we could not find any. */
+  preview: Blob | null;
+  previewWidth?: number;
+  previewHeight?: number;
+  /** Where the preview came from, surfaced in the UI diagnostics panel. */
+  previewSource?: string;
+  /** Set when the file is readable but we could not produce a preview. */
+  warning?: string;
+}
+
+const EXTENSION_FORMATS: Record<string, SourceFormat> = {
+  arw: "arw",
+  dng: "dng",
+  tif: "tiff",
+  tiff: "tiff",
+  jpg: "jpeg",
+  jpeg: "jpeg",
+  png: "png",
+};
+
+export function extensionOf(fileName: string): string {
+  const dot = fileName.lastIndexOf(".");
+  return dot === -1 ? "" : fileName.slice(dot + 1).toLowerCase();
+}
+
+export function baseNameOf(fileName: string): string {
+  const dot = fileName.lastIndexOf(".");
+  return dot <= 0 ? fileName : fileName.slice(0, dot);
+}
+
+/** Detects the format from magic bytes, falling back to the extension. */
+export async function detectFormat(file: Blob, fileName: string): Promise<SourceFormat> {
+  const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  const byExtension = EXTENSION_FORMATS[extensionOf(fileName)] ?? "unknown";
+
+  if (head.length >= 4 && head[0] === 0xff && head[1] === 0xd8) return "jpeg";
+  if (readPngSize(head.length >= 24 ? head : new Uint8Array(24))) return "png";
+  if (head.length >= 8 && head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e) return "png";
+
+  const isTiff =
+    head.length >= 4 &&
+    ((head[0] === 0x49 && head[1] === 0x49 && head[2] === 0x2a && head[3] === 0x00) ||
+      (head[0] === 0x4d && head[1] === 0x4d && head[2] === 0x00 && head[3] === 0x2a));
+  if (isTiff) {
+    // ARW and DNG are both TIFF containers; only the extension tells them apart
+    // cheaply, and getting it wrong only changes the label, not the processing.
+    if (byExtension === "arw" || byExtension === "dng" || byExtension === "tiff") {
+      return byExtension;
+    }
+    return "tiff";
+  }
+  return byExtension;
+}
+
+/**
+ * Reads metadata and the best embedded preview.
+ *
+ * The original blob is only ever read, never written; we slice at most a few
+ * megabytes out of it regardless of how large the RAW is.
+ */
+export async function readSourceMeta(file: Blob, fileName: string): Promise<SourceMeta> {
+  const format = await detectFormat(file, fileName);
+  const source = blobSource(file);
+
+  if (format === "jpeg") {
+    let exif: ExifData = {};
+    try {
+      const exifStart = await findJpegExifStart(source);
+      if (exifStart !== null) {
+        exif = await extractExif(await parseTiff(source, exifStart));
+      }
+    } catch {
+      // A JPEG without a readable EXIF block is still perfectly usable.
+    }
+    // Dimensions come from the SOF marker rather than a decode, so the caller
+    // can downscale during decode instead of materialising a 24 MP bitmap.
+    const size = readJpegSize(await source.read(0, Math.min(source.size, 128 * 1024)));
+    return {
+      format,
+      exif,
+      preview: file,
+      previewWidth: size?.width ?? exif.width,
+      previewHeight: size?.height ?? exif.height,
+      previewSource: "original",
+    };
+  }
+
+  if (format === "png") {
+    const size = readPngSize(await source.read(0, 32));
+    return {
+      format,
+      exif: {},
+      preview: file,
+      previewWidth: size?.width,
+      previewHeight: size?.height,
+      previewSource: "original",
+    };
+  }
+
+  if (format === "arw" || format === "dng" || format === "tiff") {
+    let exif: ExifData = {};
+    let previewInfo: Awaited<ReturnType<typeof extractLargestPreview>> = null;
+    let tiffFile: TiffFile | null = null;
+    let decodeWarning: string | undefined;
+    try {
+      tiffFile = await parseTiff(source, 0);
+      exif = await extractExif(tiffFile);
+      previewInfo = await extractLargestPreview(tiffFile);
+    } catch (error) {
+      throw new Error(
+        `No se pudo leer la estructura del archivo: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+    if (!previewInfo) {
+      // Decode the image data itself before falling back to a byte scan. Order
+      // matters: compressed pixel data contains FF D8 byte pairs by chance, so
+      // scanning an LZW strip can "find" a JPEG that is not there. Structure
+      // first, guessing only as a last resort.
+      const decoded = await decodeTiffToBlob(tiffFile);
+      if (decoded && "error" in decoded) decodeWarning = decoded.error;
+      if (decoded && !("error" in decoded)) {
+        return {
+          format,
+          exif,
+          preview: decoded.blob,
+          previewWidth: decoded.width,
+          previewHeight: decoded.height,
+          previewSource: "tiff:decoded",
+        };
+      }
+      previewInfo = await scanForJpeg(source);
+    }
+    if (!previewInfo) {
+      // Say exactly what stopped us. `undecodableReasons` reads the tags that
+      // failed the support check, so the message names the real limitation
+      // instead of a generic "no se pudo".
+      const reasons = decodeWarning ? [decodeWarning] : await undecodableReasons(tiffFile);
+      const detail = reasons.length > 0 ? ` Motivo: ${reasons.join("; ")}.` : "";
+      return {
+        format,
+        exif,
+        preview: null,
+        warning:
+          "El archivo no contiene una previsualización utilizable y su imagen interna no se " +
+          `puede decodificar en el navegador.${detail} Los metadatos sí se leyeron y el archivo ` +
+          "original no se ha modificado (ver docs/ARQUITECTURA.md).",
+      };
+    }
+    // Re-slice from the file so we hand over a Blob backed by the original,
+    // rather than keeping the bytes alive in memory.
+    const preview = file.slice(previewInfo.offset, previewInfo.offset + previewInfo.length);
+    return {
+      format,
+      exif,
+      preview,
+      previewWidth: previewInfo.width,
+      previewHeight: previewInfo.height,
+      previewSource: previewInfo.source,
+    };
+  }
+
+  throw new Error(`Formato no soportado: ${fileName}`);
+}
+
+/** Largest pixel count we will decode in the browser without a backend. */
+const MAX_DECODE_PIXELS = 40_000_000;
+
+/** Either the decoded image, or the reason we could not produce one. */
+type TiffDecodeResult = { blob: Blob; width: number; height: number } | { error: string };
+
+/**
+ * Decodes a TIFF's own image data to a JPEG blob, so the rest of the pipeline
+ * can treat it exactly like any other preview.
+ *
+ * Returns the reason on failure rather than swallowing it: "demasiado grande
+ * para decodificar" and "compresión no soportada" are different problems, and
+ * the photographer can act on the difference.
+ */
+async function decodeTiffToBlob(file: TiffFile | null): Promise<TiffDecodeResult | null> {
+  if (!file) return null;
+  try {
+    const index = await findLargestDecodableIfd(file);
+    if (index === -1) return null;
+
+    const image = await decodeTiffImage(file, index);
+    if (image.width * image.height > MAX_DECODE_PIXELS) {
+      throw new Error(
+        `Imagen de ${image.width}x${image.height}: demasiado grande para decodificar en el navegador`,
+      );
+    }
+
+    const canvas = createCanvas(image.width, image.height);
+    const context = canvas.getContext("2d") as
+      | OffscreenCanvasRenderingContext2D
+      | CanvasRenderingContext2D
+      | null;
+    if (!context) return { error: "El navegador no permitió crear un lienzo 2D" };
+    context.putImageData(new ImageData(image.data, image.width, image.height), 0, 0);
+
+    const blob =
+      canvas instanceof OffscreenCanvas
+        ? await canvas.convertToBlob({ type: "image/jpeg", quality: 0.92 })
+        : await new Promise<Blob>((resolve, reject) => {
+            (canvas as HTMLCanvasElement).toBlob(
+              (result) => (result ? resolve(result) : reject(new Error("toBlob devolvió null"))),
+              "image/jpeg",
+              0.92,
+            );
+          });
+    return { blob, width: image.width, height: image.height };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Proxy generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Canvas transform for an EXIF orientation value.
+ * Returns the drawing transform plus whether width/height must be swapped.
+ */
+export function orientationTransform(orientation = 1): {
+  swap: boolean;
+  matrix: [number, number, number, number, number, number];
+} {
+  switch (orientation) {
+    case 2:
+      return { swap: false, matrix: [-1, 0, 0, 1, 1, 0] };
+    case 3:
+      return { swap: false, matrix: [-1, 0, 0, -1, 1, 1] };
+    case 4:
+      return { swap: false, matrix: [1, 0, 0, -1, 0, 1] };
+    case 5:
+      return { swap: true, matrix: [0, 1, 1, 0, 0, 0] };
+    case 6:
+      return { swap: true, matrix: [0, 1, -1, 0, 1, 0] };
+    case 7:
+      return { swap: true, matrix: [0, -1, -1, 0, 1, 1] };
+    case 8:
+      return { swap: true, matrix: [0, -1, 1, 0, 0, 1] };
+    default:
+      return { swap: false, matrix: [1, 0, 0, 1, 0, 0] };
+  }
+}
+
+export interface Proxy {
+  data: ImageData;
+  width: number;
+  height: number;
+}
+
+function createCanvas(width: number, height: number): OffscreenCanvas | HTMLCanvasElement {
+  if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(width, height);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+
+/**
+ * Draws an already-decoded bitmap into a canvas at `maxEdge`, applying the EXIF
+ * orientation.
+ *
+ * Takes a bitmap rather than a Blob on purpose. Decoding is by far the most
+ * expensive thing this app does to memory — a Sony ARW embeds a
+ * full-resolution 6000x4000 preview, which is ~96 MB once decoded — so the
+ * caller decodes once and derives everything from that single bitmap.
+ */
+export function renderOriented(
+  bitmap: ImageBitmap,
+  orientation: number,
+  maxEdge: number,
+): { canvas: OffscreenCanvas | HTMLCanvasElement; width: number; height: number } {
+  const { swap, matrix } = orientationTransform(orientation);
+  const orientedW = swap ? bitmap.height : bitmap.width;
+  const orientedH = swap ? bitmap.width : bitmap.height;
+  const scale = Math.min(1, maxEdge / Math.max(orientedW, orientedH));
+  const width = Math.max(1, Math.round(orientedW * scale));
+  const height = Math.max(1, Math.round(orientedH * scale));
+
+  const canvas = createCanvas(width, height);
+  const context = canvas.getContext("2d", { willReadFrequently: true }) as
+    | OffscreenCanvasRenderingContext2D
+    | CanvasRenderingContext2D
+    | null;
+  if (!context) throw new Error("No se pudo crear el contexto 2D");
+
+  const [a, b, c, d, e, f] = matrix;
+  context.setTransform(a, b, c, d, e * width, f * height);
+  context.drawImage(bitmap, 0, 0, swap ? height : width, swap ? width : height);
+  context.setTransform(1, 0, 0, 1, 0, 0);
+  return { canvas, width, height };
+}
+
+export function readCanvasPixels(
+  canvas: OffscreenCanvas | HTMLCanvasElement,
+  width: number,
+  height: number,
+): ImageData {
+  const context = canvas.getContext("2d") as
+    | OffscreenCanvasRenderingContext2D
+    | CanvasRenderingContext2D
+    | null;
+  if (!context) throw new Error("No se pudo leer el contexto 2D");
+  return context.getImageData(0, 0, width, height);
+}
+
+export async function canvasToJpeg(
+  canvas: OffscreenCanvas | HTMLCanvasElement,
+  quality: number,
+): Promise<Blob> {
+  if (typeof OffscreenCanvas !== "undefined" && canvas instanceof OffscreenCanvas) {
+    return canvas.convertToBlob({ type: "image/jpeg", quality });
+  }
+  return new Promise<Blob>((resolve, reject) => {
+    (canvas as HTMLCanvasElement).toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("toBlob devolvió null"))),
+      "image/jpeg",
+      quality,
+    );
+  });
+}
+
+/**
+ * Decodes a preview, asking the browser to downscale during decode when the
+ * source is much larger than we need.
+ *
+ * This is the single most important memory decision in the app: decoding a
+ * 24 MP embedded preview at full size costs ~96 MB, and with four workers that
+ * is enough to have Chrome kill the tab on a mid-range phone. Passing
+ * `resizeWidth`/`resizeHeight` lets the decoder skip straight to the size we
+ * actually store, so peak usage stays near 7 MB per photo instead.
+ */
+export async function decodePreviewBitmap(
+  preview: Blob,
+  maxEdge: number,
+  known?: { width?: number; height?: number },
+): Promise<ImageBitmap> {
+  const sourceW = known?.width ?? 0;
+  const sourceH = known?.height ?? 0;
+  const longest = Math.max(sourceW, sourceH);
+
+  if (longest > maxEdge * 1.05) {
+    const scale = maxEdge / longest;
+    try {
+      return await createImageBitmap(preview, {
+        resizeWidth: Math.max(1, Math.round(sourceW * scale)),
+        resizeHeight: Math.max(1, Math.round(sourceH * scale)),
+        resizeQuality: "high",
+      });
+    } catch {
+      // Some engines reject resize options for certain sources; fall through to
+      // a plain decode rather than failing the import.
+    }
+  }
+  return createImageBitmap(preview);
+}
