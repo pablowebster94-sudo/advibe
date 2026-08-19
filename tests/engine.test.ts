@@ -230,7 +230,7 @@ test("una cobertura de piel dudosa no mueve el matiz de toda la foto", () => {
     meanLuma: 0.55,
     meanHue: 45, // amarillo/verde: antes empujaba el matiz hacia magenta
     meanSaturation: 0.6,
-    cast: "none" as const,
+    cast: "yellow" as const,
     detector: "skin-region-heuristic" as const,
   };
   const { adjustments, rationale } = applySkinGuard(base, skin, true);

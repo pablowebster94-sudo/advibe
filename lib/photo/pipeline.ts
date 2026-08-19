@@ -23,6 +23,7 @@ import { TaskQueue, defaultConcurrency } from "./jobs/queue";
 import type { JobProgress } from "./types";
 import { baseNameOf, detectFormat } from "./raw/decode";
 import * as db from "./storage/db";
+import { rememberOriginal } from "./storage/originals";
 
 export const DEFAULT_SETTINGS: ProjectSettings = {
   mode: "wedding",
@@ -138,6 +139,9 @@ export function importFiles(
       weight: file.size,
       run: async (signal) => {
         photo.format = await detectFormat(file, file.name);
+        // Keep a handle to the original so the export can go back to it for a
+        // full-resolution render. Holding a File costs nothing until read.
+        rememberOriginal(photo.id, file.name, file);
         photo.status = "analyzing";
         await db.putPhoto(photo);
         callbacks.onPhotoAdded?.({ ...photo });

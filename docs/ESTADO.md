@@ -80,7 +80,14 @@ no a 24 MP, y que el ilegible conserva su EXIF completo, se marca «RAW no
 legible», no inventa análisis y explica el motivo exacto («Compresión TIFF 7: no
 soportada»).
 
-`npm test` — 115 pruebas unitarias sobre la lógica pura (parser TIFF, EXIF,
+`tests/e2e/fullres.mjs` — 10 comprobaciones, todas pasan, por los dos backends.
+Es la suite de la exportación a resolución completa: un `.ARW` cuyo proxy
+guardado es de 1600×1067 exporta un JPEG de **6000×4000** (calidad 0.95), con
+los ajustes aplicados sobre esos píxeles y no sobre la previsualización
+reducida. El camino de CPU revela los 24 MP por bandas y coincide en tono con la
+GPU (111,62 vs 111,65 sobre 255).
+
+`npm test` — 118 pruebas unitarias sobre la lógica pura (parser TIFF, EXIF,
 estadística, exposición, piel, escena, hashes, motor, estilo, XMP, curva, ZIP,
 cola, archivos parcialmente legibles).
 
@@ -157,6 +164,12 @@ evitar.
 14. **El motivo del fallo se tragaba en un `catch` vacío.** `undecodableReasons`
     lee las etiquetas que fallaron la comprobación de soporte, así que el aviso
     nombra la limitación real en lugar de un «no se pudo».
+16. **El JPG exportado salía limitado por el proxy** (1600 px) en lugar de a la
+    resolución del original. La exportación vuelve ahora al archivo original y
+    revela su previsualización embebida a tamaño nativo; a 24 MP lo hace por
+    bandas para no reventar la memoria de un Android de gama media, y verifica
+    automáticamente que las dimensiones coincidan antes de entregar el archivo.
+
 15. **Botón `.xmp` de descarga individual a 32 px** en la pestaña de exportar,
     por debajo del mínimo táctil. La comprobación de móvil no llegaba a esa
     pestaña; ahora sí.

@@ -11,6 +11,7 @@ import {
   slugify,
 } from "@/lib/photo/export";
 import { effectiveAdjustments } from "@/lib/photo/pipeline";
+import { hasOriginal, reattachOriginals } from "@/lib/photo/storage/originals";
 import { formatBytes } from "@/lib/photo/jobs/queue";
 import { Button, Notice, Panel, ProgressBar } from "./ui";
 
@@ -28,8 +29,9 @@ export function ExportPanel({
   const [scope, setScope] = useState<Scope>("all");
   const [wantXmp, setWantXmp] = useState(true);
   const [wantJpeg, setWantJpeg] = useState(false);
-  const [preset, setPreset] = useState<keyof typeof JPEG_PRESETS>("web");
-  const [quality, setQuality] = useState(JPEG_PRESETS.web.quality);
+  const [preset, setPreset] = useState<keyof typeof JPEG_PRESETS>("full");
+  const [quality, setQuality] = useState(JPEG_PRESETS.full.quality);
+  const [attachNote, setAttachNote] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState({ completed: 0, total: 0, currentName: "" });
   const [result, setResult] = useState<string | null>(null);
@@ -40,6 +42,10 @@ export function ExportPanel({
   // so it is left out -- and said so, rather than silently missing from the ZIP.
   const editable = photos.filter((photo) => photo.auto);
   const skipped = photos.length - editable.length;
+  // File handles do not survive a reload, and without the original there are no
+  // full-resolution pixels to export. Counted so the panel can offer to
+  // re-attach them instead of quietly shipping smaller JPEGs.
+  const missingOriginals = editable.filter((photo) => !hasOriginal(photo.id, photo.fileName)).length;
   const target =
     scope === "picked"
       ? editable.filter((photo) => photo.picked)
@@ -64,8 +70,21 @@ export function ExportPanel({
       const output = await exportZip(project, target, selection, setProgress);
       downloadBlob(output.blob, `${slugify(project.name)}-advibe.zip`);
       setFailures(output.failures);
+      // State the dimensions actually produced, so "resolución completa" is a
+      // checked fact in front of the photographer, not a promise.
+      const sizes = output.exported;
+      const allFull =
+        sizes.length > 0 &&
+        sizes.every((item) => item.width === item.sourceWidth && item.height === item.sourceHeight);
+      const largest = sizes.reduce(
+        (best, item) => (item.width * item.height > best.width * best.height ? item : best),
+        sizes[0] ?? { width: 0, height: 0 },
+      );
       setResult(
-        `${output.fileCount} archivo(s) · ${formatBytes(output.blob.size)}. La descarga debería haber comenzado.`,
+        `${output.fileCount} archivo(s) · ${formatBytes(output.blob.size)}. La descarga debería haber comenzado.` +
+          (sizes.length > 0
+            ? ` JPG a ${largest.width}×${largest.height}${allFull ? ", igual que el original" : ""}.`
+            : ""),
       );
     } catch (error) {
       setResult(error instanceof Error ? error.message : String(error));
@@ -147,8 +166,8 @@ export function ExportPanel({
               <span>
                 <strong>Archivos .jpg</strong> revelados aquí
                 <span className="block text-xs text-neutral-500">
-                  Generados desde la previsualización embebida (máx. {project.settings.proxyEdge} px).
-                  Para entrega rápida, no para impresión.
+                  Con «Resolución completa» salen con las mismas dimensiones que el original, con
+                  todos los ajustes aplicados sobre esos píxeles.
                 </span>
               </span>
             </label>
@@ -192,6 +211,34 @@ export function ExportPanel({
                   aria-label="Calidad JPG"
                 />
               </div>
+
+              {preset === "full" && missingOriginals > 0 && (
+                <div className="rounded-lg border border-amber-900/60 bg-amber-950/20 p-3">
+                  <p className="text-xs leading-relaxed text-amber-200">
+                    {missingOriginals} fotografía(s) no tienen su archivo original disponible en
+                    esta sesión (se pierde al recargar la página). Sin él solo se puede exportar
+                    desde la previsualización almacenada, a menor resolución.
+                  </p>
+                  <label className="mt-2 inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-neutral-700 px-3 text-sm text-neutral-200">
+                    Volver a adjuntar originales
+                    <input
+                      type="file"
+                      multiple
+                      className="sr-only"
+                      onChange={(event) => {
+                        const files = [...(event.target.files ?? [])];
+                        if (files.length === 0) return;
+                        const matched = reattachOriginals(files, editable);
+                        setAttachNote(
+                          `${matched} de ${editable.length} fotografía(s) con su original disponible.`,
+                        );
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {attachNote && <p className="mt-2 text-xs text-neutral-300">{attachNote}</p>}
+                </div>
+              )}
             </div>
           )}
 
