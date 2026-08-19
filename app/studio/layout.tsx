@@ -14,19 +14,22 @@ export default function StudioLayout({ children }: { children: React.ReactNode }
     <div className="advibe-studio">
       <header className="sticky top-0 z-30 border-b border-neutral-800 bg-[#0b0b0d]/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-3 py-2 sm:px-5">
-          <Link href="/studio" className="text-sm font-semibold tracking-tight text-neutral-100">
+          <Link
+            href="/studio"
+            className="flex min-h-11 items-center text-sm font-semibold tracking-tight text-neutral-100"
+          >
             AdVibe <span className="text-[#78d94f]">AI Photo Editor</span>
           </Link>
           <nav className="ml-auto flex items-center gap-1 text-sm">
             <Link
               href="/studio"
-              className="rounded-lg px-3 py-2 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+              className="flex min-h-11 items-center rounded-lg px-3 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
             >
               Proyectos
             </Link>
             <Link
               href="/studio/estilos"
-              className="rounded-lg px-3 py-2 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+              className="flex min-h-11 items-center rounded-lg px-3 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
             >
               Mi estilo
             </Link>

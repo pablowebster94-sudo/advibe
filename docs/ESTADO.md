@@ -42,6 +42,17 @@ existencia de un botón.
 | Persistencia | Cerrar y reabrir el proyecto conserva las 40 |
 | Exportación en lote | 40 sidecars en el ZIP, 0,1 s |
 
+`tests/e2e/mobile.mjs` — 13 comprobaciones en viewport de teléfono (360×800,
+dpr 3, entrada táctil, user-agent de Galaxy A16). Todas pasan: sin scroll
+horizontal en ninguna pantalla, rejilla de 2 columnas, canvas de revelado con
+altura usable, antes/después funcional, ajuste de un control con el dedo,
+descarga del `.xmp` desde el móvil y ningún objetivo táctil por debajo de 44 px.
+
+Esa prueba destapó tres defectos de usabilidad táctil que la verificación de
+escritorio no podía ver: los sliders medían 20 px de alto (en un editor de fotos
+son *la* interacción principal), los enlaces de navegación 36 px y los botones
+de estrategia 27 px. Corregidos.
+
 `npm test` — 92 pruebas unitarias sobre la lógica pura (parser TIFF, EXIF,
 estadística, exposición, piel, escena, hashes, motor, estilo, XMP, curva, ZIP,
 cola).

@@ -120,6 +120,24 @@ section[aria-label="Cierre AdVibe"] p:first-of-type { display: none; }
   background: transparent;
   cursor: pointer;
 }
+
+/* On a touch screen the slider is the primary tool, so it gets a real target:
+   44px of grabbable height and a larger thumb. The track stays thin — only the
+   hit area grows. */
+@media (pointer: coarse) {
+  .advibe-slider {
+    height: 44px;
+  }
+  .advibe-slider::-webkit-slider-thumb {
+    width: 26px;
+    height: 26px;
+    margin-top: -11.5px;
+  }
+  .advibe-slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+  }
+}
 .advibe-slider::-webkit-slider-runnable-track {
   height: 3px;
   border-radius: 999px;

@@ -32,7 +32,10 @@ node tests/e2e/e2e.mjs
 # 3. Procesamiento por lotes: 40 ARW en 10 ráfagas de 4.
 node tests/e2e/batch.mjs
 
-# 4. Auditoría: vuelca el análisis completo y las razones de cada decisión.
+# 4. Móvil: mismo flujo en viewport de teléfono con entrada táctil.
+node tests/e2e/mobile.mjs
+
+# 5. Auditoría: vuelca el análisis completo y las razones de cada decisión.
 node tests/e2e/probe.mjs
 ```
 

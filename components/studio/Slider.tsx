@@ -43,7 +43,10 @@ export function Slider({
           onClick={() => onChange(range.neutral)}
           disabled={disabled || value === range.neutral}
           title="Volver al valor neutro"
-          className="min-w-14 rounded px-1 text-right text-xs tabular-nums text-neutral-200 transition-colors hover:text-[#a4ef84] disabled:cursor-default disabled:hover:text-neutral-200"
+          // `py-3 -my-3` grows the tap target to ~44px without growing the row:
+          // stacking 25 full-height rows would add a screen of scrolling on a
+          // phone for what is only a convenience action.
+          className="-my-3 min-w-14 rounded px-2 py-3 text-right text-xs tabular-nums text-neutral-200 transition-colors hover:text-[#a4ef84] disabled:cursor-default disabled:hover:text-neutral-200"
         >
           {formatAdjustment(parameter, value)}
         </button>

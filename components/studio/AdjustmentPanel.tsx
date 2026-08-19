@@ -194,7 +194,7 @@ function HslEditor({
             key={option}
             type="button"
             onClick={() => setBand(option)}
-            className={`min-h-9 flex-1 rounded-md px-2 text-[11px] font-medium transition-colors ${
+            className={`min-h-11 flex-1 rounded-md px-2 text-[11px] font-medium transition-colors ${
               band === option
                 ? "bg-neutral-700 text-neutral-100"
                 : "bg-neutral-900 text-neutral-500 hover:text-neutral-300"

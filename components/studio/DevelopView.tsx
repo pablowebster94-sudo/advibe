@@ -262,7 +262,7 @@ export function DevelopView({
                   type="button"
                   onClick={() => onReapply(strategy.id)}
                   title={strategy.intent}
-                  className="rounded border border-neutral-700 px-2 py-1 text-[11px] text-neutral-300 transition-colors hover:border-[#78d94f] hover:text-[#a4ef84]"
+                  className="inline-flex min-h-11 items-center rounded border border-neutral-700 px-3 text-[11px] text-neutral-300 transition-colors hover:border-[#78d94f] hover:text-[#a4ef84]"
                 >
                   {strategy.label}
                 </button>
