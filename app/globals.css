@@ -203,3 +203,49 @@ section[aria-label="Cierre AdVibe"] p:first-of-type { display: none; }
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Licor Store 24 storefront (/licor-store-24)
+   ───────────────────────────────────────────────────────────────────────────*/
+
+/* The storefront owns its whole viewport: opaque black over the agency
+   gradient, and no smooth-scroll hijack between product pages. */
+.licor-root {
+  position: relative;
+  z-index: 0;
+  background: #000000;
+  scroll-behavior: auto;
+  /* Room for the fixed mobile tab bar on devices with a home indicator. */
+  --licor-tabbar: calc(4rem + env(safe-area-inset-bottom));
+}
+
+/* Tap targets should never flash a blue box on iOS. */
+.licor-root a,
+.licor-root button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Keep numeric prices from jittering as quantities change. */
+.licor-root .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.licor-root ::selection {
+  background: rgba(224, 27, 34, 0.35);
+  color: #ffffff;
+}
+
+@keyframes licor-toast {
+  from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.98); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .licor-root *,
+  .licor-root *::before,
+  .licor-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

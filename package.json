@@ -16,7 +16,8 @@
     "test:parity": "node tests/e2e/render-parity.mjs",
     "test:workflow": "node tests/e2e/workflow.mjs",
     "test:memoria": "node tests/e2e/memoria.mjs",
-    "test:fullres": "node tests/e2e/fullres.mjs"
+    "test:fullres": "node tests/e2e/fullres.mjs",
+    "test:licor": "node tests/e2e/licor.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.42.2",
