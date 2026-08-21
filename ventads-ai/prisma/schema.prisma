@@ -1,0 +1,155 @@
+// ventADS.ai data model
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Single-tenant MVP: one implicit demo user is seeded so every record has an
+// owner from day one, without building real auth yet (see AGENTS.md #17/#24).
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  brands    Brand[]
+  products  Product[]
+}
+
+// A saved brand identity (logo, colors, contact info) that can later be
+// attached to any product so its creatives inherit the identity automatically.
+model Brand {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  name          String
+  logoUrl       String?
+  colors        String? // JSON array of hex colors, e.g. ["#0F172A","#F97316"]
+  fontFamily    String?
+  contactPhone  String?
+  contactEmail  String?
+  website       String?
+  defaultCta    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+}
+
+// The product/offer being advertised. `category` is a free-form string
+// (see lib/catalog/categories.ts) so new verticals never require a migration.
+model Product {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  brandId         String?
+  brand           Brand?    @relation(fields: [brandId], references: [id])
+
+  category        String
+  name            String
+  manufacturer    String? // e.g. "Chevrolet" — the product's own make, not the seller Brand
+  model           String?
+  price           Float?
+  currency        String    @default("USD")
+  priceLabel      String? // optional override, e.g. "Desde $51.500" or "Consultar"
+  description     String?
+  features        String? // newline-separated list, see lib/text.ts
+  benefits        String? // newline-separated list
+  offer           String?
+  cta             String?
+  targetAudience  String?
+
+  images          ProductImage[]
+  campaigns       Campaign[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum ImageRole {
+  PRODUCT
+  LOGO
+  REFERENCE
+}
+
+// Uploaded files. `url` always points at the untouched original — nothing in
+// this system ever overwrites it (see AGENTS.md #15).
+model ProductImage {
+  id         String     @id @default(cuid())
+  productId  String
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  role       ImageRole  @default(PRODUCT)
+  url        String
+  width      Int?
+  height     Int?
+  sortOrder  Int        @default(0)
+  createdAt  DateTime   @default(now())
+  creatives  Creative[]
+}
+
+// One generation run: a chosen objective + style for a product. Produces a
+// set of Concepts. Re-running with different objective/style creates a new
+// Campaign so past results are never lost.
+model Campaign {
+  id         String     @id @default(cuid())
+  productId  String
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  objective  String // lib/catalog/objectives.ts
+  style      String // lib/catalog/styles.ts
+  status     String     @default("PENDING") // PENDING | READY | FAILED
+  concepts   Concept[]
+  createdAt  DateTime   @default(now())
+}
+
+// A creative "angle" (venta directa, beneficio, aspiracional, oferta,
+// característica, ...). Acts as the unit of variant comparison described in
+// AGENTS.md #8. Type is a free-form key into lib/catalog/concepts.ts.
+model Concept {
+  id                 String        @id @default(cuid())
+  campaignId         String
+  campaign           Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type               String
+  label              String
+  rationale          String? // why the analysis engine chose this angle
+  highlightedFeature String?
+  status             String        @default("READY") // READY | FAILED
+  copy               CopyVariant?
+  creatives          Creative[]
+  createdAt          DateTime      @default(now())
+}
+
+model CopyVariant {
+  id          String   @id @default(cuid())
+  conceptId   String   @unique
+  concept     Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  headline    String
+  primaryText String
+  description String
+  cta         String
+  shortCopy   String
+  longCopy    String
+  missingInfo String? // JSON array of fields the engine couldn't fill in
+  createdAt   DateTime @default(now())
+}
+
+// A rendered creative for one concept + one advertising format. `format` is
+// a free-form key into lib/catalog/formats.ts so new placements (Stories,
+// Marketplace, banners...) never require a schema change.
+model Creative {
+  id              String        @id @default(cuid())
+  conceptId       String
+  concept         Concept       @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  sourceImageId   String?
+  sourceImage     ProductImage? @relation(fields: [sourceImageId], references: [id])
+  format          String
+  version         Int           @default(1)
+  status          String        @default("READY") // GENERATING | READY | FAILED
+  imageUrl        String?
+  provider        String        @default("local-compositor")
+  error           String?
+  createdAt       DateTime      @default(now())
+}
