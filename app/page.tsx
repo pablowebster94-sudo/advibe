@@ -14,8 +14,7 @@ import GoatReveal from "@/components/GoatReveal";
 import Footer from "@/components/Footer";
 import AIChatbot from "@/components/AIChatbot";
 import StickyDesktopCTA from "@/components/StickyDesktopCTA";
-import EventButton from "@/components/EventButton";
-import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
+import MobileConversionOverlays from "@/components/MobileConversionOverlays";
 
 export default function Home() {
   return (
@@ -37,13 +36,7 @@ export default function Home() {
         <GoatReveal />
         <Footer />
       </main>
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-t-3xl border border-white/10 border-b-0 bg-[#050505]/95 px-4 py-4 backdrop-blur-xl">
-          <div><p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Diagnóstico gratuito</p><p className="text-sm font-semibold text-white">Descubre oportunidades</p></div>
-          <EventButton href="#diagnostico" eventName="request_diagnostic" eventParams={{ source: "mobile_cta" }} className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-[#f3f3f0]">Analizar mi marca</EventButton>
-        </div>
-      </div>
-      <WhatsAppFloatingButton />
+      <MobileConversionOverlays />
       <AIChatbot />
     </div>
   );
