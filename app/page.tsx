@@ -23,12 +23,12 @@ export default function Home() {
       <main className="relative overflow-hidden pb-24">
         <Navbar />
         <Hero />
+        <ClientsMarquee />
         <Services />
         <Portfolio />
         <Process />
         <AIShowcase />
         <Stats />
-        <ClientsMarquee />
         <Clients />
         <Testimonials />
         <DigitalAudit />
