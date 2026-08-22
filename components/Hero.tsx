@@ -50,7 +50,7 @@ export default function Hero() {
               Contenido, estrategia y tecnología para empresas que quieren verse mejor, llegar a más personas y convertir su presencia digital en oportunidades.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi marca <span className="ml-2">↗</span></EventButton>
+              <EventButton href="#diagnostico" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} leadOnClick className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi marca <span className="ml-2">↗</span></EventButton>
               <Button href="#portafolio" variant="secondary" className="rounded-full border-white/10 bg-white/[0.03] px-7 py-4 text-white hover:border-white/20 hover:bg-white/[0.08]">Ver proyectos</Button>
             </div>
           </div>

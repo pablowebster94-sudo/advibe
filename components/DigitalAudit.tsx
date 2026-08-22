@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { trackEvent } from "@/lib/tracking";
+import { trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
 
 const whatsappNumber = "593984966335";
 
@@ -25,6 +25,8 @@ export default function DigitalAudit() {
 
     setSubmitted(true);
     trackEvent("diagnostic_form_submitted", { source: "digital_audit_form" });
+    trackWhatsAppOpen("digital_audit_form");
+    trackLead({ source: "digital_audit_form", cta: "diagnostic_form_submitted" });
     window.open(
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
       "_blank",

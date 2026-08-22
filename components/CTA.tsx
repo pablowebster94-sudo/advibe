@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import EventButton from "@/components/EventButton";
-import { trackEvent } from "@/lib/tracking";
+import { trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
 
 const contactItems = [
   { label: "WhatsApp", value: "+593 98 496 6335", href: "https://wa.me/593984966335" },
@@ -30,6 +30,7 @@ export default function CTA() {
               href="https://wa.me/593984966335?text=Hola,%20quiero%20agendar%20un%20diagnóstico%20estratégico."
               eventName="final_cta_whatsapp_click"
               eventParams={{ source: "final_cta" }}
+              leadOnClick
               className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white px-7 py-3 text-sm font-semibold text-slate-950 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:bg-[#f3f3f0] hover:shadow-[0_16px_60px_-30px_rgba(255,255,255,0.45)] mt-9 bg-lime-300 text-slate-950 hover:bg-lime-200"
             >
               Agendar diagnóstico ↗
@@ -40,7 +41,22 @@ export default function CTA() {
             <p className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">AdVibe / Contacto</p>
             <div className="divide-y divide-white/10 border-y border-white/10">
               {contactItems.map((item, index) => (
-                <motion.a key={item.label} href={item.href} target="_blank" rel="noreferrer" onClick={item.label === "WhatsApp" ? () => trackEvent("contact_whatsapp_click", { source: "cta_contact_list" }) : undefined} initial={{ opacity: 0, x: 12 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.45, delay: index * 0.06 }} className="group flex items-center justify-between gap-5 py-5">
+                <motion.a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={item.label === "WhatsApp" ? () => {
+                    trackWhatsAppOpen("cta_contact_list");
+                    trackEvent("contact_whatsapp_click", { source: "cta_contact_list" });
+                    trackLead({ source: "cta_contact_list", cta: "contact_whatsapp_click" });
+                  } : undefined}
+                  initial={{ opacity: 0, x: 12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: index * 0.06 }}
+                  className="group flex items-center justify-between gap-5 py-5"
+                >
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-600">{item.label}</p>
                     <p className="mt-2 text-sm font-semibold text-white transition-colors group-hover:text-lime-300">{item.value}</p>

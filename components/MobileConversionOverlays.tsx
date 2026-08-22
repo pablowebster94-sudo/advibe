@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import EventButton from "@/components/EventButton";
-import { trackEvent } from "@/lib/tracking";
+import { trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
 
 function useMobile() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -73,6 +73,7 @@ function DiagnosticBar() {
           href="#diagnostico"
           eventName="request_diagnostic"
           eventParams={{ source: "mobile_cta" }}
+          leadOnClick
           className="inline-flex items-center justify-center rounded-full bg-lime-400 px-5 py-3 text-sm font-semibold text-[#07101a] hover:bg-lime-300"
         >
           Analizar mi marca
@@ -89,7 +90,11 @@ function WhatsAppButton() {
       target="_blank"
       rel="noreferrer"
       aria-label="Contactar a AdVibe por WhatsApp"
-      onClick={() => trackEvent("floating_whatsapp_click", { source: "floating_button" })}
+      onClick={() => {
+        trackWhatsAppOpen("floating_button");
+        trackEvent("floating_whatsapp_click", { source: "floating_button" });
+        trackLead({ source: "floating_button", cta: "floating_whatsapp_click" });
+      }}
       className="fixed bottom-[82px] right-4 z-[60] flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#25D366]/30 transition hover:scale-105 sm:bottom-6 sm:right-6"
     >
       <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true"><path d="M17.6 6.3A8.7 8.7 0 0 0 12 3.2C7.1 3.2 3.1 7.1 3.1 12c0 1.6.4 3.1 1.2 4.4L3 21l4.7-1.2a8.8 8.8 0 0 0 4.3 1.1h.1c5 0 9-4 9-8.9a8.8 8.8 0 0 0-2.5-6.2Z" /></svg>

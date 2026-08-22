@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import EventButton from "@/components/EventButton";
-import { trackEvent } from "@/lib/tracking";
+import { trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
 
 export default function StickyDesktopCTA() {
   const [visible, setVisible] = useState(false);
@@ -31,12 +31,16 @@ export default function StickyDesktopCTA() {
                   href="https://wa.me/593984966335?text=Hola,%20quiero%20un%20diagn%C3%B3stico%20gratuito"
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() => trackEvent("sticky_whatsapp_click", { source: "sticky_desktop" })}
+                  onClick={() => {
+                    trackWhatsAppOpen("sticky_desktop");
+                    trackEvent("sticky_whatsapp_click", { source: "sticky_desktop" });
+                    trackLead({ source: "sticky_desktop", cta: "sticky_whatsapp_click" });
+                  }}
                   className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10"
                 >
                   WhatsApp
                 </a>
-                <EventButton href="#diagnostico" eventName="sticky_cta_click" eventParams={{ source: "sticky_desktop" }} className="rounded-full bg-white px-5 py-2 text-xs font-semibold text-slate-950 hover:bg-[#f3f3f0]">
+                <EventButton href="#diagnostico" eventName="sticky_cta_click" eventParams={{ source: "sticky_desktop" }} leadOnClick className="rounded-full bg-white px-5 py-2 text-xs font-semibold text-slate-950 hover:bg-[#f3f3f0]">
                   Quiero mi diagnóstico
                 </EventButton>
               </div>

@@ -58,6 +58,7 @@ export default function Navbar() {
             href="#diagnostico"
             eventName="navbar_diagnostic_cta"
             eventParams={{ source: "navbar" }}
+            leadOnClick
             className="inline-flex items-center justify-center rounded-full border border-lime-300/60 bg-transparent px-7 py-3 text-sm font-semibold text-lime-300 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:border-lime-300 hover:bg-lime-300/10 hover:text-lime-200"
           >
             Agenda un diagnóstico
