@@ -1,0 +1,231 @@
+========================================================================
+LOOK YAMAHA MOTORSPORT — LISTA COMPLETA DE AJUSTES
+Sesion: Yamaha YFZ450R / Raptor azul — AM Motorsport
+========================================================================
+
+DATOS DE CAPTURA LEIDOS DEL ARCHIVO (EXIF real, no estimado)
+------------------------------------------------------------------------
+Camara .................. SONY ZV-E10 (APS-C, 24 MP, 6000 x 4000)
+Objetivo ................ Sigma 18-50mm F2.8 DC DN | Contemporary 021
+Distancia focal ......... 35.8 mm (equiv. 53 mm)
+Diafragma ............... f/4.0
+Velocidad ............... 1/800 s
+ISO ..................... 100
+Modo exposicion ......... Manual
+Balance de blancos ...... Manual (fijo en camara)
+Medicion ................ Multizona
+Fecha de captura ........ 2026-08-26 11:54:46 (UTC-05:00)
+Formato RAW esperado .... .ARW (Sony)
+
+ANALISIS TONAL Y DE COLOR MEDIDO SOBRE EL ARCHIVO
+------------------------------------------------------------------------
+Percentiles de luminancia: p1=0.012  p25=0.092  p50=0.391  p75=0.854  p99=0.973
+  -> Escena fuertemente bimodal: quad en sombra propia + suelo de hormigon
+     a pleno sol. Requiere bajar altas luces y abrir sombras SIN aplanar.
+Recorte de altas luces ... 0.40 % del encuadre (reflejos, cristales, suelo)
+Recorte de negros ........ 0.44 % (huecos de chasis y neumaticos)
+Pixeles azules (H 195-260, S>0.30): 8.98 % del encuadre
+  Tono mediano ........... 222 deg  (entre Aqua y Azul -> ambos deslizadores)
+  Saturacion mediana ..... 0.47   |  p90 = 1.00 (ya al limite: NO sobresaturar)
+  Valor mediano .......... 0.216  (el azul vive en la zona baja: hay que
+                                   abrir sombras para recuperar volumen)
+Distribucion de tonos saturados del fondo:
+  10-30 deg (rojos/naranjas: moto roja, coche rally naranja) ... 8.8 %
+  350-10 deg (rojos) ........................................... 12.2 %
+  -> Justifica bajar saturacion de naranja y rojo para que el fondo pese menos.
+Zonas neutras (hormigon): R/G = 1.023 , B/G = 1.007
+  -> Ligera desviacion calido-magenta. Correccion suave de tint hacia verde.
+
+========================================================================
+A. AJUSTES UNIVERSALES  (SI forman parte del preset .xmp)
+========================================================================
+
+1) PERFIL
+   Perfil ................................ Adobe Color
+   Cantidad del perfil ................... 100
+   Version de proceso .................... 15.4 (PV6 / actual)
+   Alternativa valida .................... "Camera Neutral" si prefieres una
+                                           base mas plana; NO usar "Camera
+                                           Vivid" (desplaza el azul Yamaha
+                                           hacia magenta en sensores Sony).
+
+2) BALANCE DE BLANCOS
+   Modo .................................. Personalizado
+   Temperatura ........................... 5400 K
+   Matiz (Tint) .......................... +6
+   Nota: valores de partida para luz solar directa sobre hormigon. Se afinan
+   con el cuentagotas sobre el suelo gris y luego se sincronizan.
+
+3) TONO BASICO  (sin exposicion: es especifica de cada foto)
+   Exposicion ............................ NO INCLUIDA en el preset
+   Contraste ............................. +8
+   Altas luces ........................... -40
+   Sombras ............................... +26
+   Blancos ............................... -14
+   Negros ................................ -14
+
+4) PRESENCIA
+   Textura ............................... +14
+   Claridad .............................. +8
+   Neblina (Dehaze) ...................... +5
+   Intensidad (Vibrance) ................. +6
+   Saturacion ............................ -2
+
+5) CURVA DE TONOS  (curva de puntos, canal RGB, escala 0-255)
+   Punto 1 ............................... 0   ->  0     (negro puro anclado)
+   Punto 2 ............................... 26  ->  20    (negros definidos)
+   Punto 3 ............................... 64  ->  58    (sombras con cuerpo)
+   Punto 4 ............................... 128 ->  132   (medios apenas abiertos)
+   Punto 5 ............................... 192 ->  198   (volumen en el azul claro)
+   Punto 6 ............................... 232 ->  236
+   Punto 7 ............................... 255 ->  251   (rolloff de altas luces)
+   Curvas Rojo / Verde / Azul ............ lineales (0,0 - 255,255)
+   Curva parametrica ..................... toda a 0 (todo el trabajo va en la
+                                           curva de puntos, mas predecible al
+                                           sincronizar)
+
+6) MEZCLADOR DE COLOR / HSL
+   ---- TONO (Hue) ----
+   Rojo .................................. +2
+   Naranja ............................... -3
+   Amarillo .............................. -5
+   Verde ................................. -8
+   Aguamarina ............................ +8    (consolida los reflejos cian
+                                                  del plastico dentro del azul)
+   Azul .................................. -10   (CLAVE: aleja el azul Yamaha
+                                                  del viraje purpura tipico de
+                                                  los sensores Sony)
+   Purpura ............................... +4
+   Magenta ............................... 0
+
+   ---- SATURACION ----
+   Rojo .................................. -8    (moto roja del fondo; mantiene
+                                                  los graficos rojos del quad)
+   Naranja ............................... -16   (coche rally naranja: es el
+                                                  competidor visual principal)
+   Amarillo .............................. -12
+   Verde ................................. -14
+   Aguamarina ............................ -8
+   Azul .................................. +6    (moderado: el azul ya llega a
+                                                  saturacion 1.0 en p90)
+   Purpura ............................... -6
+   Magenta ............................... -10
+
+   ---- LUMINANCIA ----
+   Rojo .................................. -6
+   Naranja ............................... -10
+   Amarillo .............................. -8
+   Verde ................................. -6
+   Aguamarina ............................ -10   (apaga los reflejos palidos
+                                                  y compacta el azul)
+   Azul .................................. -4    (azul profundo, compensado por
+                                                  Sombras +26 para no cerrarlo)
+   Purpura ............................... -4
+   Magenta ............................... -4
+
+7) GRADACION DE COLOR (Color Grading) — muy sutil
+   Sombras: Tono ......................... 218
+   Sombras: Saturacion ................... 6
+   Sombras: Luminancia ................... 0
+   Medios:  Tono / Sat / Lum ............. 0 / 0 / 0
+   Altas:   Tono ......................... 42
+   Altas:   Saturacion ................... 4
+   Altas:   Luminancia ................... 0
+   Global:  Tono / Sat / Lum ............. 0 / 0 / 0
+   Fusion (Blending) ..................... 50
+   Equilibrio (Balance) .................. 0
+
+8) DETALLE — ENFOQUE
+   Cantidad .............................. 45
+   Radio ................................. 0.9
+   Detalle ............................... 35
+   Mascara ............................... 55   (alta a proposito: enfoca
+                                                 tornilleria, cadena, tacos de
+                                                 neumatico y deja limpios los
+                                                 plasticos y el hormigon)
+
+9) DETALLE — REDUCCION DE RUIDO  (ajustada a ISO 100)
+   Luminancia ............................ 12
+   Luminancia: Detalle ................... 50
+   Luminancia: Contraste ................. 0
+   Color ................................. 28
+   Color: Detalle ........................ 50
+   Color: Suavidad ....................... 50
+   Nota: NO usar Eliminar ruido (IA) en este preset — genera un DNG nuevo por
+   foto y rompe la sincronizacion. Innecesario a ISO 100.
+
+10) CORRECCIONES OPTICAS
+   Activar correcciones de perfil ........ SI
+   Perfil de objetivo .................... Automatico
+                                           (Sigma 18-50mm F2.8 DC DN | C 021)
+   Escala de distorsion .................. 100
+   Escala de viñeteado ................... 100
+   Eliminar aberracion cromatica ......... SI (automatica)
+   Defranjado purpura .................... 5   (LoCA en cromados y escape)
+   Defranjado verde ...................... 0
+   Perspectiva / Upright ................. Desactivado (es especifico de cada
+                                           encuadre; ver seccion B)
+
+11) EFECTOS — VIÑETEADO POSTERIOR AL RECORTE
+   Cantidad .............................. -10
+   Punto medio ........................... 50
+   Redondez .............................. 0
+   Suavizado (Feather) ................... 60
+   Estilo ................................ Prioridad de altas luces
+   Altas luces ........................... 0
+   Grano ................................. 0
+   Proposito: resta peso al fondo (coches, escaparate) sin que se note.
+
+========================================================================
+B. AJUSTES ESPECIFICOS DE ESTA FOTO  (NO van en el preset)
+========================================================================
+
+Estos se aplican foto a foto y deben DESMARCARSE al sincronizar:
+
+  - EXPOSICION
+      Punto de partida sugerido para ESTA toma: +0.15 EV
+      (medida: p50 de luminancia = 0.391; hay 0.40 % de altas luces recortadas,
+       asi que el margen es pequeño. Verificar sobre el ARW real.)
+
+  - RECORTE Y RELACION DE ASPECTO
+      Sugerencia: recorte ligero por la derecha para reducir el Suzuki plateado,
+      manteniendo 3:2. El quad debe ocupar el tercio inferior-central.
+
+  - ENDEREZADO / ANGULO
+      La linea del suelo y las columnas verticales del escaparate sirven de
+      referencia. Corregir solo lo necesario (< 1 grado).
+
+  - UPRIGHT / PERSPECTIVA
+      Depende del encuadre de cada foto. Desactivado en el preset.
+
+  - MASCARAS LOCALES (dependen de la posicion del sujeto)
+      1. Radial invertido sobre el quad:
+         Exposicion -0.25, Claridad -6, Saturacion -8, Textura -8
+         -> hunde el fondo sin tocar el sujeto.
+      2. Pincel sobre plasticos azules:
+         Claridad +6, Textura +5, Sombras +10
+         -> volumen en el carenado sin subir el resto.
+      3. Pincel sobre motor / chasis / llantas:
+         Textura +12, Claridad +8, Sombras +14, Negros -5
+         -> detalle mecanico nitido.
+      4. Lineal desde arriba sobre el suelo de hormigon:
+         Exposicion -0.35, Altas luces -20
+         -> controla el brillo del suelo a pleno sol.
+      Ninguna de estas mascaras es trasladable: se rehacen por foto (o se
+      copian solo entre tomas con encuadre practicamente identico).
+
+  - ELIMINACION DE MANCHAS / SENSOR
+      Especifico de cada archivo.
+
+========================================================================
+NOTAS DE CONSERVACION DE INFORMACION RAW
+========================================================================
+  - Ningun ajuste destruye datos: todo es metadato sobre el .ARW original.
+  - El recorte de negros se mantiene en 0.44 % y el de altas luces en 0.40 %,
+    ambos en zonas sin detalle recuperable (huecos de chasis, reflejos
+    especulares y cristales). No se pierde informacion util.
+  - No se aplica reduccion de resolucion en ningun punto: 6000 x 4000 intactos.
+  - Sin HDR simulado, sin mapeo local de tonos agresivo, sin sobresaturacion:
+    Dehaze +5 y Claridad +8 estan deliberadamente por debajo del umbral en el
+    que aparece halo o aspecto artificial.
+========================================================================
