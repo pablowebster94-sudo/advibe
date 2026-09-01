@@ -58,6 +58,20 @@ engine. Both are swappable — see
 [Generación de imágenes](./ARCHITECTURE.md#image-generation) and
 [Copywriting](./ARCHITECTURE.md#copywriting).
 
+### Using a real AI image provider (Gemini / "Nano Banana")
+
+Set these in `.env` to have Gemini compose the background scene around your
+product photo (copy is still always rendered locally — see
+[ARCHITECTURE.md](./ARCHITECTURE.md#image-generation-1) for why):
+
+```bash
+IMAGE_PROVIDER="gemini"
+GEMINI_API_KEY="your-key-from-ai.google.dev"
+```
+
+No code changes needed. Without `IMAGE_PROVIDER` set (or set back to
+`local-compositor`), it falls back to the local renderer.
+
 ## Scripts
 
 | Command | Description |

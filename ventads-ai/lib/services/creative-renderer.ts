@@ -171,15 +171,16 @@ function textLayer(params: {
 }
 
 /**
- * Renders one creative by compositing (1) a style-driven background,
- * (2) the untouched product photo resized to fit — never cropped in a way
- * that alters proportions, per AGENTS.md #3/#15 — (3) a legibility scrim,
- * and (4) the copy as vector text. Pure image compositing, no external API,
- * so the MVP is fully functional without any provider key.
+ * Composites the style-driven background with the untouched product photo
+ * resized to fit — never cropped in a way that alters proportions, per
+ * AGENTS.md #3/#15. This is the piece an AI image provider (see
+ * GeminiImageProvider) replaces with a generated scene; everything else in
+ * this file — the text overlay — stays identical either way, so copy
+ * accuracy never depends on which image backend produced the background.
  */
-export async function renderCreative(
-  input: RenderCreativeInput
-): Promise<{ buffer: Buffer; width: number; height: number }> {
+export async function composeLocalBackground(
+  input: Pick<RenderCreativeInput, "formatId" | "styleId" | "productImageBuffer" | "variantSeed">
+): Promise<Buffer> {
   const format = getFormat(input.formatId);
   const style = getStyle(input.styleId);
   const { width, height } = format;
@@ -205,7 +206,51 @@ export async function renderCreative(
     layers.push({ input: resizedProduct, left: stageLeft, top: stageTop });
   }
 
-  const scrimRatio = input.productImageBuffer ? 0.46 : 0.6;
+  return sharp({
+    create: {
+      width,
+      height,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 1 },
+    },
+  })
+    .composite(layers)
+    .png()
+    .toBuffer();
+}
+
+export type CopyOverlayInput = {
+  formatId: string;
+  styleId: string;
+  conceptType: string;
+  headline: string;
+  supportingLine: string | null;
+  priceDisplay: string | null;
+  ctaLabel: string;
+  logoBuffer: Buffer | null;
+  /** Whether the base image already shows the product — widens the bottom
+   * scrim when it doesn't, since there's no photo detail to protect. */
+  hasProductPhoto: boolean;
+};
+
+/**
+ * Applies the legibility scrim, the copy (as vector text), and the logo on
+ * top of any base image (full canvas, any source). Used by both the local
+ * compositor and any AI image provider so copy is always rendered exactly
+ * as written — no generative model is ever asked to draw the headline,
+ * price, or CTA (AGENTS.md #7).
+ */
+export async function applyScrimAndCopy(
+  baseImageBuffer: Buffer,
+  input: CopyOverlayInput
+): Promise<{ buffer: Buffer; width: number; height: number }> {
+  const format = getFormat(input.formatId);
+  const style = getStyle(input.styleId);
+  const { width, height } = format;
+
+  const layers: OverlayOptions[] = [];
+
+  const scrimRatio = input.hasProductPhoto ? 0.46 : 0.6;
   layers.push({ input: Buffer.from(scrimLayer(width, height, scrimRatio)) });
 
   layers.push({
@@ -238,17 +283,35 @@ export async function renderCreative(
     });
   }
 
-  const buffer = await sharp({
-    create: {
-      width,
-      height,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 1 },
-    },
-  })
+  const buffer = await sharp(baseImageBuffer)
+    // Base images from an AI provider won't be exactly on-format — force
+    // the final canvas to the exact target size every time.
+    .resize(width, height, { fit: "cover" })
     .composite(layers)
     .png()
     .toBuffer();
 
   return { buffer, width, height };
+}
+
+/**
+ * Renders one creative entirely locally: style-driven background + the
+ * untouched product photo + scrim + copy. Pure image compositing, no
+ * external API, so the MVP is fully functional without any provider key.
+ */
+export async function renderCreative(
+  input: RenderCreativeInput
+): Promise<{ buffer: Buffer; width: number; height: number }> {
+  const base = await composeLocalBackground(input);
+  return applyScrimAndCopy(base, {
+    formatId: input.formatId,
+    styleId: input.styleId,
+    conceptType: input.conceptType,
+    headline: input.headline,
+    supportingLine: input.supportingLine,
+    priceDisplay: input.priceDisplay,
+    ctaLabel: input.ctaLabel,
+    logoBuffer: input.logoBuffer,
+    hasProductPhoto: Boolean(input.productImageBuffer),
+  });
 }

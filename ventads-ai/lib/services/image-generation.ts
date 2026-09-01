@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { getFormat } from "@/lib/catalog/formats";
 import { getStyle } from "@/lib/catalog/styles";
 import { renderCreative, type RenderCreativeInput } from "@/lib/services/creative-renderer";
+import { GeminiImageProvider } from "@/lib/services/providers/gemini-image-provider";
 
 export type GeneratedImage = { buffer: Buffer; width: number; height: number };
 
@@ -108,9 +109,33 @@ function createImageGenerationService(): ImageGenerationService {
   switch (provider) {
     case "local-compositor":
       return new LocalCompositorProvider();
+    case "gemini":
+      return new GeminiImageProvider(process.env.GEMINI_API_KEY ?? "");
     default:
       throw new Error(`Unknown IMAGE_PROVIDER: ${provider}`);
   }
 }
 
-export const imageGeneration = createImageGenerationService();
+let cachedProvider: ImageGenerationService | null = null;
+
+// Constructed lazily (on first actual call) rather than at module load: a
+// misconfigured provider (e.g. IMAGE_PROVIDER=gemini with no
+// GEMINI_API_KEY) should surface as a failed generation for that one
+// creative — caught by campaign-service's per-creative try/catch — not as
+// an unhandled crash the moment any route imports this module.
+function getProvider(): ImageGenerationService {
+  if (!cachedProvider) {
+    cachedProvider = createImageGenerationService();
+  }
+  return cachedProvider;
+}
+
+export const imageGeneration: ImageGenerationService = {
+  generateCreative: (input) => getProvider().generateCreative(input),
+  generateVariation: (input) => getProvider().generateVariation(input),
+  editProductImage: (buffer, targetFormatId) =>
+    getProvider().editProductImage(buffer, targetFormatId),
+  createBackground: (formatId, styleId) => getProvider().createBackground(formatId, styleId),
+  createComposition: (backgroundBuffer, productImageBuffer) =>
+    getProvider().createComposition(backgroundBuffer, productImageBuffer),
+};

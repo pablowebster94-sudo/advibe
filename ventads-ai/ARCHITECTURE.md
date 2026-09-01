@@ -89,11 +89,24 @@ keep proxying through the API route for private buckets).
 five methods mirroring the brief in AGENTS.md #14: `generateCreative`,
 `generateVariation`, `editProductImage`, `createBackground`,
 `createComposition`. `IMAGE_PROVIDER=local-compositor` (default) implements
-all five with `sharp` + SVG, so the MVP needs no API key. To add a real
-generative provider (OpenAI Images, Bedrock Nova Canvas, Replicate, ...):
-implement the interface, register it in `createImageGenerationService()`,
-and read the appropriate `*_API_KEY` from `process.env` inside that class
-only — never in a route handler or client component (AGENTS.md #19).
+all five with `sharp` + SVG, so the MVP needs no API key.
+
+`IMAGE_PROVIDER=gemini` (`lib/services/providers/gemini-image-provider.ts`)
+uses Google's Gemini image model ("Nano Banana 2" /
+`gemini-3.1-flash-image`) for the parts an AI is actually good at —
+composing a background scene and integrating the real product photo into
+it — while copy stays deterministic. See
+[Image generation → hybrid AI/local rendering](#image-generation-1) below
+for why it's split this way. Needs `GEMINI_API_KEY`; the provider is
+constructed lazily (only on first actual generation call), so a missing key
+surfaces as a normal failed-creative error rather than crashing the app at
+import time — see `getProvider()` in `image-generation.ts`.
+
+Both providers are registered in `createImageGenerationService()`. To add
+another (OpenAI Images, Bedrock Nova Canvas, Replicate, ...): implement the
+interface, register it there, and read its `*_API_KEY` from `process.env`
+inside that class only — never in a route handler or client component
+(AGENTS.md #19).
 
 ### Copywriting
 
@@ -107,17 +120,39 @@ is available.
 
 ## Image generation
 
-The local compositor never calls an external service:
+**Copy is always rendered the same way, regardless of image backend.**
+`lib/services/creative-renderer.ts` splits into two independent steps:
 
-1. `lib/services/svg.ts` — `escapeXml` (prevents malformed/injected SVG from
-   user text) and `wrapText` (approximates line wrapping for `<text>`,
-   which doesn't auto-wrap).
-2. `lib/services/creative-renderer.ts#renderCreative` builds four SVG/raster
-   layers — background gradient, the (untouched, contain-fit) product
-   photo, a bottom scrim for legibility, and the copy as vector text — and
-   composites them with `sharp`.
-3. Two layout variants exist (`variantSeed % 2`) so "Regenerar" produces a
-   visibly different composition, not just a stylistic seed change.
+1. **Background composition** — either `composeLocalBackground()` (pure
+   `sharp`/SVG: gradient + the untouched, contain-fit product photo) or
+   `GeminiImageProvider` calling out to Gemini to generate a photorealistic
+   scene with the product integrated into it.
+2. **`applyScrimAndCopy()`** — a legibility scrim, the logo, and the copy
+   (headline/price/CTA) as vector text via `lib/services/svg.ts`
+   (`escapeXml` against malformed/injected SVG, `wrapText` for line
+   wrapping — `<text>` doesn't auto-wrap). This step is identical no matter
+   which provider produced the background.
+
+This split exists on purpose: text rendering inside generative image models
+is unreliable (typos, garbled characters, wrong price), which is
+unacceptable for ad copy. So no image provider is ever asked to draw
+text — the prompt built in `lib/services/gemini-prompt.ts` explicitly tells
+Gemini not to render any text, numbers, or logos, and product-identity
+preservation ("don't alter the product, only its surroundings") is spelled
+out the same way `renderCreative` enforces it structurally for the local
+path.
+
+With the local provider, two layout variants exist (`variantSeed % 2`) so
+"Regenerar" produces a visibly different composition. With Gemini,
+`variantSeed` instead rotates through a small set of scene descriptions
+(`SCENE_IDEAS` in `gemini-prompt.ts`) — plus the model's own
+non-determinism — for the same effect.
+
+Gemini's `imageConfig.aspectRatio` only accepts a fixed set of ratios (no
+4:5), so `lib/services/image-utils.ts#nearestSupportedAspectRatio` picks
+the closest one; `applyScrimAndCopy`'s final `resize(..., { fit: "cover" })`
+still forces the exact target pixel size regardless, so this only affects
+how much the model has to crop internally.
 
 Fonts render via the system's fontconfig (DejaVu Sans / Liberation Sans are
 present in the container); no font files are bundled.

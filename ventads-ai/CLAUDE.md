@@ -24,6 +24,18 @@ query-engine binary. See `lib/db.ts` for the working pattern, and
 favor of named exports (`import { ZipArchive } from "archiver"`), see
 `app/api/campaigns/[id]/export/route.ts`.
 
+`@google/genai` (the Gemini SDK, used by `IMAGE_PROVIDER=gemini`) moves
+fast — the current image model is `gemini-3.1-flash-image` ("Nano Banana
+2"), called via `client.models.generateContent({ model, contents, config:
+{ responseModalities: ["IMAGE","TEXT"], imageConfig: { aspectRatio } } })`.
+`imageConfig.aspectRatio` only accepts a fixed set of ratios (no 4:5 — see
+`nearestSupportedAspectRatio`), and at least one build of the SDK has been
+reported to ignore `imageConfig.imageSize`. Before changing anything in
+`lib/services/providers/gemini-image-provider.ts`, re-check
+`node_modules/@google/genai/dist/node/node.d.ts` (or search the web — this
+model/SDK combination is newer than most training data) rather than
+assuming the shape from memory.
+
 When in doubt about a pinned dependency's current API, check
 `node_modules/<pkg>/**/*.d.ts` or its README before guessing from memory.
 
@@ -39,10 +51,16 @@ When in doubt about a pinned dependency's current API, check
   `Creative` row with its own file. See ARCHITECTURE.md → "Preserving the
   product photo".
 - **Keep the provider abstractions real abstractions.** `StorageService`,
-  `ImageGenerationService`: if you add a second provider, it must go
-  through the existing interface in `lib/services/*.ts`, selected by its
-  `*_PROVIDER` env var — don't reach for a provider SDK directly from a
-  route handler or component.
+  `ImageGenerationService`: a provider (e.g. `GeminiImageProvider` in
+  `lib/services/providers/`) must go through the existing interface,
+  selected by its `*_PROVIDER` env var — don't reach for a provider SDK
+  directly from a route handler or component.
+- **Never let an image provider render copy text.** Whatever produces the
+  background (local `sharp` compositing or an AI model), the headline/
+  price/CTA must still go through `applyScrimAndCopy()` in
+  `creative-renderer.ts`. Generative image models are not reliable at
+  spelling out exact prices or CTAs — see ARCHITECTURE.md → "Image
+  generation" for why this is a hard split, not a style choice.
 - **Catalogs, not enums, for anything the product brief says should be
   extensible** (`category`, `objective`, `style`, concept `type`, creative
   `format`). Add new options to `lib/catalog/*.ts`, not as Prisma enum
@@ -76,6 +94,8 @@ overflow, clipping, or broken layouts — don't just check HTTP status codes.
   styles, concept types, formats).
 - `lib/services/` — the engines (analysis, concepts, copy, image
   generation, storage) and the campaign orchestrator.
+  `lib/services/providers/` holds concrete `ImageGenerationService`
+  implementations (Gemini today).
 - `lib/product-brief.ts` — the one normalized shape every engine reads.
 - `components/wizard/` — the 6-step product creation flow (`app/new`).
 - `components/results/` — the results/variants view (`app/results/[id]`).
