@@ -94,7 +94,7 @@ Vercel (backed by the platform's `waitUntil` there).
 the job itself** — it only extends one invocation's lifetime up to its own
 `maxDuration`; if the process dies (deploy, crash, platform hiccup) mid-way
 for any reason, anything not yet persisted is gone, no retry, no trace.
-Durability comes entirely from persisting `PENDING` rows in Postgres/SQLite
+Durability comes entirely from persisting `PENDING` rows in PostgreSQL
 *before* any dispatch is attempted — a kick can fail for any reason
 (network blip, misconfigured `APP_URL`, Deployment Protection intercepting
 the call) and the affected jobs simply stay `PENDING`, safely recoverable
@@ -160,12 +160,34 @@ Design choices worth calling out:
   banner size) or a 6th concept angle is one object in a catalog file — no
   migration (AGENTS.md #4/#5).
 - **`ProductImage.key` is never overwritten.** Creatives are separate rows
-  with their own `imageUrl`, pointing at a separate file. The original
+  with their own `imageKey`, pointing at a separate file. The original
   upload is immutable (AGENTS.md #15).
 - **`Creative.version`** — regenerating never deletes the previous result;
   it inserts a new row. The UI shows the latest version per format but the
   history exists in the database.
 - **No auth tables beyond a single implicit `User`** — see [Auth](#auth).
+
+## Database & migrations
+
+PostgreSQL everywhere — dev, test, and production all use the same
+`schema.prisma` with `provider = "postgresql"` (Option B: one schema, no
+dynamic dialect switching based on `DATABASE_URL`). `lib/db.ts` connects
+through `@prisma/adapter-pg` (over `pg`), matching the driver-adapter model
+every other Prisma 7 datasource in this project uses.
+
+Schema changes go through versioned migrations, not `prisma db push`:
+`npm run db:migrate` (`prisma migrate dev`) generates and applies a new
+migration file under `prisma/migrations/` against your local
+`DATABASE_URL`; `npm run db:deploy` (`prisma migrate deploy`) applies
+already-committed migrations without generating new ones — that's what
+production runs. `prisma migrate dev` needs a database user with
+`CREATEDB` (it provisions a throwaway shadow database to detect drift);
+`prisma migrate deploy` doesn't.
+
+`npm test`'s `pretest` script (`scripts/prepare-test-db.mjs`) runs `prisma
+migrate deploy` against a **separate** `TEST_DATABASE_URL` before each
+test run, so tests exercise the exact same migration history as
+production without ever touching dev data.
 
 ## Provider abstractions
 
@@ -326,7 +348,8 @@ All of it lives in `.env` / `.env.example`:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | `file:./dev.db` | SQLite file path |
+| `DATABASE_URL` | *(required)* | PostgreSQL connection string — same dialect in dev/test/production, no per-environment switching |
+| `TEST_DATABASE_URL` | *(required for `npm test`)* | A separate PostgreSQL database, migrated fresh by `pretest`; never reuses `DATABASE_URL` |
 | `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` | *(required in prod)* | Whole-app Basic Auth gate (`proxy.ts`); optional locally |
 | `CRON_SECRET` | *(required)* | Auth for `/api/jobs/process` and `/api/cron/sweep`; also set in Vercel's project settings |
 | `APP_URL` | `http://localhost:3000` outside prod, else required | This app's own URL, for the self-chaining worker dispatch — not `VERCEL_URL` |
@@ -355,8 +378,7 @@ provider class, never in a route handler, never sent to the client.
 - All mutation routes scope every query by the current user's `userId` —
   there is no endpoint that reads or writes another user's data by id
   alone.
-- Nothing under `storage/`, `dev.db`, or `.env` is committed
-  (see `.gitignore`).
+- Nothing under `storage/` or `.env` is committed (see `.gitignore`).
 
 ## What's intentionally not built yet
 

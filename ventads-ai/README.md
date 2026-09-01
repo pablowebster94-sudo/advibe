@@ -35,22 +35,29 @@ PRODUCTO → FOTOS → MARCA → OBJETIVO → ESTILO → GENERAR → RESULTADOS
 
 - **Next.js 16** (App Router, Turbopack) + React 19 + TypeScript
 - **Tailwind CSS v4**
-- **Prisma 7** + SQLite (via `@prisma/adapter-better-sqlite3`) for local,
-  zero-config persistence
+- **Prisma 7** + **PostgreSQL** (via `@prisma/adapter-pg`) — same
+  database everywhere: dev, test, production
 - **sharp** for server-side image compositing (no GPU/external API needed)
-- No auth provider yet — see [Architecture](./ARCHITECTURE.md#auth)
+- Whole-app HTTP Basic Auth (`proxy.ts`) — see
+  [Architecture](./ARCHITECTURE.md#auth)
 
 ## Getting started
+
+Needs a real PostgreSQL database (a free one from
+[Neon](https://neon.tech) or [Supabase](https://supabase.com) works fine,
+or any Postgres you already run):
 
 ```bash
 cd ventads-ai
 npm install
-cp .env.example .env   # already sensible defaults, no secrets required
-npx prisma db push     # creates dev.db
+cp .env.example .env   # then fill in DATABASE_URL (and TEST_DATABASE_URL to run tests)
+npm run db:migrate     # applies the versioned migrations
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Set `BASIC_AUTH_USER`/`BASIC_AUTH_PASSWORD` in
+`.env` to require login locally too (optional in dev, required in
+production).
 
 The MVP works with **zero API keys**: image generation is a local
 compositor (sharp + SVG) and copywriting is a deterministic template

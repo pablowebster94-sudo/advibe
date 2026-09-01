@@ -17,9 +17,9 @@ first — don't assume the API matches your training data.
 
 Same caution applies to `prisma` (pinned at 7.x): the default generator is
 `prisma-client` (TS source output, not `prisma-client-js`), and every
-datasource needs an explicit **driver adapter**
-(`@prisma/adapter-better-sqlite3` here) — there's no more automatic
-query-engine binary. See `lib/db.ts` for the working pattern, and
+datasource needs an explicit **driver adapter** (`@prisma/adapter-pg`
+here, over `pg`) — there's no more automatic query-engine binary. See
+`lib/db.ts` for the working pattern, and
 `archiver` (pinned at 8.x): it dropped the old callable-factory API in
 favor of named exports (`import { ZipArchive } from "archiver"`), see
 `app/api/campaigns/[id]/export/route.ts`.
@@ -72,16 +72,25 @@ When in doubt about a pinned dependency's current API, check
 ## Commands
 
 ```bash
-npm run dev          # dev server, Turbopack
-npm run build         # production build (also type-checks)
-npm run lint          # ESLint flat config
-npx tsc --noEmit       # type-check only, faster than a full build
-npx prisma db push     # apply schema.prisma to dev.db (no migration files yet)
-npx prisma studio      # inspect the local SQLite data
+npm run dev            # dev server, Turbopack
+npm run build           # production build (also type-checks)
+npm run lint            # ESLint flat config
+npx tsc --noEmit         # type-check only, faster than a full build
+npm run db:migrate       # create + apply a versioned migration (dev)
+npm run db:deploy        # apply existing migrations only (production)
+npx prisma studio        # inspect the local PostgreSQL data
 ```
 
-There is no test suite yet. Verify changes by actually running the dev
-server and driving the flow (Producto → Fotos → ... → Resultados) — most
+Needs a real PostgreSQL `DATABASE_URL` (see `.env.example`) — SQLite was
+dropped in favor of Postgres everywhere (dev, test, production; one
+`schema.prisma`, no per-environment dialect switching — see
+ARCHITECTURE.md → "Configuration"). `npm test` needs its own
+`TEST_DATABASE_URL` (a separate database) and applies migrations to it
+automatically via `pretest`.
+
+Verify changes by actually running the dev server and driving the flow
+(Producto → Fotos → ... → Resultados), and by `npm test` for the job-queue
+concurrency logic — most
 of the interesting bugs here are in the SVG/image compositing, which a
 type-checker can't catch. See the QA pass method used during the initial
 build: launch `next dev`, drive it with Playwright/chromium against

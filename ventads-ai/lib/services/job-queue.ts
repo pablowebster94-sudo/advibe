@@ -29,13 +29,12 @@ export type ClaimResult = Creative;
  * (updateMany) are two separate steps, but the claim's WHERE clause
  * re-checks `status IN (PENDING, FAILED)` on the specific row. If two
  * callers pick the same candidate, only one `updateMany` can see the row
- * still in a claimable status — the database (SQLite's single-writer
- * serialization, or Postgres's row-level locking) guarantees the loser's
- * UPDATE matches zero rows once the winner's UPDATE has committed. No raw
- * SQL, no `SELECT ... FOR UPDATE SKIP LOCKED` — this pattern is portable
- * between SQLite (local) and PostgreSQL (production) using only Prisma's
- * standard query API. See ARCHITECTURE.md → "Async job queue" for the
- * fuller rationale.
+ * still in a claimable status — PostgreSQL's row-level locking guarantees
+ * the loser's UPDATE matches zero rows once the winner's UPDATE has
+ * committed. No raw SQL, no `SELECT ... FOR UPDATE SKIP LOCKED` needed —
+ * this pattern only uses Prisma's standard query API, and is verified
+ * under real concurrency against Postgres itself in `job-queue.test.ts`.
+ * See ARCHITECTURE.md → "Async job queue" for the fuller rationale.
  *
  * `attempts < maxAttempts` is a same-row column comparison, which Prisma's
  * filter API can't express directly — it's applied in application code
