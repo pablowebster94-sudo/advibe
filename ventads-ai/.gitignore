@@ -37,5 +37,9 @@ next-env.d.ts
 /dev.db-journal
 /generated/prisma
 
+# disposable test database, recreated fresh by scripts/prepare-test-db.mjs
+/test.db
+/test.db-journal
+
 # user-uploaded and generated creative assets (local dev storage)
 /storage

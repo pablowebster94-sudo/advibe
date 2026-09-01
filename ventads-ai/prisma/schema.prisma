@@ -136,9 +136,15 @@ model CopyVariant {
   createdAt   DateTime @default(now())
 }
 
-// A rendered creative for one concept + one advertising format. `format` is
-// a free-form key into lib/catalog/formats.ts so new placements (Stories,
-// Marketplace, banners...) never require a schema change.
+// A rendered creative for one concept + one advertising format — and, since
+// generation runs as a background job (see lib/services/job-queue.ts), also
+// the persisted job row for that generation. There is no separate Job
+// table: the relationship between "job to generate this creative" and "the
+// resulting creative" is strictly 1:1 forever, so folding job-tracking
+// fields directly into Creative avoids a join with no benefit.
+//
+// `format` is a free-form key into lib/catalog/formats.ts so new placements
+// (Stories, Marketplace, banners...) never require a schema change.
 model Creative {
   id              String        @id @default(cuid())
   conceptId       String
@@ -147,9 +153,27 @@ model Creative {
   sourceImage     ProductImage? @relation(fields: [sourceImageId], references: [id])
   format          String
   version         Int           @default(1)
-  status          String        @default("READY") // GENERATING | READY | FAILED
+
+  // Job lifecycle: PENDING -> PROCESSING -> COMPLETED, or -> FAILED (via
+  // PENDING again on a retriable error, see ARCHITECTURE.md → Async job
+  // queue). A freshly created row starts PENDING and has no imageUrl yet.
+  status          String        @default("PENDING")
   imageUrl        String?
   provider        String        @default("local-compositor")
   error           String?
+
+  // Claim/retry bookkeeping. See lib/services/job-queue.ts#claimNextJob for
+  // the atomic claim that guards these fields against concurrent workers.
+  attempts        Int           @default(0)
+  maxAttempts     Int           @default(3)
+  claimedAt       DateTime?
+  claimedBy       String? // invocation id, observability only — never used for correctness
+  nextAttemptAt   DateTime? // backoff: not claimable again until this time
+  startedAt       DateTime?
+  completedAt     DateTime?
+
   createdAt       DateTime      @default(now())
+
+  @@index([status, nextAttemptAt])
+  @@index([conceptId])
 }

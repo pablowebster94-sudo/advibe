@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
+    "pretest": "node scripts/prepare-test-db.mjs",
+    "test": "vitest run",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio"
@@ -34,6 +36,7 @@
     "eslint-config-next": "^16.2.10",
     "prisma": "^7.9.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   }
 }
