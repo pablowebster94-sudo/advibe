@@ -217,6 +217,19 @@ valid for `S3_SIGNED_URL_TTL_SECONDS` (default 1h). See `.env.example` for
 the full variable list (`S3_BUCKET`, `AWS_REGION`, `S3_ENDPOINT`,
 `S3_FORCE_PATH_STYLE`, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`).
 
+Verified end-to-end against a real S3-API-compatible server
+([`s3rver`](https://github.com/jamhall/s3rver), run locally — no real
+cloud credentials exist in the environment this was built in): upload →
+`PutObjectCommand` → product/creative rows store the key → `urlFor` signs
+a `GetObjectCommand` URL → the app's own upload, campaign generation,
+image serving, and ZIP export routes all round-tripped real files through
+it correctly. One caveat: `s3rver` is a simplified test double that (unlike
+real S3 or R2 with a private bucket) doesn't reject an unsigned GET —
+signature *generation* and the full write/read code path are proven, but
+signature *enforcement* wasn't, since only a real bucket enforces that. A
+real AWS S3 or R2 bucket set to private should be used to confirm
+enforcement before relying on it in production.
+
 ### Image generation
 
 `lib/services/image-generation.ts` exports `ImageGenerationService` with
