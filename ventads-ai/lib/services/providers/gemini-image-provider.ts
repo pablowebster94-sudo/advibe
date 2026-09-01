@@ -14,43 +14,33 @@ import { detectMimeType, nearestSupportedAspectRatio } from "@/lib/services/imag
 // "Nano Banana 2" — Gemini's native image generation/editing model. Chosen
 // over the older gemini-2.5-flash-image because it's the current
 // recommended model for this use case (multi-image blending, precise
-// edits, product-identity preservation).
-const MODEL = "gemini-3.1-flash-image";
+// edits, product-identity preservation). Overridable in case Google renames
+// it again — see the AdVibe /estudio implementation, which hit exactly that
+// with the preview id being retired.
+const DEFAULT_MODEL = "gemini-3.1-flash-image";
 
-async function callGemini(
-  client: GoogleGenAI,
-  { prompt, images, aspectRatio }: { prompt: string; images: Buffer[]; aspectRatio: string }
-): Promise<Buffer> {
-  const imageParts: Part[] = await Promise.all(
-    images.map(async (buffer) =>
-      createPartFromBase64(buffer.toString("base64"), await detectMimeType(buffer))
-    )
-  );
+// A single campaign can trigger up to 5 concepts x 3 formats = 15 of these
+// calls in one request (see campaign-service.ts). A hung request must fail
+// loudly instead of blocking the whole campaign indefinitely, and a failed
+// request must never silently become a second billable retry.
+const REQUEST_TIMEOUT_MS = 180_000;
+const RETRY_ATTEMPTS = 1;
 
-  const response = await client.models.generateContent({
-    model: MODEL,
-    contents: createUserContent([prompt, ...imageParts]),
-    config: {
-      responseModalities: ["IMAGE", "TEXT"],
-      imageConfig: { aspectRatio },
-    },
-  });
+// Our largest target canvas is 1080x1920 (STORY_9_16). Requesting 2K headroom
+// from Gemini avoids upscaling a 1K result through applyScrimAndCopy's final
+// resize, which would look soft. Good to know: some SDK/model builds have
+// been reported to ignore imageConfig.imageSize and always return 1K — this
+// is harmless to request either way, just re-check if output looks soft.
+const IMAGE_SIZE = "2K";
 
-  const parts = response.candidates?.[0]?.content?.parts ?? [];
-  const imagePart = parts.find((part) => part.inlineData?.data);
-  if (imagePart?.inlineData?.data) {
-    return Buffer.from(imagePart.inlineData.data, "base64");
-  }
+function getImageModel() {
+  return process.env.GEMINI_IMAGE_MODEL?.trim() || DEFAULT_MODEL;
+}
 
-  const blockReason = response.promptFeedback?.blockReason;
-  const textPart = parts.find((part) => part.text)?.text;
-  throw new Error(
-    blockReason
-      ? `Gemini bloqueó la generación (${blockReason}).`
-      : textPart
-        ? `Gemini no devolvió una imagen: ${textPart.slice(0, 200)}`
-        : "Gemini no devolvió ninguna imagen."
-  );
+/** Strips the API key out of an error message before it's logged or persisted. */
+function redactSecrets(value: string, apiKey: string): string {
+  if (!apiKey || apiKey.length < 8) return value;
+  return value.split(apiKey).join("[REDACTED]");
 }
 
 /**
@@ -64,6 +54,8 @@ async function callGemini(
  */
 export class GeminiImageProvider implements ImageGenerationService {
   private client: GoogleGenAI;
+  private apiKey: string;
+  private model: string;
 
   constructor(apiKey: string) {
     if (!apiKey) {
@@ -71,7 +63,64 @@ export class GeminiImageProvider implements ImageGenerationService {
         "IMAGE_PROVIDER=gemini requiere GEMINI_API_KEY. Configúrala en .env."
       );
     }
+    this.apiKey = apiKey;
     this.client = new GoogleGenAI({ apiKey });
+    this.model = getImageModel();
+  }
+
+  private async callGemini({
+    prompt,
+    images,
+    aspectRatio,
+  }: {
+    prompt: string;
+    images: Buffer[];
+    aspectRatio: string;
+  }): Promise<Buffer> {
+    const imageParts: Part[] = await Promise.all(
+      images.map(async (buffer) =>
+        createPartFromBase64(buffer.toString("base64"), await detectMimeType(buffer))
+      )
+    );
+
+    let response;
+    try {
+      response = await this.client.models.generateContent({
+        model: this.model,
+        contents: createUserContent([prompt, ...imageParts]),
+        config: {
+          responseModalities: ["IMAGE", "TEXT"],
+          candidateCount: 1,
+          imageConfig: { aspectRatio, imageSize: IMAGE_SIZE },
+          httpOptions: {
+            timeout: REQUEST_TIMEOUT_MS,
+            retryOptions: { attempts: RETRY_ATTEMPTS },
+          },
+        },
+      });
+    } catch (error) {
+      const detail = redactSecrets(
+        error instanceof Error ? error.message : String(error),
+        this.apiKey
+      );
+      throw new Error(`No se pudo generar la imagen con Gemini: ${detail}`);
+    }
+
+    const parts = response.candidates?.[0]?.content?.parts ?? [];
+    const imagePart = parts.find((part) => part.inlineData?.data);
+    if (imagePart?.inlineData?.data) {
+      return Buffer.from(imagePart.inlineData.data, "base64");
+    }
+
+    const blockReason = response.promptFeedback?.blockReason;
+    const textPart = parts.find((part) => part.text)?.text;
+    throw new Error(
+      blockReason
+        ? `Gemini bloqueó la generación (${blockReason}).`
+        : textPart
+          ? `Gemini no devolvió una imagen: ${redactSecrets(textPart.slice(0, 200), this.apiKey)}`
+          : "Gemini no devolvió ninguna imagen."
+    );
   }
 
   async generateCreative(input: RenderCreativeInput): Promise<GeneratedImage> {
@@ -85,7 +134,7 @@ export class GeminiImageProvider implements ImageGenerationService {
       hasProduct: Boolean(input.productImageBuffer),
     });
 
-    const background = await callGemini(this.client, {
+    const background = await this.callGemini({
       prompt,
       images: input.productImageBuffer ? [input.productImageBuffer] : [],
       aspectRatio,
@@ -133,7 +182,7 @@ export class GeminiImageProvider implements ImageGenerationService {
       variantSeed: 0,
       hasProduct: false,
     });
-    const buffer = await callGemini(this.client, { prompt, images: [], aspectRatio });
+    const buffer = await this.callGemini({ prompt, images: [], aspectRatio });
     const resized = await sharp(buffer)
       .resize(format.width, format.height, { fit: "cover" })
       .png()
@@ -149,7 +198,7 @@ export class GeminiImageProvider implements ImageGenerationService {
     const width = bgMeta.width ?? 1080;
     const height = bgMeta.height ?? 1080;
 
-    const buffer = await callGemini(this.client, {
+    const buffer = await this.callGemini({
       prompt: [
         "The first attached image is a background scene. The second attached image is a real product photo.",
         "Blend the product naturally and realistically into the background scene, matching its lighting, perspective, and shadows.",

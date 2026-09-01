@@ -5,7 +5,7 @@ import { buildProductBrief } from "@/lib/product-brief";
 import { analyzeProduct } from "@/lib/services/analysis-engine";
 import { buildConcepts } from "@/lib/services/concept-engine";
 import { generateCopy } from "@/lib/services/copy-service";
-import { imageGeneration } from "@/lib/services/image-generation";
+import { activeImageProviderName, imageGeneration } from "@/lib/services/image-generation";
 import { storage } from "@/lib/services/storage";
 
 function keyFromUrl(url: string) {
@@ -97,6 +97,7 @@ export async function runCampaign(campaignId: string) {
             format: format.id,
             imageUrl: saved.url,
             status: "READY",
+            provider: activeImageProviderName(),
           },
         });
         anyCreativeReady = true;
@@ -108,6 +109,7 @@ export async function runCampaign(campaignId: string) {
             format: format.id,
             status: "FAILED",
             error: error instanceof Error ? error.message : "Error desconocido",
+            provider: activeImageProviderName(),
           },
         });
       }
@@ -186,6 +188,7 @@ export async function regenerateCreative(creativeId: string) {
       version: creative.version + 1,
       imageUrl: saved.url,
       status: "READY",
+      provider: activeImageProviderName(),
     },
   });
 }

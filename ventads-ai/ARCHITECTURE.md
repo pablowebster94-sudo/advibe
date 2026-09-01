@@ -93,14 +93,30 @@ all five with `sharp` + SVG, so the MVP needs no API key.
 
 `IMAGE_PROVIDER=gemini` (`lib/services/providers/gemini-image-provider.ts`)
 uses Google's Gemini image model ("Nano Banana 2" /
-`gemini-3.1-flash-image`) for the parts an AI is actually good at —
-composing a background scene and integrating the real product photo into
-it — while copy stays deterministic. See
+`gemini-3.1-flash-image`, overridable via `GEMINI_IMAGE_MODEL`) for the
+parts an AI is actually good at — composing a background scene and
+integrating the real product photo into it — while copy stays
+deterministic. See
 [Image generation → hybrid AI/local rendering](#image-generation-1) below
 for why it's split this way. Needs `GEMINI_API_KEY`; the provider is
 constructed lazily (only on first actual generation call), so a missing key
 surfaces as a normal failed-creative error rather than crashing the app at
 import time — see `getProvider()` in `image-generation.ts`.
+
+Because a single campaign can trigger up to 15 Gemini calls in one request
+(5 concepts × 3 formats), every call sets an explicit 180s timeout and
+disables the SDK's default auto-retry (`httpOptions.retryOptions.attempts:
+1`) — a failed call must fail loudly, not silently retry into a second
+billable generation or hang the whole campaign. Error messages are also
+scrubbed of the API key before being stored on `Creative.error` or logged
+(`redactSecrets`), in case the SDK ever echoes request config in an error.
+`imageConfig.imageSize` is requested at `"2K"` — our largest target canvas
+is 1080×1920, and asking for headroom avoids `applyScrimAndCopy`'s final
+resize upscaling a soft 1K result. (These three practices — timeout,
+no-retry, secret redaction — match an independent implementation of the
+same model/SDK built for AdVibe's own `/estudio` image tool on a sibling
+branch; useful cross-validation that this is the right way to call this
+particular API.)
 
 Both providers are registered in `createImageGenerationService()`. To add
 another (OpenAI Images, Bedrock Nova Canvas, Replicate, ...): implement the

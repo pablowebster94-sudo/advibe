@@ -104,8 +104,13 @@ class LocalCompositorProvider implements ImageGenerationService {
   }
 }
 
+/** The configured provider name, for tagging Creative rows (see campaign-service.ts). */
+export function activeImageProviderName(): string {
+  return process.env.IMAGE_PROVIDER ?? "local-compositor";
+}
+
 function createImageGenerationService(): ImageGenerationService {
-  const provider = process.env.IMAGE_PROVIDER ?? "local-compositor";
+  const provider = activeImageProviderName();
   switch (provider) {
     case "local-compositor":
       return new LocalCompositorProvider();
