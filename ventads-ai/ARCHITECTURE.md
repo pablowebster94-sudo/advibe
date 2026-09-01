@@ -16,8 +16,8 @@ reaches into the sibling project.
 PRODUCTO → INFORMACIÓN → ANÁLISIS → ESTRATEGIA → CONCEPTO → DISEÑO → COPY → FORMATOS → VARIANTES → EXPORTACIÓN
 ```
 
-Concretely, generating a campaign (`POST /api/campaigns`) runs
-`lib/services/campaign-service.ts#runCampaign`, which:
+Concretely, `POST /api/campaigns` runs
+`lib/services/campaign-service.ts#createCampaignJobs`, which:
 
 1. Loads the `Product` (+ `Brand`, + `ProductImage`s) and builds a
    `ProductBrief` (`lib/product-brief.ts`) — a normalized, Prisma-free view
@@ -31,16 +31,114 @@ Concretely, generating a campaign (`POST /api/campaigns`) runs
 4. `lib/services/copy-service.ts` generates headline/primary text/
    description/CTA/short/long copy per concept, template-based, tracking
    `missingInfo` instead of fabricating anything.
-5. `lib/services/image-generation.ts` → `lib/services/creative-renderer.ts`
-   renders one PNG per concept × format by compositing the untouched
-   product photo over a style-driven background with the copy as vector
-   text (sharp + SVG).
-6. Everything is persisted (`Concept`, `CopyVariant`, `Creative` rows) and
-   files are written through the storage abstraction.
+5. Persists `Concept` + `CopyVariant` rows, and one `Creative` row per
+   concept × format in status `PENDING` — **no image is generated in this
+   request.** Image generation is a background job; see "Async job queue"
+   below. The route returns as soon as these rows exist (real p50 in local
+   testing: well under 100ms).
 
-Regenerating a single creative (`POST /api/creatives/:id/regenerate`) reuses
-the same renderer with a bumped `variantSeed` (different layout) and a
-bumped `version` (old creative rows are kept, never overwritten).
+Regenerating a single creative (`POST /api/creatives/:id/regenerate`)
+creates one more `PENDING` `Creative` row (bumped `version`, same concept +
+format) and returns immediately (202) — old versions are kept, never
+overwritten, and it goes through the same job queue as a fresh campaign.
+
+## Async job queue
+
+**Why:** a campaign can have up to 5 concepts × 3 formats = 15 creatives.
+Generating them synchronously inside `POST /api/campaigns` — the original
+MVP design — means up to 15 sequential calls to an image provider inside
+one HTTP request. Even with Vercel's Fluid Compute `maxDuration` ceilings
+(300s Hobby, 800s Pro), a slow or rate-limited provider could blow through
+that easily, and there is no retry story for a request that times out
+mid-way. Every job now runs as its own, independent invocation instead.
+
+### Job = Creative row
+
+There's no separate `Job` table. A job and the creative it produces are
+1:1 forever, so `Creative` carries the job-tracking fields directly:
+`status` (`PENDING → PROCESSING → COMPLETED`, or back to `PENDING` with
+backoff / on to terminal `FAILED`), `attempts`/`maxAttempts`, `claimedAt`/
+`claimedBy` (invocation id, observability only), `nextAttemptAt` (backoff),
+`startedAt`/`completedAt`.
+
+### Atomic claim (`lib/services/job-queue.ts#claimNextJob`)
+
+Portable across SQLite and PostgreSQL using only Prisma's standard query
+API — no raw SQL, no `SELECT ... FOR UPDATE SKIP LOCKED`. Candidate
+selection (`findMany`) and the claim (`updateMany`) are separate steps, but
+the claim's `WHERE` re-checks `status IN (PENDING, FAILED)` on that exact
+row — if two callers picked the same candidate, only one `updateMany` can
+still see it claimable; the loser's update matches zero rows. Verified
+under real concurrency in `job-queue.test.ts`: 20 concurrent claimers
+against 8 jobs claim each exactly once. That test caught a real bug on
+first run (a single static candidate batch meant jobs ranked below the
+batch size were never reconsidered once contested — fixed by re-fetching
+across up to 10 rounds instead of giving up after one).
+
+### Dispatch (`lib/services/job-dispatch.ts`)
+
+Not Vercel Cron as the primary mechanism — its minimum interval is once a
+day on the Hobby plan, unusable for timely dispatch. Instead: **self-
+perpetuating HTTP chains.** `POST /api/campaigns` (and regenerate) fire
+`JOB_CONCURRENCY` (default 1, tested at 3) parallel kicks to `POST
+/api/jobs/process`; each invocation claims and processes exactly one job,
+then — if there's more claimable work for that campaign — kicks itself
+again before returning. This is deliberately the *only* mechanism that
+needs `waitUntil`-style durability, and only for one thing: making sure the
+kick's `fetch()` is actually sent before the invocation's response flushes
+and the process may be frozen/recycled. Uses Next.js's `after()` (from
+`next/server`), which works identically self-hosted (`next start`) and on
+Vercel (backed by the platform's `waitUntil` there).
+
+**`after()`/`waitUntil()` is explicitly NOT the durability mechanism for
+the job itself** — it only extends one invocation's lifetime up to its own
+`maxDuration`; if the process dies (deploy, crash, platform hiccup) mid-way
+for any reason, anything not yet persisted is gone, no retry, no trace.
+Durability comes entirely from persisting `PENDING` rows in Postgres/SQLite
+*before* any dispatch is attempted — a kick can fail for any reason
+(network blip, misconfigured `APP_URL`, Deployment Protection intercepting
+the call) and the affected jobs simply stay `PENDING`, safely recoverable
+by the next successful kick from anywhere (another dispatch, the sweep).
+Kicks never throw back into their caller; failures are logged
+(`[job-dispatch] worker kick failed: ...`) and swallowed by design.
+
+`APP_URL` (not `VERCEL_URL`, which is per-deployment and changes on every
+deploy/preview) must be set explicitly in production — `lib/services/job-
+dispatch.ts#resolveAppUrl` throws if it's missing there (defaults to
+`http://localhost:3000` outside production). If the project has Vercel
+Deployment Protection enabled, its SSO/password gate would otherwise
+intercept our own self-chain calls silently; setting
+`VERCEL_AUTOMATION_BYPASS_SECRET` (auto-injected once you configure
+"Protection Bypass for Automation" in the Vercel project) makes the
+dispatcher send `x-vercel-protection-bypass` automatically — harmless and
+unused if Deployment Protection is off.
+
+### Worker (`POST /api/jobs/process`)
+
+Auth-gated by `CRON_SECRET` (`Authorization: Bearer`, checked by
+`lib/auth.ts#isWorkerRequestAuthorized`, shared with the sweep). `maxDuration
+= 240` — Gemini's own request timeout is 180s
+(`lib/services/providers/gemini-image-provider.ts`), so this leaves ~60s of
+margin for compositing/DB/storage/the next kick. Claims one job, calls
+`campaign-service.ts#processClaimedJob` (renders the creative, saves it,
+updates the row — on failure, backoff-and-retry or terminal `FAILED`
+depending on `attempts` vs `maxAttempts`), finalizes the campaign's status
+if that was its last open job, and re-kicks itself if there's more work.
+
+### Sweep (`GET /api/cron/sweep`, `vercel.json`)
+
+Safety net, not primary dispatch — see above on why cron alone can't be.
+Same `CRON_SECRET` auth (Vercel auto-attaches it to real cron invocations).
+Three jobs per run: reclaim `PROCESSING` rows abandoned for >5 minutes
+(comfortably longer than the worker's own 240s `maxDuration` — anything
+still `PROCESSING` past that was killed mid-flight, not genuinely still
+running) back to `PENDING`; finalize any campaign whose status was never
+closed out; and directly process a small batch (5) of any otherwise-
+orphaned globally-pending jobs — in-process, not via another HTTP kick, so
+it works even if `APP_URL` itself is the thing that's broken. The
+`vercel.json` schedule (`*/5 * * * *`) needs Pro or higher — Hobby will
+reject anything more frequent than daily at deploy time; fall back to e.g.
+`"0 3 * * *"` there.
 
 ## Data model (`prisma/schema.prisma`)
 
@@ -203,8 +301,12 @@ All of it lives in `.env` / `.env.example`:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | `file:./dev.db` | SQLite file path |
+| `CRON_SECRET` | *(required)* | Auth for `/api/jobs/process` and `/api/cron/sweep`; also set in Vercel's project settings |
+| `APP_URL` | `http://localhost:3000` outside prod, else required | This app's own URL, for the self-chaining worker dispatch — not `VERCEL_URL` |
+| `JOB_CONCURRENCY` | `1` | Parallel worker chains per campaign; tested at `3` |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | — | Only if Vercel Deployment Protection is on; auto-injected by Vercel |
 | `STORAGE_PROVIDER` | `local` | `local` \| (add your own) |
-| `IMAGE_PROVIDER` | `local-compositor` | `local-compositor` \| (add your own) |
+| `IMAGE_PROVIDER` | `local-compositor` | `local-compositor` \| `gemini` |
 | `COPY_PROVIDER` | `template` | reserved for a future LLM-backed engine |
 
 No secret is required to run the MVP. Provider API keys (documented but
