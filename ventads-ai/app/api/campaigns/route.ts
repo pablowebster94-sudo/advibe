@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { runCampaign } from "@/lib/services/campaign-service";
+import { createCampaignJobs } from "@/lib/services/campaign-service";
 import { campaignInputSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -39,15 +39,18 @@ export async function POST(request: Request) {
   });
 
   try {
-    await runCampaign(campaign.id);
+    // Fast, local, synchronous: creates Concepts/CopyVariants + PENDING
+    // Creative jobs, and dispatches the background workers. No image
+    // generation happens in this request.
+    await createCampaignJobs(campaign.id);
   } catch (error) {
-    console.error("Campaign generation failed", error);
+    console.error("Campaign setup failed", error);
     await prisma.campaign.update({
       where: { id: campaign.id },
       data: { status: "FAILED" },
     });
     return NextResponse.json(
-      { error: "No se pudieron generar las creatividades." },
+      { error: "No se pudo preparar la campaña." },
       { status: 500 }
     );
   }

@@ -93,3 +93,24 @@ export async function claimNextJob({
 
   return null;
 }
+
+/**
+ * Whether there's any claimable (PENDING/retriable-FAILED, backoff elapsed)
+ * job left. Same same-row `attempts < maxAttempts` limitation as
+ * `claimNextJob` — filtered in application code over a bounded batch
+ * rather than expressed in the WHERE clause.
+ */
+export async function hasClaimableWork(campaignId?: string): Promise<boolean> {
+  const now = new Date();
+  const candidates = await prisma.creative.findMany({
+    where: {
+      status: { in: [...CLAIMABLE_STATUSES] },
+      OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: now } }],
+      ...(campaignId ? { concept: { campaignId } } : {}),
+    },
+    orderBy: { createdAt: "asc" },
+    take: CANDIDATE_BATCH_SIZE,
+    select: { attempts: true, maxAttempts: true },
+  });
+  return candidates.some((row) => row.attempts < row.maxAttempts);
+}

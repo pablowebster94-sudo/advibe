@@ -20,12 +20,14 @@ export async function POST(
   }
 
   try {
-    const updated = await regenerateCreative(id);
-    return NextResponse.json({ creative: updated });
+    // Creates a new PENDING job (next version) and dispatches a worker —
+    // does not wait for the image to actually be generated.
+    const created = await regenerateCreative(id);
+    return NextResponse.json({ creative: created }, { status: 202 });
   } catch (error) {
-    console.error("Regenerate failed", error);
+    console.error("Regenerate setup failed", error);
     return NextResponse.json(
-      { error: "No se pudo regenerar la creatividad." },
+      { error: "No se pudo iniciar la regeneración." },
       { status: 500 }
     );
   }

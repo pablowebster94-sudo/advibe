@@ -27,7 +27,7 @@ function latestReadyByConceptFormat(
       if (!current || creative.version > current.version) byFormat.set(creative.format, creative);
     }
     for (const creative of byFormat.values()) {
-      if (creative.status === "READY" && creative.imageUrl) {
+      if (creative.status === "COMPLETED" && creative.imageUrl) {
         items.push({
           label: `${getConceptType(concept.type).label}-${getFormat(creative.format).label}`,
           imageUrl: creative.imageUrl,
