@@ -159,7 +159,7 @@ Design choices worth calling out:
   labels/metadata. Adding a new advertising format (Stories, Marketplace, a
   banner size) or a 6th concept angle is one object in a catalog file — no
   migration (AGENTS.md #4/#5).
-- **`ProductImage.url` is never overwritten.** Creatives are separate rows
+- **`ProductImage.key` is never overwritten.** Creatives are separate rows
   with their own `imageUrl`, pointing at a separate file. The original
   upload is immutable (AGENTS.md #15).
 - **`Creative.version`** — regenerating never deletes the previous result;
@@ -175,11 +175,25 @@ environment variable, without touching any caller:
 ### Storage
 
 `lib/services/storage.ts` exports `StorageService` (`save`, `read`,
-`urlFor`). `STORAGE_PROVIDER=local` (default) writes to `./storage` on disk
-and serves files through `app/api/files/[...path]/route.ts`. To add S3:
-implement a class satisfying the interface, register it in
-`createStorageService()`, and point `urlFor` at the bucket's public URL (or
-keep proxying through the API route for private buckets).
+`urlFor`). Every row that goes through it (`Brand.logoKey`,
+`ProductImage.key`, `Creative.imageKey`) stores the object **key**, never a
+URL — `urlFor(key)` resolves a URL at read time, right before an API
+response or a Server Component renders (see `lib/serialize.ts`). This
+matters because a real object-store URL is either not stable (a signed URL
+expires) or shouldn't be public at all; resolving on every read means the
+bucket can be private and the DB never goes stale.
+
+`STORAGE_PROVIDER=local` (default) writes to `./storage` on disk and serves
+files through `app/api/files/[...path]/route.ts` — fine for a single
+long-lived server, **not** for Vercel (ephemeral filesystem per
+invocation). `STORAGE_PROVIDER=s3` (`S3StorageService`) targets any
+S3-API-compatible bucket via `@aws-sdk/client-s3` +
+`@aws-sdk/s3-request-presigner`: real AWS S3, or an S3-compatible store
+like Cloudflare R2 (recommended here — zero egress fees fit this app's
+read-heavy image serving) or Supabase Storage. `urlFor` signs a GET URL
+valid for `S3_SIGNED_URL_TTL_SECONDS` (default 1h). See `.env.example` for
+the full variable list (`S3_BUCKET`, `AWS_REGION`, `S3_ENDPOINT`,
+`S3_FORCE_PATH_STYLE`, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`).
 
 ### Image generation
 
@@ -281,7 +295,7 @@ product photo:
   alter the product.
 - The renderer only ever resizes the photo with `fit: "contain"` (no crop,
   no distortion) and composites it onto a separate background layer. The
-  original `ProductImage.url` row is never rewritten; every creative is a
+  original `ProductImage.key` row is never rewritten; every creative is a
   new file.
 
 ## Auth
@@ -305,7 +319,11 @@ All of it lives in `.env` / `.env.example`:
 | `APP_URL` | `http://localhost:3000` outside prod, else required | This app's own URL, for the self-chaining worker dispatch — not `VERCEL_URL` |
 | `JOB_CONCURRENCY` | `1` | Parallel worker chains per campaign; tested at `3` |
 | `VERCEL_AUTOMATION_BYPASS_SECRET` | — | Only if Vercel Deployment Protection is on; auto-injected by Vercel |
-| `STORAGE_PROVIDER` | `local` | `local` \| (add your own) |
+| `STORAGE_PROVIDER` | `local` | `local` \| `s3` (AWS S3 or any S3-compatible store, e.g. Cloudflare R2) |
+| `S3_BUCKET` / `AWS_REGION` | — | Required when `STORAGE_PROVIDER=s3` |
+| `S3_ENDPOINT` / `S3_FORCE_PATH_STYLE` | — | Set for R2/non-AWS stores; leave unset for real AWS S3 |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | — | Falls back to the AWS SDK's default credential chain if unset |
+| `S3_SIGNED_URL_TTL_SECONDS` | `3600` | How long a signed read URL stays valid |
 | `IMAGE_PROVIDER` | `local-compositor` | `local-compositor` \| `gemini` |
 | `COPY_PROVIDER` | `template` | reserved for a future LLM-backed engine |
 
