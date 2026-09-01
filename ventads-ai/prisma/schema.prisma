@@ -28,7 +28,7 @@ model Brand {
   userId        String
   user          User      @relation(fields: [userId], references: [id])
   name          String
-  logoUrl       String?
+  logoKey       String? // storage key, resolved to a URL at read time via StorageService.urlFor()
   colors        String? // JSON array of hex colors, e.g. ["#0F172A","#F97316"]
   fontFamily    String?
   contactPhone  String?
@@ -76,14 +76,17 @@ enum ImageRole {
   REFERENCE
 }
 
-// Uploaded files. `url` always points at the untouched original — nothing in
-// this system ever overwrites it (see AGENTS.md #15).
+// Uploaded files. `key` always points at the untouched original — nothing
+// in this system ever overwrites it (see AGENTS.md #15). It's a storage
+// key (StorageService), not a URL — resolved to one at read time, so
+// switching storage providers (local disk -> S3-compatible) never leaves a
+// stale URL baked into the database. See ARCHITECTURE.md -> "Storage".
 model ProductImage {
   id         String     @id @default(cuid())
   productId  String
   product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   role       ImageRole  @default(PRODUCT)
-  url        String
+  key        String
   width      Int?
   height     Int?
   sortOrder  Int        @default(0)
@@ -156,9 +159,9 @@ model Creative {
 
   // Job lifecycle: PENDING -> PROCESSING -> COMPLETED, or -> FAILED (via
   // PENDING again on a retriable error, see ARCHITECTURE.md → Async job
-  // queue). A freshly created row starts PENDING and has no imageUrl yet.
+  // queue). A freshly created row starts PENDING and has no imageKey yet.
   status          String        @default("PENDING")
-  imageUrl        String?
+  imageKey        String? // storage key, resolved to a URL at read time
   provider        String        @default("local-compositor")
   error           String?
 

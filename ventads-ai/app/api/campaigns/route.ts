@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withResolvedConcepts } from "@/lib/serialize";
 import { createCampaignJobs } from "@/lib/services/campaign-service";
 import { campaignInputSchema } from "@/lib/validation";
 
@@ -55,10 +56,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await prisma.campaign.findUnique({
+  const result = await prisma.campaign.findUniqueOrThrow({
     where: { id: campaign.id },
     include: campaignInclude,
   });
 
-  return NextResponse.json({ campaign: result }, { status: 201 });
+  return NextResponse.json(
+    { campaign: { ...result, concepts: await withResolvedConcepts(result.concepts) } },
+    { status: 201 }
+  );
 }

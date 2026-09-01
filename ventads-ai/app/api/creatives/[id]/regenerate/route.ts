@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withResolvedCreativeUrl } from "@/lib/serialize";
 import { regenerateCreative } from "@/lib/services/campaign-service";
 
 export const runtime = "nodejs";
@@ -23,7 +24,10 @@ export async function POST(
     // Creates a new PENDING job (next version) and dispatches a worker —
     // does not wait for the image to actually be generated.
     const created = await regenerateCreative(id);
-    return NextResponse.json({ creative: created }, { status: 202 });
+    return NextResponse.json(
+      { creative: await withResolvedCreativeUrl(created) },
+      { status: 202 }
+    );
   } catch (error) {
     console.error("Regenerate setup failed", error);
     return NextResponse.json(

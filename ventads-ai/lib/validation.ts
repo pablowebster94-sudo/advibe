@@ -3,7 +3,7 @@ import { OBJECTIVES } from "@/lib/catalog/objectives";
 import { STYLES } from "@/lib/catalog/styles";
 
 const imageInput = z.object({
-  url: z.string().min(1),
+  key: z.string().min(1),
   role: z.enum(["PRODUCT", "LOGO", "REFERENCE"]).default("PRODUCT"),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
@@ -29,7 +29,7 @@ export const productInputSchema = z.object({
 
 export const brandInputSchema = z.object({
   name: z.string().min(1).max(120),
-  logoUrl: z.string().optional(),
+  logoKey: z.string().optional(),
   colors: z.array(z.string().regex(/^#[0-9a-f]{6}$/i)).max(6).optional(),
   fontFamily: z.string().max(60).optional(),
   contactPhone: z.string().max(40).optional(),

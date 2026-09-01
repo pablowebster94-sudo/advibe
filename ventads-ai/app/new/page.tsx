@@ -55,7 +55,7 @@ export default function NewProductPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: state.brand.name,
-            logoUrl: state.brand.logo?.url,
+            logoKey: state.brand.logo?.key,
             defaultCta: state.brand.defaultCta || undefined,
             contactPhone: state.brand.contactPhone || undefined,
             contactEmail: state.brand.contactEmail || undefined,

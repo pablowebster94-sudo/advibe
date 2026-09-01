@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 
-export type CampaignWithResults = Prisma.CampaignGetPayload<{
+type RawCampaign = Prisma.CampaignGetPayload<{
   include: {
     product: { include: { images: true; brand: true } };
     concepts: {
@@ -9,5 +9,18 @@ export type CampaignWithResults = Prisma.CampaignGetPayload<{
   };
 }>;
 
-export type ConceptWithResults = CampaignWithResults["concepts"][number];
-export type CreativeResult = ConceptWithResults["creatives"][number];
+type RawCreative = RawCampaign["concepts"][number]["creatives"][number];
+
+// `imageKey` (a storage key) is resolved to `imageUrl` before this ever
+// reaches a client — see lib/serialize.ts#withResolvedCreativeUrl.
+export type CreativeResult = Omit<RawCreative, "imageKey"> & {
+  imageUrl: string | null;
+};
+
+export type ConceptWithResults = Omit<RawCampaign["concepts"][number], "creatives"> & {
+  creatives: CreativeResult[];
+};
+
+export type CampaignWithResults = Omit<RawCampaign, "concepts"> & {
+  concepts: ConceptWithResults[];
+};

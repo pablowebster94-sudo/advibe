@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { storage } from "@/lib/services/storage";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ProductCard";
 
@@ -16,6 +17,11 @@ export default async function ProductsPage() {
       campaigns: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
+  const imageUrls = await Promise.all(
+    products.map((product) =>
+      product.images[0] ? storage.urlFor(product.images[0].key) : Promise.resolve(null)
+    )
+  );
 
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-10">
@@ -36,7 +42,7 @@ export default async function ProductsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
+          {products.map((product, index) => (
             <ProductCard
               key={product.id}
               href={`/products/${product.id}`}
@@ -44,7 +50,7 @@ export default async function ProductsPage() {
                 .filter(Boolean)
                 .join(" ")}
               category={product.category}
-              imageUrl={product.images[0]?.url ?? null}
+              imageUrl={imageUrls[index]}
               status={product.campaigns[0]?.status ?? null}
             />
           ))}

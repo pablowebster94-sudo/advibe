@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { OBJECTIVES } from "@/lib/catalog/objectives";
 import { STYLES } from "@/lib/catalog/styles";
+import { withResolvedConcepts } from "@/lib/serialize";
 import { ResultsView } from "@/components/results/ResultsView";
 import { Button } from "@/components/ui/Button";
 
@@ -31,6 +32,8 @@ export default async function ResultsPage({
   });
 
   if (!campaign) notFound();
+
+  const resolvedCampaign = { ...campaign, concepts: await withResolvedConcepts(campaign.concepts) };
 
   const title = [campaign.product.manufacturer, campaign.product.name, campaign.product.model]
     .filter(Boolean)
@@ -60,7 +63,7 @@ export default async function ResultsPage({
         </a>
       </div>
 
-      <ResultsView campaign={campaign} />
+      <ResultsView campaign={resolvedCampaign} />
     </div>
   );
 }

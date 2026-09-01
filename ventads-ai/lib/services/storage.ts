@@ -15,7 +15,13 @@ export interface StorageService {
     extension: string;
   }): Promise<{ key: string; url: string }>;
   read(key: string): Promise<Buffer>;
-  urlFor(key: string): string;
+  /**
+   * Async because a real S3-compatible provider signs a time-limited URL on
+   * every call (no stable URL can be cached in the DB — see
+   * ARCHITECTURE.md → "Storage"). The local provider is trivially async
+   * (no signing needed) so both implementations share this signature.
+   */
+  urlFor(key: string): Promise<string>;
 }
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage");
@@ -38,14 +44,14 @@ class LocalStorageService implements StorageService {
     const key = `${safeFolder}/${filename}`;
     await writeFile(path.join(STORAGE_ROOT, key), buffer);
 
-    return { key, url: this.urlFor(key) };
+    return { key, url: await this.urlFor(key) };
   }
 
   async read(key: string) {
     return readFile(this.resolveSafePath(key));
   }
 
-  urlFor(key: string) {
+  async urlFor(key: string) {
     return `/api/files/${key}`;
   }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withResolvedImageUrl } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
@@ -22,5 +23,8 @@ export async function GET(
   if (!product) {
     return NextResponse.json({ error: "Producto no encontrado." }, { status: 404 });
   }
-  return NextResponse.json({ product });
+
+  const images = await Promise.all(product.images.map(withResolvedImageUrl));
+
+  return NextResponse.json({ product: { ...product, images } });
 }

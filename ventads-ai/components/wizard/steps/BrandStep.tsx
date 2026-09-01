@@ -9,7 +9,7 @@ import type { BrandFormState } from "@/lib/wizard-types";
 type SavedBrand = {
   id: string;
   name: string;
-  logoUrl: string | null;
+  logoKey: string | null;
   defaultCta: string | null;
 };
 

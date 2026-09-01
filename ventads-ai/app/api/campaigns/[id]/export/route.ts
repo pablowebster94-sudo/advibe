@@ -8,18 +8,14 @@ import { storage } from "@/lib/services/storage";
 
 export const runtime = "nodejs";
 
-function keyFromUrl(url: string) {
-  return url.replace(/^\/api\/files\//, "");
-}
-
 function latestReadyByConceptFormat(
   concepts: {
     id: string;
     type: string;
-    creatives: { format: string; version: number; status: string; imageUrl: string | null }[];
+    creatives: { format: string; version: number; status: string; imageKey: string | null }[];
   }[]
 ) {
-  const items: { label: string; imageUrl: string }[] = [];
+  const items: { label: string; imageKey: string }[] = [];
   for (const concept of concepts) {
     const byFormat = new Map<string, (typeof concept.creatives)[number]>();
     for (const creative of concept.creatives) {
@@ -27,10 +23,10 @@ function latestReadyByConceptFormat(
       if (!current || creative.version > current.version) byFormat.set(creative.format, creative);
     }
     for (const creative of byFormat.values()) {
-      if (creative.status === "COMPLETED" && creative.imageUrl) {
+      if (creative.status === "COMPLETED" && creative.imageKey) {
         items.push({
           label: `${getConceptType(concept.type).label}-${getFormat(creative.format).label}`,
-          imageUrl: creative.imageUrl,
+          imageKey: creative.imageKey,
         });
       }
     }
@@ -58,7 +54,7 @@ export async function GET(
   const archive = new ZipArchive({ zlib: { level: 9 } });
 
   for (const item of items) {
-    const buffer = await storage.read(keyFromUrl(item.imageUrl));
+    const buffer = await storage.read(item.imageKey);
     const safeName = item.label
       .normalize("NFKD")
       .replace(/[^\w\s-]/g, "")

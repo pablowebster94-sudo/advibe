@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withResolvedConcepts, withResolvedImageUrl } from "@/lib/serialize";
 
 export const runtime = "nodejs";
 
@@ -27,5 +28,11 @@ export async function GET(
   if (!campaign) {
     return NextResponse.json({ error: "Campaña no encontrada." }, { status: 404 });
   }
-  return NextResponse.json({ campaign });
+
+  const concepts = await withResolvedConcepts(campaign.concepts);
+  const productImages = await Promise.all(campaign.product.images.map(withResolvedImageUrl));
+
+  return NextResponse.json({
+    campaign: { ...campaign, concepts, product: { ...campaign.product, images: productImages } },
+  });
 }

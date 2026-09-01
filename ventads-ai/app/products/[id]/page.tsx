@@ -6,6 +6,7 @@ import { OBJECTIVES } from "@/lib/catalog/objectives";
 import { STYLES } from "@/lib/catalog/styles";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withResolvedImageUrl } from "@/lib/serialize";
 import { NewCampaignForm } from "@/components/NewCampaignForm";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +40,11 @@ export default async function ProductDetailPage({
     .join(" ");
   const categoryLabel =
     CATEGORIES.find((c) => c.id === product.category)?.label ?? product.category;
-  const productImages = product.images.filter((image) => image.role === "PRODUCT");
+  const productImages = await Promise.all(
+    product.images
+      .filter((image) => image.role === "PRODUCT")
+      .map(withResolvedImageUrl)
+  );
 
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-10">

@@ -21,7 +21,7 @@ export type ProductBrief = {
   brandName: string | null;
   brandCta: string | null;
   brandContact: string | null;
-  logoUrl: string | null;
+  logoKey: string | null;
   brandColors: string[] | null;
 };
 
@@ -58,7 +58,7 @@ export function buildProductBrief(
     brandName: brand?.name ?? null,
     brandCta: brand?.defaultCta ?? null,
     brandContact: brand?.contactPhone || brand?.contactEmail || null,
-    logoUrl: brand?.logoUrl ?? null,
+    logoKey: brand?.logoKey ?? null,
     brandColors,
   };
 }

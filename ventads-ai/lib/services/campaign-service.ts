@@ -10,10 +10,6 @@ import { activeImageProviderName, imageGeneration } from "@/lib/services/image-g
 import { currentJobConcurrency, dispatchWorkers } from "@/lib/services/job-dispatch";
 import { storage } from "@/lib/services/storage";
 
-function keyFromUrl(url: string) {
-  return url.replace(/^\/api\/files\//, "");
-}
-
 // Backoff before a retriable job becomes claimable again, indexed by
 // attempts-so-far (1st failure -> 10s, 2nd -> 60s, 3rd+ -> 300s). Keeps a
 // transient Gemini error from being hammered immediately, without needing
@@ -113,13 +109,13 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
     const brief = buildProductBrief(product, product.brand);
     const productImage = product.images.find((image) => image.role === "PRODUCT");
     const productImageBuffer = productImage
-      ? await storage.read(keyFromUrl(productImage.url))
+      ? await storage.read(productImage.key)
       : null;
     const logoImage = product.images.find((image) => image.role === "LOGO");
     const logoBuffer = logoImage
-      ? await storage.read(keyFromUrl(logoImage.url))
-      : product.brand?.logoUrl
-        ? await storage.read(keyFromUrl(product.brand.logoUrl)).catch(() => null)
+      ? await storage.read(logoImage.key)
+      : product.brand?.logoKey
+        ? await storage.read(product.brand.logoKey).catch(() => null)
         : null;
 
     // version 1 (first generation) -> variantSeed 0; each regeneration
@@ -148,7 +144,7 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       where: { id: creative.id },
       data: {
         status: "COMPLETED",
-        imageUrl: saved.url,
+        imageKey: saved.key,
         provider: activeImageProviderName(),
         completedAt: new Date(),
         error: null,

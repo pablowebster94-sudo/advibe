@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withResolvedImageUrl } from "@/lib/serialize";
 import { productInputSchema } from "@/lib/validation";
 
 export const runtime = "nodejs";
@@ -12,7 +13,15 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: { images: true, brand: true },
   });
-  return NextResponse.json({ products });
+
+  const resolved = await Promise.all(
+    products.map(async (product) => ({
+      ...product,
+      images: await Promise.all(product.images.map(withResolvedImageUrl)),
+    }))
+  );
+
+  return NextResponse.json({ products: resolved });
 }
 
 export async function POST(request: Request) {
@@ -44,7 +53,7 @@ export async function POST(request: Request) {
       brandId: brandId || undefined,
       images: {
         create: images.map((image, index) => ({
-          url: image.url,
+          key: image.key,
           role: image.role,
           width: image.width,
           height: image.height,
@@ -55,5 +64,10 @@ export async function POST(request: Request) {
     include: { images: true, brand: true },
   });
 
-  return NextResponse.json({ product }, { status: 201 });
+  const resolvedImages = await Promise.all(product.images.map(withResolvedImageUrl));
+
+  return NextResponse.json(
+    { product: { ...product, images: resolvedImages } },
+    { status: 201 }
+  );
 }
