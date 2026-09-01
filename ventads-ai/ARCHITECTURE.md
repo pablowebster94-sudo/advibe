@@ -300,13 +300,25 @@ product photo:
 
 ## Auth
 
-There is no real authentication yet. `lib/auth.ts#getCurrentUser()`
-resolves (and lazily creates) a single implicit demo user
-(`demo@ventads.ai`). Every `Brand` and `Product` row already carries a
-`userId` foreign key, so swapping in real auth (NextAuth, Clerk, ...) later
-means replacing the body of `getCurrentUser()` with a real session lookup —
-no data model change, no route handler changes (they all already scope
-queries by `userId`).
+Two independent layers, deliberately not merged:
+
+- **App gate (`proxy.ts`):** whole-app HTTP Basic Auth, one shared
+  `BASIC_AUTH_USER`/`BASIC_AUTH_PASSWORD` pair. "Simple y suficiente" —
+  this exists specifically so an unauthenticated third party can't call
+  `/api/campaigns` and burn the deployment's real, billable
+  `GEMINI_API_KEY`. Required in production (fails closed with a 500 if
+  unset, rather than silently serving the app unauthenticated); optional
+  in local dev. Excludes `/api/jobs/process` and `/api/cron/sweep`, which
+  carry their own `CRON_SECRET` bearer auth for server-to-server calls
+  (self-chain dispatch, Vercel Cron) — mixing the two schemes on those
+  routes would break both.
+- **User model (`lib/auth.ts#getCurrentUser()`):** no real per-user
+  sessions yet — resolves (and lazily creates) a single implicit demo user
+  (`demo@ventads.ai`). Every `Brand` and `Product` row already carries a
+  `userId` foreign key, so swapping in real multi-user auth (NextAuth,
+  Clerk, ...) later means replacing the body of `getCurrentUser()` with a
+  real session lookup — no data model change, no route handler changes
+  (they all already scope queries by `userId`).
 
 ## Configuration
 
@@ -315,6 +327,7 @@ All of it lives in `.env` / `.env.example`:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | `file:./dev.db` | SQLite file path |
+| `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` | *(required in prod)* | Whole-app Basic Auth gate (`proxy.ts`); optional locally |
 | `CRON_SECRET` | *(required)* | Auth for `/api/jobs/process` and `/api/cron/sweep`; also set in Vercel's project settings |
 | `APP_URL` | `http://localhost:3000` outside prod, else required | This app's own URL, for the self-chaining worker dispatch — not `VERCEL_URL` |
 | `JOB_CONCURRENCY` | `1` | Parallel worker chains per campaign; tested at `3` |
