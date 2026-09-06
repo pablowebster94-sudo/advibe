@@ -10,6 +10,9 @@
 ## Esperando a Pablo
 
 - Sacar métricas de la campaña activa del administrador de anuncios
+- Enviar a la dueña el mensaje de `salidas/latin-eagle/mensaje-duena-2026-09-06.md`
+  (falta su nombre para reemplazar `[nombre]`)
+- Llenar los precios de `conocimiento/servicios-precios.md`
 
 ## Esperando al cliente
 
