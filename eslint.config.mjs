@@ -9,9 +9,10 @@ const eslintConfig = defineConfig([
     rules: {
       // Visual Flow renders generated data URLs directly; these are not remote site images.
       "@next/next/no-img-element": "off",
+      // Visual Flow also serves as a standalone preview surface, so root navigation uses an anchor.
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
     ".next/**",
     "out/**",
