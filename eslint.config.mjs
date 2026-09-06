@@ -5,9 +5,15 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  {
+    rules: {
+      // Visual Flow renders generated data URLs directly; these are not remote site images.
+      "@next/next/no-img-element": "off",
+      // Visual Flow also serves as a standalone preview surface, so root navigation uses an anchor.
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
