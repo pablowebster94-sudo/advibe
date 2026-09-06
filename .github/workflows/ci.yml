@@ -18,11 +18,23 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint root app
         run: npm run lint
 
-      - name: Build
+      - name: Build root app
+        run: npm run build
+
+      - name: Install ventADS dependencies
+        working-directory: ventads-ai
+        run: npm ci
+
+      - name: Lint ventADS
+        working-directory: ventads-ai
+        run: npm run lint
+
+      - name: Build ventADS
+        working-directory: ventads-ai
         run: npm run build
