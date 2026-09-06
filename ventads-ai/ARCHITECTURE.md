@@ -380,6 +380,40 @@ No secret is required to run the MVP. Provider API keys (documented but
 commented out in `.env.example`) are only read inside the matching
 provider class, never in a route handler, never sent to the client.
 
+## Deployment
+
+`../.github/workflows/deploy-ventads.yml` (repo root — GitHub only reads
+workflows from there, but its `working-directory` is scoped to
+`ventads-ai/` and it never touches the AdVibe site) builds and deploys to
+Vercel on every push to `claude/ventads-ai-platform-huo7d1` that touches
+this directory, or on manual dispatch. It runs on GitHub's own runners
+specifically because it may need to work from a sandbox whose network
+policy blocks `vercel.com` directly.
+
+One-time setup, done once from a machine with real access to
+vercel.com (not required per-deploy after this):
+
+1. On vercel.com: **Add New -> Project**, import this GitHub repo,
+   set **Root Directory** to `ventads-ai`. This is only needed to create
+   the project + get its IDs — the CI workflow doesn't depend on the
+   dashboard's root-directory setting since it already runs from
+   `ventads-ai/`.
+2. In that project's **Settings -> Environment Variables**, set every
+   variable from the Configuration table above marked *(required)* or
+   *(required in prod)*, plus the `STORAGE_PROVIDER=s3` block if using
+   S3/R2. `APP_URL` gets filled in with the deployment's real URL after
+   the first deploy, then redeploy once.
+3. In the GitHub repo's **Settings -> Secrets and variables -> Actions**,
+   add three repository secrets the workflow needs to talk to Vercel's
+   API (never the app's own env vars above — those live in Vercel, not
+   GitHub):
+   - `VERCEL_TOKEN` — from vercel.com/account/tokens
+   - `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` — from that project's
+     Settings -> General
+4. After the first deploy, run `npm run db:deploy` once from anywhere
+   with network access to the `DATABASE_URL` in use, to apply the
+   committed migration.
+
 ## Security notes
 
 - Uploads are validated by MIME type, size (≤10MB), dimensions, and
