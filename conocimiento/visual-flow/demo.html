@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <!-- Chosen Palette: Slate Neutral with Indigo and Warm Amber/Coral Accents -->
+    <!-- Application Structure Plan:
+        1. Navigation Header: Branding and tab switching (Simulador, Cerebro de Marca, Métricas y Arquitectura).
+        2. Stage Pipeline Simulator: Interactive real-time pipeline demonstrating Stage 1 (Intérprete/Brief JSON), Stage 2 (Director de Arte/Prompt Técnico), Stage 3 (Generación de Imagen en Canvas), Stage 4 (Control de Calidad y Composición con Texto). Includes preset prompts, brand switching, aspect ratio toggling, and editable live typography overlay.
+        3. Brand Brain DB: Interactive management of client brand guidelines (colors, restrictions, photo style) with live client creation/editing.
+        4. Metrics & Performance Dashboard: Chart.js visualizations showing time savings (45min vs 2min), production volume, format breakdown, and ROI.
+        5. Architecture & Setup: Interactive diagram of Make.com flow and Python code inspector.
+        This design translates the entire AdVibe Visual Flow methodology into a working interactive web application that demonstrates the practical value and workflow.
+    -->
+    <!-- Visualization & Content Choices:
+        - Interactive Canvas Render: Used to generate the base image, apply negative space highlights, and overlay dynamic typography (NO SVG).
+        - Chart.js Bar Chart: To compare traditional production time vs. AdVibe Visual Flow.
+        - Chart.js Doughnut Chart: To show format distribution breakdown (Instagram 4:5, Story 9:16, Square 1:1).
+        - Chart.js Line Chart: To show weekly visual asset production and reduction in client revisions.
+        - HTML/CSS Diagrams: Structured workflow cards representing Make.com modules with live status toggles (NO SVG/Mermaid).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdVibe Visual Flow - Engine & Dashboard</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        advibe: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        },
+                        brand: {
+                            orange: '#FF5733',
+                            navy: '#2C3E50',
+                            beige: '#F5F5DC',
+                            warmgrey: '#808080'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+            }
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #0f172a;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .gradient-border {
+            background: linear-gradient(135deg, #6366f1, #f43f5e);
+            padding: 2px;
+            border-radius: 1rem;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased flex flex-col font-sans">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 border-b border-slate-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-rose-500 flex items-center justify-center font-display font-bold text-xl text-white shadow-md">
+                        ⚡
+                    </div>
+                    <div>
+                        <span class="font-display font-bold text-xl tracking-tight text-white">AdVibe <span class="text-indigo-400">Visual Flow</span></span>
+                        <span class="hidden sm:inline-block ml-2 text-xs bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-800">v2.5 Enterprise</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="flex space-x-1 sm:space-x-2">
+                    <button onclick="switchTab('simulador')" id="tab-simulador" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all bg-indigo-600 text-white shadow-sm">
+                        🚀 Studio Flow
+                    </button>
+                    <button onclick="switchTab('cerebro')" id="tab-cerebro" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                        🧠 Cerebro de Marca
+                    </button>
+                    <button onclick="switchTab('metricas')" id="tab-metricas" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                        📊 Métricas ROI
+                    </button>
+                    <button onclick="switchTab('arquitectura')" id="tab-arquitectura" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                        ⚙️ Setup & Code
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: SIMULADOR DE FLUJO DE PRODUCCIÓN    -->
+        <!-- ========================================== -->
+        <section id="sec-simulador" class="tab-content space-y-6">
+            
+            <!-- Section Introductory Header -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-display font-bold text-slate-900">Estudio de Producción Visual Automatizado</h1>
+                        <p class="text-slate-600 text-sm mt-1">
+                            Este simulador transforma una solicitud informal en un brief estructurado, genera un prompt técnico hiperespecífico, compone la imagen respetando áreas de texto y aplica tipografía publicitaria automáticamente.
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 self-start md:self-auto">
+                        <span class="text-xs font-semibold text-slate-600 px-2">Estado del Motor:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                            <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Listo (GPT-4o + Canvas Studio)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left Panel: Input & Pipeline Config -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span>💬</span> 1. Petición del Cliente
+                        </h2>
+
+                        <!-- Quick Templates -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Plantillas Rápida de Prueba:</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="loadPreset('gastro')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+                                    🎪 Gastro Fest (Concierto)
+                                </button>
+                                <button onclick="loadPreset('muebles')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+                                    🪑 Muebles Ideal (Comedor)
+                                </button>
+                                <button onclick="loadPreset('inmobiliaria')" class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+                                    🏢 Inmobiliaria ($120k)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Brand Selection -->
+                        <div>
+                            <label for="cliente-select" class="block text-sm font-semibold text-slate-700 mb-1">Seleccionar Marca (Cerebro Activo):</label>
+                            <select id="cliente-select" onchange="updateBrandInfo()" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-medium">
+                                <option value="gastrofest">Gastro Fest (Entretenimiento / Eventos)</option>
+                                <option value="mueblesideal">Muebles Ideal (Diseño / Retail)</option>
+                                <option value="inmobiliaria">Inmobiliaria Luxe (Bienes Raíces)</option>
+                            </select>
+                        </div>
+
+                        <!-- Active Brand Snapshot -->
+                        <div id="brand-badge" class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs space-y-1">
+                            <div class="font-bold text-indigo-900 flex justify-between">
+                                <span id="brand-name">Gastro Fest</span>
+                                <span class="text-indigo-600 font-normal">Pautas Cargadas ✅</span>
+                            </div>
+                            <div class="text-slate-600"><strong>Estilo:</strong> <span id="brand-style">Alto contraste, fiesta nocturna, iluminación de escenario.</span></div>
+                            <div class="text-slate-600"><strong>Restricción:</strong> <span id="brand-restriction">NUNCA luz diurna. Siempre fondos oscuros/luces neón.</span></div>
+                        </div>
+
+                        <!-- User Prompt Input -->
+                        <div>
+                            <label for="user-prompt" class="block text-sm font-semibold text-slate-700 mb-1">Petición en Lenguaje Natural:</label>
+                            <textarea id="user-prompt" rows="3" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 font-medium placeholder-slate-400" placeholder="Ej: Hazme una publicidad anunciando la presentación especial de artistas este viernes..."></textarea>
+                        </div>
+
+                        <!-- Output Format Picker -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Formato de Salida Requerido:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="setFormat('4:5')" id="fmt-4-5" class="format-btn border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold py-2 rounded-xl text-xs text-center transition-all">
+                                    Instagram (4:5)<br><span class="text-[10px] font-normal text-slate-500">1080x1350</span>
+                                </button>
+                                <button onclick="setFormat('9:16')" id="fmt-9-16" class="format-btn border border-slate-200 hover:border-slate-300 text-slate-700 font-medium py-2 rounded-xl text-xs text-center transition-all">
+                                    Story/Reels (9:16)<br><span class="text-[10px] font-normal text-slate-500">1080x1920</span>
+                                </button>
+                                <button onclick="setFormat('1:1')" id="fmt-1-1" class="format-btn border border-slate-200 hover:border-slate-300 text-slate-700 font-medium py-2 rounded-xl text-xs text-center transition-all">
+                                    Square (1:1)<br><span class="text-[10px] font-normal text-slate-500">1080x1080</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Trigger Button -->
+                        <button onclick="runPipeline()" id="run-btn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-95">
+                            <span>🚀 Ejecutar Flujo de Producción</span>
+                        </button>
+                    </div>
+
+                    <!-- Pipeline Progress Timeline -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                        <h2 class="text-sm font-bold text-slate-900 tracking-wide uppercase">Pipeline de Automatización</h2>
+                        
+                        <div class="space-y-3">
+                            <!-- Step 1 -->
+                            <div id="step-1" class="flex items-start space-x-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50 transition-all">
+                                <div class="step-icon w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">Etapa 1: El Intérprete (NLP & Brief JSON)</div>
+                                    <div class="text-[11px] text-slate-500">Extrae contexto e inyecta normas de marca.</div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div id="step-2" class="flex items-start space-x-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50 transition-all">
+                                <div class="step-icon w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">Etapa 2: Director de Arte (Prompt Maestro)</div>
+                                    <div class="text-[11px] text-slate-500">Traduce el brief a inglés fotográfico con espacio negativo.</div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div id="step-3" class="flex items-start space-x-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50 transition-all">
+                                <div class="step-icon w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">Etapa 3: El Estudio (Renderizado DALL-E 3)</div>
+                                    <div class="text-[11px] text-slate-500">Genera la imagen limpia manteniendo espacio para texto.</div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div id="step-4" class="flex items-start space-x-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50 transition-all">
+                                <div class="step-icon w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</div>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800">Etapa 4: Control de Calidad & Ensamblado</div>
+                                    <div class="text-[11px] text-slate-500">Verifica jerarquía visual y aplica capa tipográfica.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Panel: Dynamic Outputs & Canvas Rendering -->
+                <div class="lg:col-span-7 space-y-6">
+
+                    <!-- Canvas Interactive Result Area -->
+                    <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-xl text-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold flex items-center gap-2">
+                                <span>🎨</span> Pieza Final Generada
+                            </h2>
+                            <span id="output-badge" class="text-xs bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700 font-mono">Esperando ejecución...</span>
+                        </div>
+
+                        <!-- Canvas Output Box -->
+                        <div class="flex justify-center items-center py-4 bg-slate-950/80 rounded-xl border border-slate-800 relative">
+                            <div id="canvas-wrapper" class="relative transition-all duration-300 shadow-2xl overflow-hidden rounded-lg">
+                                <canvas id="ad-canvas" class="block max-w-full"></canvas>
+                                
+                                <!-- Loading Overlay -->
+                                <div id="canvas-loader" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center space-y-3 p-4">
+                                    <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <p id="loader-text" class="text-xs font-medium text-indigo-300 animate-pulse">Procesando Inteligencia Visual...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Typography Editor -->
+                        <div id="live-editor-controls" class="mt-4 p-4 bg-slate-800/80 rounded-xl border border-slate-700 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">✏️ Edición Rápida de Texto en Capa Final:</span>
+                                <span class="text-[11px] text-slate-400">Ensamblador Bannerbear Mock</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] text-slate-300 mb-1">Titular Publicitario (Copy):</label>
+                                    <input type="text" id="live-headline" oninput="renderCanvas()" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2 font-bold" value="¡MÚSICA EN VIVO!">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-300 mb-1">Subtítulo / CTA:</label>
+                                    <input type="text" id="live-subtext" oninput="renderCanvas()" class="w-full bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg p-2" value="Este Viernes • Reservas Abiertas">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-4 flex flex-wrap gap-2 justify-end">
+                            <button onclick="runPipeline()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition-colors">
+                                🔄 Regenerar Variación
+                            </button>
+                            <button onclick="downloadArtwork()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow transition-colors">
+                                📥 Descargar Arte Final
+                            </button>
+                            <button onclick="alert('Conexión enviada a plantilla de Canva ID #ADV-8894')" class="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-lg shadow transition-colors">
+                                🎨 Exportar a Canva
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inspection Tabs: Generated Brief & Prompt -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex border-b border-slate-200 space-x-4">
+                            <button onclick="switchInspect('json')" id="insp-btn-json" class="pb-2 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600">
+                                📋 Brief JSON Interpretado (Etapa 1)
+                            </button>
+                            <button onclick="switchInspect('prompt')" id="insp-btn-prompt" class="pb-2 text-xs font-bold text-slate-500 hover:text-slate-800">
+                                🎯 Prompt Técnico Maestro (Etapa 2)
+                            </button>
+                            <button onclick="switchInspect('qc')" id="insp-btn-qc" class="pb-2 text-xs font-bold text-slate-500 hover:text-slate-800">
+                                ✅ Check de Calidad (Etapa 4)
+                            </button>
+                        </div>
+
+                        <!-- Brief JSON Box -->
+                        <div id="insp-tab-json" class="insp-content">
+                            <pre id="json-output" class="bg-slate-950 text-indigo-300 p-4 rounded-xl text-xs font-mono overflow-x-auto leading-relaxed border border-slate-800">// Ejecuta el flujo para ver la estructuración del brief en JSON...</pre>
+                        </div>
+
+                        <!-- Prompt Box -->
+                        <div id="insp-tab-prompt" class="insp-content hidden">
+                            <div class="p-4 bg-slate-950 text-emerald-400 rounded-xl text-xs font-mono border border-slate-800 leading-relaxed">
+                                <span class="text-slate-500 block mb-1">// Prompt generado para DALL-E 3 / Midjourney v6:</span>
+                                <p id="prompt-output">Esperando generación...</p>
+                            </div>
+                        </div>
+
+                        <!-- Quality Control Checklist -->
+                        <div id="insp-tab-qc" class="insp-content hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 flex items-center space-x-2">
+                                    <span>✅</span><span>Cumplimiento Pautas de Marca (100%)</span>
+                                </div>
+                                <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 flex items-center space-x-2">
+                                    <span>✅</span><span>Espacio Negativo para Texto Garantizado</span>
+                                </div>
+                                <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 flex items-center space-x-2">
+                                    <span>✅</span><span>Relación de Aspecto Correcta</span>
+                                </div>
+                                <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900 flex items-center space-x-2">
+                                    <span>✅</span><span>Ausencia de Textos Alucinados por IA</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 2: CEREBRO DE MARCA (BRAND BRAIN DB)   -->
+        <!-- ========================================== -->
+        <section id="sec-cerebro" class="tab-content space-y-6 hidden">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-display font-bold text-slate-900">Cerebro de Marca (Brand Brain Database)</h1>
+                    <p class="text-slate-600 text-sm mt-1">
+                        Base de conocimiento donde se almacenan las reglas fotográficas, paletas de color, tono de voz y restricciones visuales de cada cliente de AdVibe.
+                    </p>
+                </div>
+                <button onclick="openNewClientModal()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow transition-all flex items-center gap-2">
+                    <span>➕</span> Añadir Nuevo Cliente
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="client-cards-container">
+                <!-- Client Cards generated via JS -->
+            </div>
+
+            <!-- Client Guidelines Inspector Detail Box -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <h2 class="text-lg font-bold text-slate-900">¿Cómo inyecta el sistema estas reglas en el prompt?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="font-bold text-slate-800 mb-1">1. Regla de Estilo</div>
+                        <p class="text-slate-600">Se traduce en adjetivos fotográficos concretos (tipo de lente, profundidad de campo, iluminación).</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="font-bold text-slate-800 mb-1">2. Restricción Negativa</div>
+                        <p class="text-slate-600">Se agrega explícitamente como instrucción de exclusión para evitar elementos que rompan la marca.</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="font-bold text-slate-800 mb-1">3. Paleta Cromática</div>
+                        <p class="text-slate-600">Se fuerza la iluminación ambiental y reflejos en los colores hex o nombres primarios de la marca.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3: MÉTRICAS Y RENDIMIENTO (ROI)       -->
+        <!-- ========================================== -->
+        <section id="sec-metricas" class="tab-content space-y-6 hidden">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+                <h1 class="text-2xl font-display font-bold text-slate-900">Métricas de Eficiencia y Producción</h1>
+                <p class="text-slate-600 text-sm mt-1">
+                    Análisis comparativo del rendimiento del flujo tradicional frente al motor automatizado AdVibe Visual Flow.
+                </p>
+            </div>
+
+            <!-- Top KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tiempo por Pieza</div>
+                    <div class="text-3xl font-display font-bold text-indigo-600 mt-2">2.5 min</div>
+                    <div class="text-xs text-emerald-600 font-semibold mt-1">↓ 94% vs Tradicional (45 min)</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Costo Directo por Arte</div>
+                    <div class="text-3xl font-display font-bold text-emerald-600 mt-2">$0.18</div>
+                    <div class="text-xs text-slate-500 mt-1">Ahorro promedio del 88%</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tasa de Aprobación</div>
+                    <div class="text-3xl font-display font-bold text-amber-500 mt-2">96.4%</div>
+                    <div class="text-xs text-slate-500 mt-1">Aprobación a primera versión</div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Volumen Mensual</div>
+                    <div class="text-3xl font-display font-bold text-slate-900 mt-2">1,240</div>
+                    <div class="text-xs text-indigo-600 font-semibold mt-1">Piezas producidas en el mes</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Chart 1: Time Comparison -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                    <h2 class="text-base font-bold text-slate-900">Comparativa de Tiempo de Producción (Minutos)</h2>
+                    <p class="text-xs text-slate-500">Comparación entre el proceso tradicional de diseño y el motor AdVibe Visual Flow.</p>
+                    <div class="chart-container">
+                        <canvas id="chart-tiempo"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Format Distribution -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                    <h2 class="text-base font-bold text-slate-900">Distribución de Formatos Solicitados</h2>
+                    <p class="text-xs text-slate-500">Proporción de piezas publicitarias generadas por formato de red social.</p>
+                    <div class="chart-container">
+                        <canvas id="chart-formatos"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Chart 3: Weekly Output Trend -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h2 class="text-base font-bold text-slate-900">Crecimiento Semanal de Producción Visual</h2>
+                <p class="text-xs text-slate-500">Volumen total de piezas entregadas y reducción acumulada de revisiones.</p>
+                <div class="chart-container" style="max-width: 1000px; height: 300px;">
+                    <canvas id="chart-tendencia"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4: ARQUITECTURA, MAKE.COM & CÓDIGO    -->
+        <!-- ========================================== -->
+        <section id="sec-arquitectura" class="tab-content space-y-6 hidden">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+                <h1 class="text-2xl font-display font-bold text-slate-900">Arquitectura Técnica y Setup</h1>
+                <p class="text-slate-600 text-sm mt-1">
+                    Documentación del flujo de automatización no-code en Make.com y script ejecutable en Python.
+                </p>
+            </div>
+
+            <!-- Make.com Module Flow Visualizer -->
+            <div class="bg-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-xl space-y-6">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <span>⚡</span> Diagrama del Escenario en Make.com (No-Code)
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
+                    <!-- Module 1 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 1</span>
+                            <div class="font-bold text-xs mt-1">Webhook Custom</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Recibe `cliente_id` y `peticion_usuario`.</p>
+                        </div>
+                        <span class="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Trigger</span>
+                    </div>
+
+                    <!-- Module 2 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 2</span>
+                            <div class="font-bold text-xs mt-1">Airtable Search</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Busca pautas en la tabla Clientes.</p>
+                        </div>
+                        <span class="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Brand Brain</span>
+                    </div>
+
+                    <!-- Module 3 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 3</span>
+                            <div class="font-bold text-xs mt-1">OpenAI GPT-4o</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Ejecuta el Prompt Maestro JSON.</p>
+                        </div>
+                        <span class="text-[10px] bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Director Arte</span>
+                    </div>
+
+                    <!-- Module 4 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 4</span>
+                            <div class="font-bold text-xs mt-1">JSON Parser</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Separa brief y prompt técnico.</p>
+                        </div>
+                        <span class="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Parser</span>
+                    </div>
+
+                    <!-- Module 5 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 5</span>
+                            <div class="font-bold text-xs mt-1">DALL-E 3 API</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Renderiza imagen con espacio negativo.</p>
+                        </div>
+                        <span class="text-[10px] bg-indigo-900 text-indigo-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Estudio</span>
+                    </div>
+
+                    <!-- Module 6 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 6</span>
+                            <div class="font-bold text-xs mt-1">Bannerbear API</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Ensambla imagen + texto final.</p>
+                        </div>
+                        <span class="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Post-prod</span>
+                    </div>
+
+                    <!-- Module 7 -->
+                    <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-400 uppercase">Módulo 7</span>
+                            <div class="font-bold text-xs mt-1">Slack / Webhook</div>
+                            <p class="text-[10px] text-slate-400 mt-1">Entrega los assets listos.</p>
+                        </div>
+                        <span class="text-[10px] bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded mt-3 text-center font-mono">Entrega</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Inspector -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base font-bold text-slate-900">Código Python (Streamlit MVP App)</h2>
+                    <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md font-mono">app_advibe.py</span>
+                </div>
+                <div class="bg-slate-950 text-slate-300 p-4 rounded-xl text-xs font-mono overflow-x-auto max-h-96 leading-relaxed border border-slate-800">
+                    <pre><code>import streamlit as st
+import json
+from openai import OpenAI
+
+# 1. BASE DE DATOS DE CLIENTES (CEREBRO DE MARCA)
+CLIENT_DB = {
+    "gastrofest": {
+        "nombre": "Gastro Fest",
+        "tono": "Enérgico, juvenil, festivo.",
+        "colores": "#FF5733, #2C3E50",
+        "estilo_foto": "Alto contraste, iluminación dramática de escenario, fondos oscuros.",
+        "restricciones": "NUNCA luz diurna. No fondos blancos."
+    },
+    "mueblesideal": {
+        "nombre": "Muebles Ideal",
+        "tono": "Elegante, minimalista, limpio.",
+        "colores": "#F5F5DC, #808080",
+        "estilo_foto": "Luz natural de ventana, perspectiva limpia, arquitectura.",
+        "restricciones": "Sin desorden. Cero colores neón. No personas."
+    }
+}
+
+# 2. GENERADOR DE BRIEF Y PROMPT TÉCNICO
+def generar_brief_y_prompt(cliente_id, peticion):
+    cliente = CLIENT_DB[cliente_id]
+    prompt_sistema = f"""
+    Eres el Director de Arte Creativo de AdVibe.
+    DATOS DEL CLIENTE '{cliente['nombre']}':
+    - Tono: {cliente['tono']} | Colores: {cliente['colores']}
+    - Estilo: {cliente['estilo_foto']} | Restricciones: {cliente['restricciones']}
+    
+    Genera un JSON con:
+    1. brief_agencia: objetivo, texto_sugerido_para_diseño
+    2. prompt_generacion_imagen: prompt en inglés con 'large negative space for text overlay'.
+    """
+    # Llamada a OpenAI GPT-4o ...
+    return respuesta_json
+</code></pre>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal for New Client in Brand Brain -->
+    <div id="new-client-modal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900">Registrar Nuevo Cliente en Cerebro de Marca</h3>
+                <button onclick="closeNewClientModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            </div>
+            
+            <form onsubmit="saveNewClient(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">ID del Cliente (slug):</label>
+                    <input type="text" id="new-id" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-mono" placeholder="ej: modafitness">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nombre Comercial:</label>
+                    <input type="text" id="new-name" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2" placeholder="ej: Moda Fitness Studio">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Estilo Fotográfico:</label>
+                    <input type="text" id="new-style" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2" placeholder="ej: Iluminación deportiva, luces de neón, sujeto en movimiento">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Restricciones de Marca:</label>
+                    <input type="text" id="new-restrictions" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2" placeholder="ej: No personas sentadas. Evitar tonos beige.">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Colores de Marca:</label>
+                    <input type="text" id="new-colors" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2" placeholder="ej: #FF0055 (Rosa Neón), #000000 (Negro)">
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="closeNewClientModal()" class="px-4 py-2 border border-slate-300 text-slate-700 font-semibold rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow">Guardar en Cerebro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Global State & Client Database
+        const CLIENT_DB = {
+            "gastrofest": {
+                nombre: "Gastro Fest",
+                industria: "Entretenimiento / Eventos",
+                tono: "Enérgico, festivo, juvenil",
+                colores: "#FF5733 (Naranja Fuego), #2C3E50 (Azul Noche)",
+                estilo: "Alto contraste, luces de escenario, ambiente festivo nocturno, gente disfrutando.",
+                restriccion: "NUNCA usar luz diurna. Evitar fondos limpios o minimalistas.",
+                bgGradient: "from-amber-600 to-indigo-950",
+                presetText: "Hazme una publicidad anunciando la presentación especial de artistas e invitados este viernes por la noche.",
+                copyHeadline: "¡MÚSICA EN VIVO!",
+                copySub: "Este Viernes • Reservas Abiertas"
+            },
+            "mueblesideal": {
+                nombre: "Muebles Ideal",
+                industria: "Retail / Interiorismo",
+                tono: "Elegante, minimalista, sereno",
+                colores: "#F5F5DC (Beige), #808080 (Gris Cálido)",
+                estilo: "Fotorrealismo arquitectónico, luz natural suave por ventana, perspectiva limpia y simétrica.",
+                restriccion: "Cero desorden. Sin colores neón. No incluir personas en la toma.",
+                bgGradient: "from-amber-100 to-slate-400",
+                presetText: "Hazme una publicidad para la promoción del nuevo comedor moderno de madera de roble.",
+                copyHeadline: "COMEDOR ROBLE VINTAGE",
+                copySub: "20% OFF Solo este Fin de Semana"
+            },
+            "inmobiliaria": {
+                nombre: "Inmobiliaria Luxe",
+                industria: "Bienes Raíces de Lujo",
+                tono: "Aspiracional, seguro, premium",
+                colores: "#0F172A (Azul Marino), #D4AF37 (Dorado)",
+                estilo: "Fotografía inmobiliaria de revista, amplios ventanales, atardecer cálido, acabados de lujo.",
+                restriccion: "No mostrar desorden. Evitar luz plana o nublada.",
+                bgGradient: "from-slate-800 to-amber-700",
+                presetText: "Quiero un flyer promocionando un departamento moderno de $120.000 listo para entregar.",
+                copyHeadline: "TU NUEVO DEPA DE $120.000",
+                copySub: "Entrega Inmediata • Financiamiento Disponible"
+            }
+        };
+
+        let currentFormat = '4:5'; // Default Instagram Portrait
+        let currentClient = 'gastrofest';
+        let chartsInitialized = false;
+
+        // Init on DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateBrandInfo();
+            renderClientCards();
+            renderCanvas();
+        });
+
+        // Tab Switcher Logic
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-300');
+            });
+
+            const activeTab = document.getElementById(`sec-${tabKey}`);
+            const activeBtn = document.getElementById(`tab-${tabKey}`);
+
+            if (activeTab && activeBtn) {
+                activeTab.classList.remove('hidden');
+                activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-300');
+            }
+
+            if (tabKey === 'metricas' && !chartsInitialized) {
+                initCharts();
+                chartsInitialized = true;
+            }
+        }
+
+        // Inspection Sub-tabs
+        function switchInspect(tabKey) {
+            document.querySelectorAll('.insp-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="insp-btn-"]').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                btn.classList.add('text-slate-500');
+            });
+
+            document.getElementById(`insp-tab-${tabKey}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`insp-btn-${tabKey}`);
+            activeBtn.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+            activeBtn.classList.remove('text-slate-500');
+        }
+
+        // Update Brand Snapshot based on dropdown
+        function updateBrandInfo() {
+            const select = document.getElementById('cliente-select');
+            currentClient = select.value;
+            const data = CLIENT_DB[currentClient];
+
+            document.getElementById('brand-name').innerText = data.nombre;
+            document.getElementById('brand-style').innerText = data.estilo;
+            document.getElementById('brand-restriction').innerText = data.restriccion;
+
+            // Set preset prompt
+            document.getElementById('user-prompt').value = data.presetText;
+            document.getElementById('live-headline').value = data.copyHeadline;
+            document.getElementById('live-subtext').value = data.copySub;
+        }
+
+        // Preset Loaders
+        function loadPreset(key) {
+            if (key === 'gastro') currentClient = 'gastrofest';
+            if (key === 'muebles') currentClient = 'mueblesideal';
+            if (key === 'inmobiliaria') currentClient = 'inmobiliaria';
+
+            document.getElementById('cliente-select').value = currentClient;
+            updateBrandInfo();
+        }
+
+        // Set Aspect Ratio
+        function setFormat(fmt) {
+            currentFormat = fmt;
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.remove('border-2', 'border-indigo-600', 'bg-indigo-50', 'text-indigo-900', 'font-bold');
+                btn.classList.add('border-slate-200', 'text-slate-700');
+            });
+
+            const idMap = { '4:5': 'fmt-4-5', '9:16': 'fmt-9-16', '1:1': 'fmt-1-1' };
+            const active = document.getElementById(idMap[fmt]);
+            active.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50', 'text-indigo-900', 'font-bold');
+
+            renderCanvas();
+        }
+
+        // Run Automation Pipeline Simulation
+        function runPipeline() {
+            const btn = document.getElementById('run-btn');
+            const loader = document.getElementById('canvas-loader');
+            const loaderText = document.getElementById('loader-text');
+            const outputBadge = document.getElementById('output-badge');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            loader.classList.remove('hidden');
+
+            const clientData = CLIENT_DB[currentClient];
+            const userPromptText = document.getElementById('user-prompt').value;
+
+            // Reset step UI
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step-${i}`);
+                step.className = 'flex items-start space-x-3 p-2.5 rounded-xl border border-slate-100 bg-slate-50 transition-all';
+                step.querySelector('.step-icon').className = 'step-icon w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5';
+            }
+
+            // Step 1 Simulation (150ms)
+            setTimeout(() => {
+                activateStep(1, 'bg-amber-100 border-amber-300 text-amber-900');
+                loaderText.innerText = 'Etapa 1: Analizando pautas de ' + clientData.nombre + '...';
+                
+                const briefObj = {
+                    cliente: clientData.nombre,
+                    industria: clientData.industria,
+                    objetivo: "Captación & Conversión",
+                    formato_requerido: currentFormat,
+                    copy_sugerido: document.getElementById('live-headline').value,
+                    restricciones_aplicadas: [clientData.restriccion]
+                };
+                document.getElementById('json-output').innerText = JSON.stringify(briefObj, null, 2);
+            }, 150);
+
+            // Step 2 Simulation (400ms)
+            setTimeout(() => {
+                activateStep(2, 'bg-indigo-100 border-indigo-300 text-indigo-900');
+                loaderText.innerText = 'Etapa 2: Generando Prompt Maestro con espacio negativo...';
+                
+                const technicalPrompt = `Commercial advertising photography, ${clientData.estilo}. Focus on product/subject from prompt: "${userPromptText}". Brand colors: ${clientData.colores}. Composition designed with large negative space in the upper portion for headline text overlay. High definition, shot on Hasselblad H6D-100c, 85mm lens. --ar ${currentFormat.replace(':', '-')} --style raw --v 6.0`;
+                document.getElementById('prompt-output').innerText = technicalPrompt;
+            }, 400);
+
+            // Step 3 Simulation (700ms)
+            setTimeout(() => {
+                activateStep(3, 'bg-cyan-100 border-cyan-300 text-cyan-900');
+                loaderText.innerText = 'Etapa 3: Renderizando imagen base en DALL-E 3...';
+            }, 700);
+
+            // Step 4 Completion (1000ms)
+            setTimeout(() => {
+                activateStep(4, 'bg-emerald-100 border-emerald-300 text-emerald-900');
+                loaderText.innerText = 'Etapa 4: Superponiendo capa de texto tipográfica...';
+                
+                renderCanvas();
+                loader.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                outputBadge.innerText = `Pieza Lista (${currentFormat})`;
+                outputBadge.className = 'text-xs bg-emerald-950 text-emerald-300 px-3 py-1 rounded-full border border-emerald-800 font-mono font-bold';
+            }, 1000);
+        }
+
+        function activateStep(num, classes) {
+            const step = document.getElementById(`step-${num}`);
+            step.className = `flex items-start space-x-3 p-2.5 rounded-xl border transition-all ${classes}`;
+            const icon = step.querySelector('.step-icon');
+            icon.className = 'step-icon w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5';
+            icon.innerText = '✓';
+        }
+
+        // Dynamic HTML Canvas Renderer (Simulates Image Output + Bannerbear Overlay)
+        function renderCanvas() {
+            const canvas = document.getElementById('ad-canvas');
+            const ctx = canvas.getContext('2d');
+            const data = CLIENT_DB[currentClient];
+
+            // Set Resolution based on Format
+            let width = 360;
+            let height = 450; // default 4:5
+
+            if (currentFormat === '9:16') {
+                width = 320;
+                height = 568;
+            } else if (currentFormat === '1:1') {
+                width = 400;
+                height = 400;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Background Simulation Gradient
+            const grad = ctx.createLinearGradient(0, 0, width, height);
+            if (currentClient === 'gastrofest') {
+                grad.addColorStop(0, '#1e1b4b');
+                grad.addColorStop(0.5, '#4338ca');
+                grad.addColorStop(1, '#ff5733');
+            } else if (currentClient === 'mueblesideal') {
+                grad.addColorStop(0, '#f5f5dc');
+                grad.addColorStop(0.6, '#d4d4d8');
+                grad.addColorStop(1, '#71717a');
+            } else {
+                grad.addColorStop(0, '#0f172a');
+                grad.addColorStop(0.7, '#1e293b');
+                grad.addColorStop(1, '#d4af37');
+            }
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw Graphic Elements (Simulated AI Artwork Subject)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.beginPath();
+            ctx.arc(width / 2, height * 0.65, width * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Negative Space Text Box Boundary Guide (Simulated)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(20, 20, width - 40, height * 0.32);
+            ctx.setLineDash([]);
+
+            // Draw Typography Overlay (Stage 4 Output)
+            const headlineText = document.getElementById('live-headline').value || "ANUNCIO PUBLICITARIO";
+            const subtext = document.getElementById('live-subtext').value || "Llamado a la Acción";
+
+            // Headline Text Styling
+            ctx.fillStyle = (currentClient === 'mueblesideal') ? '#1e293b' : '#ffffff';
+            ctx.font = '700 20px "Space Grotesk", sans-serif';
+            ctx.textAlign = 'center';
+            
+            // Wrap Text helper
+            const words = headlineText.split(' ');
+            let line = '';
+            let y = 60;
+
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                if (metrics.width > width - 60 && n > 0) {
+                    ctx.fillText(line, width / 2, y);
+                    line = words[n] + ' ';
+                    y += 24;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, width / 2, y);
+
+            // Subtext Styling
+            ctx.font = '500 12px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = (currentClient === 'mueblesideal') ? '#475569' : '#f1f5f9';
+            ctx.fillText(subtext, width / 2, y + 26);
+
+            // Brand Tag Badge
+            ctx.fillStyle = (currentClient === 'mueblesideal') ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.2)';
+            ctx.roundRect(width / 2 - 60, height - 40, 120, 24, 12);
+            ctx.fill();
+
+            ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = (currentClient === 'mueblesideal') ? '#0f172a' : '#ffffff';
+            ctx.fillText(data.nombre.toUpperCase(), width / 2, height - 24);
+        }
+
+        // Download Canvas Artwork
+        function downloadArtwork() {
+            const canvas = document.getElementById('ad-canvas');
+            const link = document.createElement('a');
+            link.download = `AdVibe_${currentClient}_${currentFormat.replace(':', '-')}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Render Client Database Cards in Tab 2
+        function renderClientCards() {
+            const container = document.getElementById('client-cards-container');
+            container.innerHTML = '';
+
+            Object.keys(CLIENT_DB).forEach(key => {
+                const client = CLIENT_DB[key];
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-3 relative flex flex-col justify-between';
+                
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">${client.industria}</span>
+                            <span class="text-xs font-mono text-slate-400">ID: ${key}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">${client.nombre}</h3>
+                        <div class="text-xs space-y-1.5 text-slate-600">
+                            <div><strong>Tono:</strong> ${client.tono}</div>
+                            <div><strong>Colores:</strong> ${client.colores}</div>
+                            <div><strong>Estilo Fotográfico:</strong> ${client.estilo}</div>
+                            <div class="text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-100"><strong>Restricción:</strong> ${client.restriccion}</div>
+                        </div>
+                    </div>
+                    <button onclick="loadPreset('${key}'); switchTab('simulador');" class="mt-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs py-2 rounded-xl transition-colors">
+                        ⚡ Usar en Estudio
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Modal Controls
+        function openNewClientModal() {
+            document.getElementById('new-client-modal').classList.remove('hidden');
+        }
+
+        function closeNewClientModal() {
+            document.getElementById('new-client-modal').classList.add('hidden');
+        }
+
+        function saveNewClient(e) {
+            e.preventDefault();
+            const id = document.getElementById('new-id').value.toLowerCase().trim();
+            const name = document.getElementById('new-name').value;
+            const style = document.getElementById('new-style').value;
+            const restrictions = document.getElementById('new-restrictions').value;
+            const colors = document.getElementById('new-colors').value;
+
+            CLIENT_DB[id] = {
+                nombre: name,
+                industria: "Personalizada",
+                tono: "Profesional",
+                colores: colors,
+                estilo: style,
+                restriccion: restrictions,
+                bgGradient: "from-indigo-600 to-slate-900",
+                presetText: `Publicidad para ${name}`,
+                copyHeadline: name.toUpperCase(),
+                copySub: "Promoción Exclusiva"
+            };
+
+            // Update Dropdown
+            const select = document.getElementById('cliente-select');
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.innerText = `${name} (Nuevo Cliente)`;
+            select.appendChild(opt);
+
+            renderClientCards();
+            closeNewClientModal();
+            alert(`Cliente ${name} guardado con éxito en el Cerebro de Marca.`);
+        }
+
+        // Initialize Chart.js Dashboard Visualizations
+        function initCharts() {
+            // Chart 1: Time Comparison Bar Chart
+            const ctxTiempo = document.getElementById('chart-tiempo').getContext('2d');
+            new Chart(ctxTiempo, {
+                type: 'bar',
+                data: {
+                    labels: ['Briefing', 'Dirección de Arte', 'Generación Imagen', 'Ensamblado & Texto', 'TOTAL'],
+                    datasets: [
+                        {
+                            label: 'Proceso Tradicional (Minutos)',
+                            data: [10, 15, 12, 8, 45],
+                            backgroundColor: '#94a3b8'
+                        },
+                        {
+                            label: 'AdVibe Visual Flow (Minutos)',
+                            data: [0.5, 0.5, 1.0, 0.5, 2.5],
+                            backgroundColor: '#4f46e5'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Minutos' } }
+                    }
+                }
+            });
+
+            // Chart 2: Format Distribution Doughnut
+            const ctxFormatos = document.getElementById('chart-formatos').getContext('2d');
+            new Chart(ctxFormatos, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Instagram Portrait (4:5)', 'Story/Reels (9:16)', 'Square Post (1:1)', 'Banner Web (16:9)'],
+                    datasets: [{
+                        data: [52, 28, 14, 6],
+                        backgroundColor: ['#4f46e5', '#f43f5e', '#06b6d4', '#f59e0b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Chart 3: Weekly Trend Line Chart
+            const ctxTendencia = document.getElementById('chart-tendencia').getContext('2d');
+            new Chart(ctxTendencia, {
+                type: 'line',
+                data: {
+                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5', 'Semana 6'],
+                    datasets: [
+                        {
+                            label: 'Piezas Generadas',
+                            data: [120, 240, 480, 750, 980, 1240],
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Revisiones Solicitadas (%)',
+                            data: [28, 18, 12, 8, 5, 3.6],
+                            borderColor: '#10b981',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 5],
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
