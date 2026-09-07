@@ -27,3 +27,5 @@ export function isWorkerRequestAuthorized(request: Request): boolean {
   if (!secret) return false;
   return request.headers.get("authorization") === `Bearer ${secret}`;
 }
+
+// Keep this module intentionally dependency-light at the route boundary.
