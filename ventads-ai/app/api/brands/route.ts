@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "../../../../lib/auth";
-import { prisma } from "@/lib/db";
-import { brandInputSchema } from "@/lib/validation";
+import { getCurrentUser } from "../../../lib/auth";
+import { prisma } from "../../../lib/db";
+import { brandInputSchema } from "../../../lib/validation";
 
 export const runtime = "nodejs";
 
