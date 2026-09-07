@@ -20,13 +20,7 @@ export async function getCurrentUser() {
 }
 
 /**
- * Shared auth check for the worker (`/api/jobs/process`) and the cron
- * sweep (`/api/cron/sweep`): both require `Authorization: Bearer
- * ${CRON_SECRET}`. Vercel Cron sends this header automatically once
- * CRON_SECRET is set as an env var; our own self-chain kicks
- * (lib/services/job-dispatch.ts) add it manually. Fails closed — if
- * CRON_SECRET isn't configured at all, every request is rejected rather
- * than the route silently accepting unauthenticated callers.
+ * Shared auth check for the worker and cron routes.
  */
 export function isWorkerRequestAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
