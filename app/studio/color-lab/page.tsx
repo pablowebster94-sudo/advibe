@@ -3,49 +3,61 @@
 /**
  * AdVibe Color Lab.
  *
- * Describe the material, look at what the transform does to it, and take away a
- * `.cube` that works in CapCut. Everything runs in the browser: the footage
- * never leaves the machine, which for unreleased client work is not a nicety.
+ * Load a clip, describe the camera, measure the material, choose a look, take
+ * away a `.cube`. Everything runs in the browser: the footage never leaves the
+ * machine, which for unreleased client work is not a nicety.
  *
- * The page is built around one rule from the colour side of the house — a
- * technical conversion and a creative look are different files and must not be
- * sold as one. So the type of LUT is derived from what the settings actually
- * do, shown before the download, and drives the intensity recommendation.
+ * The page is a linear flow because the dependencies are real — a correction
+ * derived before the material is analysed would be a correction for somebody
+ * else's footage — and because the flow is the argument the tool is making:
+ * transform, then correct *this clip*, then apply taste, as three separable
+ * things rather than one "cinematic look" that happens to flatter one shot.
  */
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Badge, Button, Notice, Panel, Stat } from "@/components/studio/ui";
-import {
-  ColorSlider,
-  Field,
-  Select,
-  TextInput,
-  Toggle,
-  ToningControl,
-} from "@/components/studio/color/controls";
+import { Badge, Button, Notice, Panel } from "@/components/studio/ui";
+import { Field, Select, TextInput, Toggle } from "@/components/studio/color/controls";
+import { Step, type StepState } from "@/components/studio/color/Step";
+import { AnalysisReport } from "@/components/studio/color/AnalysisReport";
+import { LookControls, type Grade } from "@/components/studio/color/LookControls";
+import { ResultCard } from "@/components/studio/color/ResultCard";
 import { LutPreview, type PreviewSource } from "@/components/studio/color/LutPreview";
 import { buildChart } from "@/lib/color/chart";
-import {
-  CAMERA_PROFILES,
-  LOOK_PRESETS,
-  findCameraProfile,
-  findLookPreset,
-} from "@/lib/color/presets";
+import { CAMERA_PROFILES, findCameraProfile, findLookPreset } from "@/lib/color/presets";
+import type { CameraProfile } from "@/lib/color/presets";
 import { buildLut, type LutSpec, type ShotMetadata } from "@/lib/color/pipeline";
 import { NEUTRAL_TONE_CURVE } from "@/lib/color/tonemap";
-import type { LookOptions, ToningWheel } from "@/lib/color/look";
-import { analyzeFootage, type FootageAnalysis } from "@/lib/color/analyze";
-import { headroomStops, midGreyCode } from "@/lib/color/transfer";
+import { GAMUT_LABELS, type GamutId } from "@/lib/color/gamut";
+import { TRANSFERS, headroomStops, midGreyCode, type TransferId } from "@/lib/color/transfer";
+import { analyzeClip, summarizeClip, type ClipAnalysis } from "@/lib/color/analyze";
+import { deriveCorrection, type DerivedCorrection } from "@/lib/color/correction";
+import { downscale, extractClip, isVideoFile, type ExtractedClip } from "@/lib/color/frames";
 
-const LUT_SIZES = [17, 33, 45, 65];
+/**
+ * 65³ is the recommendation and the default: a log-to-display transform bends
+ * hardest exactly where skin sits, and 33 nodes leave a measurable bow in the
+ * midtones. 33 stays available because it is a quarter of a megabyte against
+ * seven and every player on earth takes it.
+ */
+const LUT_SIZES = [
+  { size: 65, label: "65³ — máxima precisión (recomendado)", hint: "274 625 entradas, ~7 MB" },
+  { size: 33, label: "33³ — compatibilidad máxima", hint: "35 937 entradas, ~1 MB" },
+];
 
-interface Grade {
-  look: LookOptions;
-  /** Contrast as a percentage offset from the neutral rendering's slope. */
-  contrast: number;
-  warmth: number;
-  tint: number;
-  exposureEv: number;
-}
+const FRAME_COUNT = 5;
+
+const METADATA_FIELDS: Array<[keyof ShotMetadata, string, string]> = [
+  ["camera", "Cámara", "Sony FX3"],
+  ["lens", "Lente", "Sigma 24-70 f/2.8"],
+  ["iso", "ISO", "800"],
+  ["shutter", "Shutter", "1/50"],
+  ["aperture", "Apertura", "f/2.8"],
+  ["whiteBalance", "Balance de blancos", "5600 K"],
+  ["ev", "EV", "-0.3"],
+  ["resolution", "Resolución", "3840×2160"],
+  ["frameRate", "FPS", "25"],
+  ["lighting", "Iluminación", "ventana lateral + rebote"],
+  ["intent", "Look buscado", "entrevista cálida, piel natural"],
+];
 
 function gradeFromPreset(presetId: string): Grade {
   const preset = findLookPreset(presetId)!;
@@ -63,47 +75,64 @@ function gradeFromPreset(presetId: string): Grade {
   };
 }
 
-const METADATA_FIELDS: Array<[keyof ShotMetadata, string]> = [
-  ["camera", "Cámara"],
-  ["lens", "Óptica"],
-  ["iso", "ISO"],
-  ["shutter", "Obturador"],
-  ["aperture", "Diafragma"],
-  ["whiteBalance", "Balance de blancos"],
-  ["exposureNote", "Exposición"],
-  ["resolution", "Resolución"],
-  ["frameRate", "Frame rate"],
-  ["lighting", "Iluminación"],
-  ["intent", "Look buscado"],
-];
-
 export default function ColorLabPage() {
-  const [profileId, setProfileId] = useState("sony-slog3-cine");
-  const [presetId, setPresetId] = useState("piel-natural");
-  const [grade, setGrade] = useState<Grade>(() => gradeFromPreset("piel-natural"));
-  const [name, setName] = useState("");
-  const [size, setSize] = useState(33);
-  const [inputRange, setInputRange] = useState<"full" | "legal">("full");
-  const [technicalOnly, setTechnicalOnly] = useState(false);
-  const [metadata, setMetadata] = useState<ShotMetadata>({});
-
-  const [frame, setFrame] = useState<PreviewSource | null>(null);
-  const [frameLabel, setFrameLabel] = useState("");
-  const [analysis, setAnalysis] = useState<FootageAnalysis | null>(null);
-  const [busy, setBusy] = useState(false);
+  // --- Step 1: the material ------------------------------------------------
+  const [clipSource, setClipSource] = useState<ExtractedClip | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  // The frame at full resolution, kept so that changing the camera profile can
-  // re-measure the same material instead of leaving a reading on screen that
-  // was taken through a different transform.
-  const originalFrame = useRef<PreviewSource | null>(null);
 
-  const profile = findCameraProfile(profileId)!;
+  // --- Step 2: the camera --------------------------------------------------
+  const [profileId, setProfileId] = useState("sony-slog3-cine");
+  const [transfer, setTransfer] = useState<TransferId>("sLog3");
+  const [gamut, setGamut] = useState<GamutId>("sGamut3Cine");
+  const [inputRange, setInputRange] = useState<"full" | "legal">("full");
+  const [metadata, setMetadata] = useState<ShotMetadata>({});
+
+  // --- Steps 3-4: the analysis ---------------------------------------------
+  const [clip, setClip] = useState<ClipAnalysis | null>(null);
+  const [derived, setDerived] = useState<DerivedCorrection | null>(null);
+  const [analysing, setAnalysing] = useState(false);
+  const [useCorrection, setUseCorrection] = useState(true);
+
+  // --- Step 5: the look ----------------------------------------------------
+  const [presetId, setPresetId] = useState("piel-natural");
+  const [grade, setGrade] = useState<Grade>(() => gradeFromPreset("piel-natural"));
+  const [skipLook, setSkipLook] = useState(false);
+
+  // --- Step 6: the file ----------------------------------------------------
+  const [size, setSize] = useState(65);
+  const [name, setName] = useState("");
+  const [generated, setGenerated] = useState<{ spec: LutSpec; stamp: number } | null>(null);
+
+  const listedProfile = findCameraProfile(profileId)!;
   const preset = findLookPreset(presetId)!;
+
+  /**
+   * The profile actually used. When gamma or gamut is overridden by hand this
+   * is a synthetic profile, and it is labelled as such in the report — a LUT
+   * built on a curve the camera does not use is wrong in a way that is
+   * invisible until somebody grades on top of it.
+   */
+  const profile: CameraProfile = useMemo(() => {
+    if (transfer === listedProfile.transfer && gamut === listedProfile.gamut) return listedProfile;
+    return {
+      ...listedProfile,
+      id: `${listedProfile.id}-manual`,
+      profile: `${TRANSFERS[transfer].label} · ${GAMUT_LABELS[gamut]} (ajustado a mano)`,
+      transfer,
+      gamut,
+      note: "Gamma y gamut fijados a mano, no los del perfil de cámara seleccionado.",
+    };
+  }, [listedProfile, transfer, gamut]);
+
+  const analysisSummary = useMemo(() => (clip ? summarizeClip(clip) : []), [clip]);
 
   const spec: LutSpec = useMemo(
     () => ({
-      name: name.trim() || `${preset.label} · ${profile.profile.split(" ·")[0]}`,
+      name:
+        name.trim() ||
+        defaultName(profile, skipLook ? null : preset.label, useCorrection && derived !== null),
       profile,
       preset,
       size,
@@ -116,103 +145,128 @@ export default function ColorLabPage() {
       warmth: grade.warmth,
       tint: grade.tint,
       inputRange,
-      technicalOnly,
+      correction: useCorrection && derived ? derived : undefined,
+      skipLook,
+      analysisSummary,
       metadata,
     }),
-    [name, preset, profile, size, grade, inputRange, technicalOnly, metadata],
+    [
+      name, preset, profile, size, grade, inputRange, derived, useCorrection, skipLook,
+      analysisSummary, metadata,
+    ],
   );
 
-  const result = useMemo(() => buildLut(spec), [spec]);
-  const { report } = result;
+  // The heavy build only runs when the user asks for it: a 65³ grid is 275 000
+  // pixel transforms and re-running it on every slider drag would make the
+  // controls feel broken.
+  const result = useMemo(() => (generated ? buildLut(generated.spec) : null), [generated]);
 
-  // The preview always runs on a 33-node grid. It is showing what the transform
-  // does, and a coarse grid picked for file size would put its own artefacts on
-  // screen where they would be read as the look.
-  const previewCube = useMemo(
-    () => (size === 33 ? result.cube : buildLut({ ...spec, size: 33 }).cube),
-    [result.cube, size, spec],
-  );
+  // The preview is always 33³ and always live. It shows what the transform
+  // does, so a coarser or finer grid chosen for file size would put its own
+  // artefacts on screen where they would be read as the look.
+  const previewCube = useMemo(() => buildLut({ ...spec, size: 33 }).cube, [spec]);
 
   const chart = useMemo<PreviewSource>(() => {
     const built = buildChart(profile);
     return { width: built.width, height: built.height, data: built.data };
   }, [profile]);
 
-  const source = frame ?? chart;
-  const sourceLabel = frame ? `Origen · ${frameLabel}` : "Carta de referencia (log)";
+  const previewFrame = useMemo<PreviewSource | null>(() => {
+    if (!clipSource || clipSource.frames.length === 0) return null;
+    const middle = clipSource.frames[Math.floor(clipSource.frames.length / 2)];
+    return downscale(middle.image, 720);
+  }, [clipSource]);
+
+  const previewSource = previewFrame ?? chart;
+
+  // --- Actions -------------------------------------------------------------
+
+  const loadFile = useCallback(async (file: File | undefined) => {
+    if (!file) return;
+    setLoadError(null);
+    setLoading(isVideoFile(file) ? "Extrayendo fotogramas…" : "Abriendo imagen…");
+    // A new clip invalidates everything measured from the old one.
+    setClip(null);
+    setDerived(null);
+    setGenerated(null);
+    try {
+      const extracted = await extractClip(file, FRAME_COUNT, (done, total) =>
+        setLoading(`Extrayendo fotogramas… ${done}/${total}`),
+      );
+      setClipSource(extracted);
+      // Resolution and frame rate are read off the file, so they are the only
+      // two technical fields that are filled in rather than asked for.
+      setMetadata((current) => ({
+        ...current,
+        resolution: `${extracted.width}×${extracted.height}`,
+        frameRate: extracted.frameRate ? String(extracted.frameRate) : current.frameRate,
+      }));
+    } catch (error) {
+      setClipSource(null);
+      setLoadError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setLoading(null);
+    }
+  }, []);
+
+  const runAnalysis = useCallback(async () => {
+    if (!clipSource) return;
+    setAnalysing(true);
+    setLoadError(null);
+    setGenerated(null);
+    try {
+      const measured = await analyzeClip(clipSource.frames, profile);
+      const correction = deriveCorrection(measured);
+      setClip(measured);
+      setDerived(correction);
+      // The measured skin coverage decides how hard the look is held off skin.
+      setGrade((current) => ({
+        ...current,
+        look: { ...current.look, skinProtection: measured.suggestedSkinProtection },
+      }));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setAnalysing(false);
+    }
+  }, [clipSource, profile]);
+
+  const selectProfile = (id: string) => {
+    const next = findCameraProfile(id)!;
+    setProfileId(id);
+    setTransfer(next.transfer);
+    setGamut(next.gamut);
+    // The analysis measured the frames through a different transform, so every
+    // number in it is now about a conversion that is no longer selected.
+    setClip(null);
+    setDerived(null);
+    setGenerated(null);
+  };
 
   const selectPreset = (id: string) => {
     setPresetId(id);
     setGrade(gradeFromPreset(id));
   };
 
-  const patchLook = (patch: Partial<LookOptions>) =>
-    setGrade((current) => ({ ...current, look: { ...current.look, ...patch } }));
-
   const download = () => {
+    if (!result) return;
     const blob = new Blob([result.text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = report.fileName;
+    anchor.download = result.report.fileName;
     anchor.click();
     URL.revokeObjectURL(url);
   };
 
-  const loadMaterial = useCallback(
-    async (file: File | undefined) => {
-      if (!file) return;
-      setBusy(true);
-      setLoadError(null);
-      try {
-        const isVideo = file.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(file.name);
-        const { image, label } = isVideo
-          ? await captureFromVideo(file)
-          : await captureFromImage(file);
+  // --- Step states ---------------------------------------------------------
 
-        originalFrame.current = image;
-        setFrame(downscale(image, 720));
-        setFrameLabel(label);
-        // The analysis gets the full frame and makes its own proxy, so the
-        // measurements are not taken through the preview's resampling.
-        setAnalysis(await analyzeFootage(image, findCameraProfile(profileId)!));
-      } catch (error) {
-        setLoadError(error instanceof Error ? error.message : String(error));
-      } finally {
-        setBusy(false);
-      }
-    },
-    [profileId],
-  );
+  const hasClip = clipSource !== null;
+  const hasAnalysis = clip !== null && derived !== null;
+  const stale = generated !== null && generated.spec !== spec;
 
-  const changeProfile = (id: string) => {
-    setProfileId(id);
-    const loaded = originalFrame.current;
-    if (!loaded) return;
-    // Every number in the analysis panel is a measurement of the *converted*
-    // frame, so a different profile makes all of them wrong. Clear them first,
-    // then re-measure, rather than leaving stale figures on screen.
-    setAnalysis(null);
-    setBusy(true);
-    void analyzeFootage(loaded, findCameraProfile(id)!)
-      .then(setAnalysis)
-      .catch((error: unknown) =>
-        setLoadError(error instanceof Error ? error.message : String(error)),
-      )
-      .finally(() => setBusy(false));
-  };
-
-  const applySuggestions = () => {
-    if (!analysis) return;
-    setGrade((current) => ({
-      ...current,
-      exposureEv: analysis.suggestedExposureEv,
-      look: { ...current.look, skinProtection: analysis.suggestedSkinProtection },
-    }));
-  };
-
-  const kindTone =
-    report.kind === "technical" ? "accent" : report.kind === "creative" ? "neutral" : "good";
+  const state = (done: boolean, ready: boolean, active: boolean): StepState =>
+    done ? "done" : active ? "active" : ready ? "ready" : "locked";
 
   return (
     <div className="space-y-4">
@@ -220,187 +274,200 @@ export default function ColorLabPage() {
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-neutral-100">Color Lab</h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-neutral-400">
-            Convierte material log a Rec.709 y genera un LUT 3D <code>.cube</code> real para
-            CapCut. Todo se procesa en este dispositivo; el vídeo no se sube a ningún sitio.
+            Analiza tu material y genera un LUT 3D <code>.cube</code> hecho para ese plano, no un
+            preset de catálogo. Todo se procesa en este dispositivo; el vídeo no se sube a ningún
+            sitio.
           </p>
         </div>
-        <Badge tone={kindTone}>{report.kindLabel}</Badge>
+        {result && <Badge tone="accent">{result.report.kindLabel}</Badge>}
       </header>
+
+      {loadError && <Notice tone="error">{loadError}</Notice>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-4">
-          <Panel
-            title="Previsualización"
+          {/* ---------------------------------------------------------- 1 */}
+          <Step
+            index={1}
+            title="Cargar vídeo"
+            state={state(hasClip, true, !hasClip)}
+            summary={clipSource?.label}
             action={
-              <div className="flex items-center gap-2">
+              <>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="video/*,image/*"
                   className="hidden"
                   onChange={(event) => {
-                    void loadMaterial(event.target.files?.[0]);
+                    void loadFile(event.target.files?.[0]);
                     event.target.value = "";
                   }}
                 />
                 <Button
-                  variant="secondary"
+                  variant={hasClip ? "secondary" : "primary"}
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={busy}
+                  disabled={loading !== null}
                 >
-                  {busy ? "Analizando…" : "Cargar material"}
+                  {loading ?? (hasClip ? "Cambiar material" : "Elegir vídeo o imagen")}
                 </Button>
-                {frame && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      originalFrame.current = null;
-                      setFrame(null);
-                      setAnalysis(null);
-                    }}
-                  >
-                    Quitar
-                  </Button>
-                )}
+              </>
+            }
+          >
+            {clipSource ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-3 text-xs text-neutral-400">
+                  <span>
+                    {clipSource.width}×{clipSource.height}
+                  </span>
+                  {clipSource.duration !== null && <span>{clipSource.duration.toFixed(1)} s</span>}
+                  {clipSource.frameRate !== null && <span>{clipSource.frameRate} fps</span>}
+                  <span>{clipSource.frames.length} fotogramas extraídos</span>
+                </div>
+                <FrameStrip clip={clipSource} />
               </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-neutral-400">
+                Carga el clip que vas a corregir. Se extraen {FRAME_COUNT} fotogramas repartidos
+                por la duración y se analizan todos: un solo fotograma puede caer en un
+                barrido, en medio segundo de exposición automática buscando, o en alguien
+                cruzando el plano, y la corrección saldría de ese accidente.
+                <br />
+                <br />
+                El navegador decodifica H.264/MP4 y WebM. Los códecs de cámara (H.265, ProRes,
+                MXF) no se abren aquí: exporta un fragmento o un fotograma en PNG, que el
+                análisis sólo ve píxeles.
+              </p>
+            )}
+          </Step>
+
+          {/* ---------------------------------------------------------- 3 */}
+          <Step
+            index={3}
+            title="Analizar material"
+            state={state(hasAnalysis, hasClip, hasClip && !hasAnalysis)}
+            lockedReason="Carga primero el material."
+            summary={
+              clip ? `${clip.frames.length} fotogramas medidos tras la conversión` : undefined
+            }
+            action={
+              <Button
+                variant={hasAnalysis ? "secondary" : "primary"}
+                onClick={() => void runAnalysis()}
+                disabled={!hasClip || analysing}
+              >
+                {analysing ? "Analizando…" : hasAnalysis ? "Volver a analizar" : "Analizar"}
+              </Button>
+            }
+          >
+            <p className="text-sm leading-relaxed text-neutral-400">
+              El cuadro se convierte a Rec.709 <em>antes</em> de medirlo. Un fotograma en log
+              leído en crudo se interpreta como una foto plana, gris y mal expuesta, y el
+              detector de piel no encuentra nada: la piel en log queda fuera de todos los
+              límites de crominancia con los que se calibró. Convertido primero, cada medida
+              significa lo que debe significar.
+            </p>
+          </Step>
+
+          {/* ---------------------------------------------------------- 4 */}
+          <Step
+            index={4}
+            title="Análisis y corrección"
+            state={state(false, hasAnalysis, hasAnalysis)}
+            lockedReason="Analiza el material para ver sus medidas."
+          >
+            {clip && derived ? (
+              <div className="space-y-4">
+                <AnalysisReport clip={clip} derived={derived} />
+                <Toggle
+                  label="Aplicar la corrección al LUT"
+                  hint="Desactívalo para llevarte sólo la transformación técnica más el look, sin lo que este plano en concreto necesitaba."
+                  checked={useCorrection}
+                  onChange={setUseCorrection}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-neutral-500">
+                Aquí aparecerán exposición, contraste, saturación, balance de blancos, altas
+                luces, sombras y tonos de piel, y qué corrección sale de cada medida.
+              </p>
+            )}
+          </Step>
+
+          {/* ---------------------------------------------------------- 6 */}
+          <Step
+            index={6}
+            title="Generar LUT"
+            state={state(result !== null && !stale, hasAnalysis, hasAnalysis && result === null)}
+            lockedReason="Analiza el material antes de generar."
+            action={
+              <Button
+                variant="primary"
+                onClick={() => setGenerated({ spec, stamp: Date.now() })}
+                disabled={!hasAnalysis}
+              >
+                {result === null ? "Generar LUT" : stale ? "Regenerar" : "Generado"}
+              </Button>
             }
           >
             <div className="space-y-3">
-              {loadError && <Notice tone="error">{loadError}</Notice>}
-              <LutPreview source={source} cube={previewCube} sourceLabel={sourceLabel} />
-              {!frame && (
-                <p className="text-[11px] leading-relaxed text-neutral-500">
-                  La carta está dibujada en la codificación de {profile.profile}: cada parche es
-                  el valor de código que la cámara habría grabado para ese color. Con el LUT
-                  neutro vuelve exactamente a su color de destino, así que lo que veas cambiar es
-                  el look y no la carta.
-                </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Nombre del LUT">
+                  <TextInput value={name} onChange={setName} placeholder={spec.name} />
+                </Field>
+                <Field
+                  label="Tamaño de la rejilla"
+                  hint={LUT_SIZES.find((option) => option.size === size)?.hint}
+                >
+                  <Select value={String(size)} onChange={(value) => setSize(Number(value))}>
+                    {LUT_SIZES.map((option) => (
+                      <option key={option.size} value={String(option.size)}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              {stale && (
+                <Notice tone="warn">
+                  Has cambiado algo desde que se generó. El archivo de abajo es el anterior:
+                  vuelve a generar para que refleje los ajustes actuales.
+                </Notice>
               )}
             </div>
-          </Panel>
+          </Step>
 
-          {analysis && (
-            <Panel
-              title="Análisis del material"
-              action={
-                <Button variant="secondary" onClick={applySuggestions}>
-                  Aplicar sugerencias
-                </Button>
-              }
-            >
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <Stat
-                    label="Negros (1%)"
-                    value={`${(analysis.log.floor * 100).toFixed(1)}%`}
-                    hint="código de origen"
-                  />
-                  <Stat
-                    label="Blancos (99%)"
-                    value={`${(analysis.log.ceiling * 100).toFixed(1)}%`}
-                    hint="código de origen"
-                  />
-                  <Stat
-                    label="Piel en cuadro"
-                    value={`${(analysis.rendered.skin.coverage * 100).toFixed(0)}%`}
-                    hint={
-                      analysis.rendered.skin.meanHue !== null
-                        ? `tono ${analysis.rendered.skin.meanHue.toFixed(0)}°`
-                        : "sin piel medible"
-                    }
-                  />
-                  <Stat
-                    label="Exposición"
-                    value={`${analysis.suggestedExposureEv > 0 ? "+" : ""}${analysis.suggestedExposureEv} EV`}
-                    hint="corrección sugerida"
-                  />
-                </div>
-                {analysis.warnings.map((warning) => (
-                  <Notice key={warning} tone="warn">
-                    {warning}
-                  </Notice>
-                ))}
-                <ul className="space-y-1.5 text-sm leading-relaxed text-neutral-400">
-                  {analysis.notes.map((note) => (
-                    <li key={note} className="flex gap-2">
-                      <span
-                        aria-hidden
-                        className="mt-2 h-1 w-1 shrink-0 rounded-full bg-neutral-600"
-                      />
-                      <span>{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Panel>
-          )}
-
-          <Panel title="Entrega">
-            <dl className="space-y-3 text-sm">
-              <Row term="1. Nombre del LUT" description={report.name} />
-              <Row term="2. Tipo" description={report.kindLabel} />
-              <Row
-                term="3. Gamma / gamut de entrada"
-                description={`${report.inputTransfer} · ${report.inputGamut} — gris 18% en ${report.inputMidGrey.toFixed(1)}%, ${report.inputHeadroom.toFixed(1)} pasos de margen sobre gris`}
+          {/* ---------------------------------------------------------- 7 */}
+          <Step
+            index={7}
+            title="Resultado y descarga"
+            state={state(false, result !== null, result !== null)}
+            lockedReason="Genera el LUT para verlo aquí."
+          >
+            {result ? (
+              <ResultCard
+                report={result.report}
+                cameraLabel={`${profile.camera} — ${profile.profile}`}
+                analysisSummary={analysisSummary}
+                onDownload={download}
               />
-              <Row term="4. Transformación" description={report.transformation} />
-              <Row term="5. Look" description={report.lookDescription} />
-              <Row
-                term="6. Intensidad en CapCut"
-                description={`${report.capcutIntensity}%. ${report.intensityReason}`}
-              />
-              <Row
-                term="7. Archivo"
-                description={`${report.fileName} — rejilla ${report.size}³, ${report.size ** 3} entradas`}
-              />
-            </dl>
-
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Stat label="Gris 18% sale a" value={`${(report.measured.midGrey * 100).toFixed(1)}%`} />
-              <Stat label="Blanco máximo" value={`${(report.measured.white * 100).toFixed(1)}%`} />
-              <Stat
-                label="Recorte"
-                value={`${(report.measured.clippedHigh * 100).toFixed(2)}%`}
-                hint="nodos en blanco puro"
-              />
-              <Stat
-                label="Error de rejilla"
-                value={`${(report.measured.interpolationError * 100).toFixed(1)}%`}
-                hint={
-                  report.measured.interpolationError > 0.02
-                    ? "sube a 65 si vas a corregir encima"
-                    : "holgado"
-                }
-              />
-            </div>
-
-            {report.validation.errors.map((error) => (
-              <div key={error} className="mt-3">
-                <Notice tone="error">{error}</Notice>
-              </div>
-            ))}
-            {report.validation.warnings.map((warning) => (
-              <div key={warning} className="mt-3">
-                <Notice tone="warn">{warning}</Notice>
-              </div>
-            ))}
-
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Button variant="primary" onClick={download} disabled={!report.validation.valid}>
-                Descargar {report.fileName}
-              </Button>
-              <span className="text-xs text-neutral-500">
-                En CapCut: Ajustar → LUT → Importar, y la intensidad al {report.capcutIntensity}%.
-              </span>
-            </div>
-          </Panel>
+            ) : (
+              <p className="text-sm text-neutral-500">
+                El nombre, la cámara, la transformación, el análisis, el look, la intensidad
+                recomendada para CapCut y el botón de descarga aparecen aquí.
+              </p>
+            )}
+          </Step>
         </div>
 
+        {/* ------------------------------------------------------------ */}
+        {/* Right column: camera data, look, and the live preview          */}
+        {/* ------------------------------------------------------------ */}
         <div className="space-y-4">
-          <Panel title="Material">
+          <Step index={2} title="Datos de cámara" state={hasClip ? "active" : "ready"}>
             <div className="space-y-3">
-              <Field label="Cámara y perfil de imagen" hint={profile.note}>
-                <Select value={profileId} onChange={changeProfile}>
+              <Field label="Perfil de imagen" hint={profile.note}>
+                <Select value={profileId} onChange={selectProfile}>
                   {CAMERA_PROFILES.map((option) => (
                     <option key={option.id} value={option.id}>
                       {option.camera} — {option.profile}
@@ -409,10 +476,47 @@ export default function ColorLabPage() {
                 </Select>
               </Field>
 
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Gamma">
+                  <Select
+                    value={transfer}
+                    onChange={(value) => {
+                      setTransfer(value);
+                      setClip(null);
+                      setDerived(null);
+                      setGenerated(null);
+                    }}
+                  >
+                    {(Object.keys(TRANSFERS) as TransferId[]).map((id) => (
+                      <option key={id} value={id}>
+                        {TRANSFERS[id].label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Gamut">
+                  <Select
+                    value={gamut}
+                    onChange={(value) => {
+                      setGamut(value);
+                      setClip(null);
+                      setDerived(null);
+                      setGenerated(null);
+                    }}
+                  >
+                    {(Object.keys(GAMUT_LABELS) as GamutId[]).map((id) => (
+                      <option key={id} value={id}>
+                        {GAMUT_LABELS[id]}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+
               <div className="grid grid-cols-2 gap-2 text-[11px] text-neutral-500">
-                <span>Gris 18% en {(midGreyCode(profile.transfer) * 100).toFixed(1)}%</span>
+                <span>Gris 18% en {(midGreyCode(transfer) * 100).toFixed(1)}%</span>
                 <span className="text-right">
-                  {headroomStops(profile.transfer).toFixed(1)} pasos sobre gris
+                  {headroomStops(transfer).toFixed(1)} pasos sobre gris
                 </span>
               </div>
 
@@ -425,165 +529,69 @@ export default function ColorLabPage() {
                   <option value="legal">Legal / vídeo (64-940)</option>
                 </Select>
               </Field>
-            </div>
-          </Panel>
 
-          <Panel title="Look">
-            <div className="space-y-3">
-              <Field label="Punto de partida">
-                <Select value={presetId} onChange={selectPreset}>
-                  {LOOK_PRESETS.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
+              <details className="rounded-lg border border-neutral-800 bg-neutral-900/60">
+                <summary className="cursor-pointer px-3 py-2 text-xs text-neutral-400">
+                  Datos del rodaje (opcionales)
+                </summary>
+                <div className="space-y-3 border-t border-neutral-800 p-3">
+                  <p className="text-[11px] leading-relaxed text-neutral-500">
+                    Sólo se escriben en la cabecera del archivo: ninguno cambia un valor del LUT.
+                    La corrección sale de medir los fotogramas, no de lo que se declare aquí —
+                    un ISO mal anotado no debe torcer un color. Lo que dejes en blanco se queda
+                    fuera en lugar de rellenarse con un valor plausible.
+                  </p>
+                  {METADATA_FIELDS.map(([key, label, placeholder]) => (
+                    <Field key={key} label={label}>
+                      <TextInput
+                        value={metadata[key] ?? ""}
+                        placeholder={placeholder}
+                        onChange={(value) =>
+                          setMetadata((current) => ({ ...current, [key]: value }))
+                        }
+                      />
+                    </Field>
                   ))}
-                </Select>
-              </Field>
-              <p className="text-[11px] leading-relaxed text-neutral-500">{preset.description}</p>
-
-              <Toggle
-                label="Sólo conversión técnica"
-                hint="Emite la transformación sin look. Es el LUT que va debajo de una corrección, no encima."
-                checked={technicalOnly}
-                onChange={setTechnicalOnly}
-              />
-
-              <fieldset disabled={technicalOnly} className={technicalOnly ? "opacity-40" : ""}>
-                <ColorSlider
-                  label="Exposición"
-                  value={grade.exposureEv}
-                  min={-3}
-                  max={3}
-                  step={0.05}
-                  decimals={2}
-                  suffix=" EV"
-                  onChange={(value) => setGrade((current) => ({ ...current, exposureEv: value }))}
-                />
-                <ColorSlider
-                  label="Contraste"
-                  value={grade.contrast}
-                  min={-40}
-                  max={40}
-                  hint="Pendiente de la curva alrededor del gris medio."
-                  onChange={(value) => setGrade((current) => ({ ...current, contrast: value }))}
-                />
-                <ColorSlider
-                  label="Elevación de negros"
-                  value={grade.look.shadowLift}
-                  min={-40}
-                  max={60}
-                  onChange={(value) => patchLook({ shadowLift: value })}
-                />
-                <ColorSlider
-                  label="Calidez"
-                  value={grade.warmth}
-                  min={-60}
-                  max={60}
-                  hint="Reencuadra el eje neutro entre 8500 K y 4300 K. No corrige el balance de cámara: eso ya está grabado."
-                  onChange={(value) => setGrade((current) => ({ ...current, warmth: value }))}
-                />
-                <ColorSlider
-                  label="Matiz verde / magenta"
-                  value={grade.tint}
-                  min={-40}
-                  max={40}
-                  onChange={(value) => setGrade((current) => ({ ...current, tint: value }))}
-                />
-                <ColorSlider
-                  label="Saturación"
-                  value={grade.look.saturation}
-                  min={-60}
-                  max={60}
-                  onChange={(value) => patchLook({ saturation: value })}
-                />
-                <ColorSlider
-                  label="Intensidad de color"
-                  value={grade.look.vibrance}
-                  min={-60}
-                  max={60}
-                  hint="Sube sólo los colores todavía apagados."
-                  onChange={(value) => patchLook({ vibrance: value })}
-                />
-                <ColorSlider
-                  label="Protección de piel"
-                  value={Math.round(grade.look.skinProtection * 100)}
-                  min={0}
-                  max={100}
-                  neutral={70}
-                  suffix="%"
-                  hint="Cuánta saturación y viraje se le retiran a los tonos de piel."
-                  onChange={(value) => patchLook({ skinProtection: value / 100 })}
-                />
-                <ColorSlider
-                  label="Techo de saturación"
-                  value={Math.round(grade.look.saturationCeiling * 100)}
-                  min={50}
-                  max={100}
-                  neutral={92}
-                  suffix="%"
-                  hint="Límite superior de saturación, más estrecho en rojos, verdes y piel."
-                  onChange={(value) => patchLook({ saturationCeiling: value / 100 })}
-                />
-
-                <div className="mt-3 space-y-2">
-                  <ToningControl
-                    label="Sombras"
-                    hue={grade.look.shadowToning.hue}
-                    strength={grade.look.shadowToning.strength}
-                    onChange={(wheel: ToningWheel) => patchLook({ shadowToning: wheel })}
-                  />
-                  <ToningControl
-                    label="Medios"
-                    hue={grade.look.midtoneToning.hue}
-                    strength={grade.look.midtoneToning.strength}
-                    onChange={(wheel: ToningWheel) => patchLook({ midtoneToning: wheel })}
-                  />
-                  <ToningControl
-                    label="Altas luces"
-                    hue={grade.look.highlightToning.hue}
-                    strength={grade.look.highlightToning.strength}
-                    onChange={(wheel: ToningWheel) => patchLook({ highlightToning: wheel })}
-                  />
                 </div>
-              </fieldset>
+              </details>
             </div>
-          </Panel>
+          </Step>
 
-          <Panel title="Archivo">
+          <Step
+            index={5}
+            title="Seleccionar look"
+            state={state(false, hasAnalysis, hasAnalysis)}
+            lockedReason="Analiza el material antes de elegir el look."
+          >
             <div className="space-y-3">
-              <Field label="Nombre del LUT">
-                <TextInput value={name} onChange={setName} placeholder={spec.name} />
-              </Field>
-              <Field
-                label="Rejilla"
-                hint="33 es el estándar y lo que espera CapCut. 65 interpola mejor en sombras a costa de un archivo ocho veces mayor."
-              >
-                <Select value={String(size)} onChange={(value) => setSize(Number(value))}>
-                  {LUT_SIZES.map((option) => (
-                    <option key={option} value={String(option)}>
-                      {option}³ — {option ** 3} entradas
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+              <Toggle
+                label="Sin look creativo"
+                hint="Deja la transformación técnica más la corrección medida. Es el LUT que va debajo de una corrección, no encima."
+                checked={skipLook}
+                onChange={setSkipLook}
+              />
+              <LookControls
+                presetId={presetId}
+                grade={grade}
+                disabled={skipLook}
+                onSelectPreset={selectPreset}
+                onChange={setGrade}
+              />
             </div>
-          </Panel>
+          </Step>
 
-          <Panel title="Datos del rodaje">
-            <p className="mb-3 text-[11px] leading-relaxed text-neutral-500">
-              Opcional, y sólo se escribe en la cabecera del archivo: nada de esto cambia un solo
-              valor del LUT. Lo que dejes en blanco se queda fuera en lugar de rellenarse con un
-              valor plausible.
-            </p>
+          <Panel title="Previsualización">
             <div className="space-y-3">
-              {METADATA_FIELDS.map(([key, label]) => (
-                <Field key={key} label={label}>
-                  <TextInput
-                    value={metadata[key] ?? ""}
-                    onChange={(value) => setMetadata((current) => ({ ...current, [key]: value }))}
-                  />
-                </Field>
-              ))}
+              <LutPreview
+                source={previewSource}
+                cube={previewCube}
+                sourceLabel={previewFrame ? "Tu material (log)" : "Carta de referencia (log)"}
+              />
+              <p className="text-[11px] leading-relaxed text-neutral-500">
+                {previewFrame
+                  ? "Fotograma central de tu clip, con la cadena completa aplicada en vivo. La rejilla de la previsualización es siempre 33³."
+                  : `La carta está dibujada en la codificación de ${TRANSFERS[transfer].label}: cada parche es el valor de código que la cámara habría grabado para ese color.`}
+              </p>
             </div>
           </Panel>
         </div>
@@ -592,116 +600,54 @@ export default function ColorLabPage() {
   );
 }
 
-function Row({ term, description }: { term: string; description: string }) {
+/**
+ * A name that describes what is actually in the file.
+ *
+ * A technical conversion called "Piel natural · medido" is a file somebody will
+ * later apply expecting a look and a correction that are not in it, so the look
+ * and the "medido" mark only appear when those layers are really present.
+ */
+function defaultName(profile: CameraProfile, look: string | null, measured: boolean): string {
+  const camera = profile.camera.split(" ")[0];
+  const head = look ?? `${TRANSFERS[profile.transfer].label} a Rec.709`;
+  return `${head} · ${camera}${measured ? " · medido" : ""}`;
+}
+
+/** Thumbnails of the frames the analysis will actually use. */
+function FrameStrip({ clip }: { clip: ExtractedClip }) {
+  const thumbnails = useMemo(
+    () =>
+      clip.frames.map((frame) => ({
+        time: frame.timeSeconds,
+        url: toDataUrl(downscale(frame.image, 200)),
+      })),
+    [clip],
+  );
+
   return (
-    <div className="grid gap-0.5 sm:grid-cols-[190px_minmax(0,1fr)] sm:gap-3">
-      <dt className="text-xs uppercase tracking-wider text-neutral-500">{term}</dt>
-      <dd className="leading-relaxed text-neutral-300">{description}</dd>
+    <div className="flex gap-2 overflow-x-auto pb-1">
+      {thumbnails.map((thumbnail) => (
+        <figure key={thumbnail.time} className="shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element -- a canvas data URL, not an asset */}
+          <img
+            src={thumbnail.url}
+            alt={`Fotograma en ${thumbnail.time.toFixed(1)} segundos`}
+            className="h-20 rounded border border-neutral-800"
+          />
+          <figcaption className="mt-1 text-center text-[10px] tabular-nums text-neutral-500">
+            {thumbnail.time.toFixed(1)} s
+          </figcaption>
+        </figure>
+      ))}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Getting a frame out of whatever the user dropped in
-// ---------------------------------------------------------------------------
-
-function readCanvas(canvas: HTMLCanvasElement): PreviewSource {
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) throw new Error("Este navegador no expone un contexto 2D de canvas.");
-  const image = context.getImageData(0, 0, canvas.width, canvas.height);
-  return { width: image.width, height: image.height, data: image.data };
-}
-
-function downscale(source: PreviewSource, longEdge: number): PreviewSource {
-  const scale = Math.min(1, longEdge / Math.max(source.width, source.height));
-  if (scale >= 1) return source;
-
-  const staging = document.createElement("canvas");
-  staging.width = source.width;
-  staging.height = source.height;
-  // The copy is deliberate: `ImageData` insists on a buffer it owns, and this
-  // runs once per loaded frame rather than per pixel.
-  const owned = new Uint8ClampedArray(source.data);
-  staging.getContext("2d")!.putImageData(new ImageData(owned, source.width, source.height), 0, 0);
-
+function toDataUrl(image: { data: Uint8ClampedArray; width: number; height: number }): string {
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(source.width * scale);
-  canvas.height = Math.round(source.height * scale);
-  const context = canvas.getContext("2d", { willReadFrequently: true })!;
-  context.imageSmoothingQuality = "high";
-  context.drawImage(staging, 0, 0, canvas.width, canvas.height);
-  return readCanvas(canvas);
-}
-
-function captureFromVideo(file: File): Promise<{ image: PreviewSource; label: string }> {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement("video");
-    const url = URL.createObjectURL(file);
-    video.preload = "metadata";
-    video.muted = true;
-    video.playsInline = true;
-
-    const fail = (message: string) => {
-      URL.revokeObjectURL(url);
-      reject(new Error(message));
-    };
-
-    // Browsers decode a narrow set of codecs, and camera-original log footage
-    // is very often outside it. Say what to do about it instead of failing with
-    // a blank error, because exporting a still loses nothing here.
-    video.onerror = () =>
-      fail(
-        "El navegador no puede decodificar este vídeo. Exporta un fotograma como PNG o TIFF " +
-          "desde tu editor y súbelo: el análisis es exactamente el mismo.",
-      );
-    video.onloadeddata = () => {
-      // A couple of seconds in: the first frame of a take is very often the
-      // operator's hand still on the camera.
-      video.currentTime = Math.min(2, (video.duration || 0) / 2);
-    };
-    video.onseeked = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        if (canvas.width === 0) {
-          fail("El vídeo no expone dimensiones legibles.");
-          return;
-        }
-        canvas.getContext("2d")!.drawImage(video, 0, 0);
-        const image = readCanvas(canvas);
-        URL.revokeObjectURL(url);
-        resolve({ image, label: `${file.name} @ ${video.currentTime.toFixed(1)} s` });
-      } catch (error) {
-        fail(error instanceof Error ? error.message : String(error));
-      }
-    };
-    video.src = url;
-  });
-}
-
-function captureFromImage(file: File): Promise<{ image: PreviewSource; label: string }> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const element = new Image();
-    element.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("No se pudo abrir la imagen."));
-    };
-    element.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = element.naturalWidth;
-        canvas.height = element.naturalHeight;
-        canvas.getContext("2d")!.drawImage(element, 0, 0);
-        const image = readCanvas(canvas);
-        URL.revokeObjectURL(url);
-        resolve({ image, label: file.name });
-      } catch (error) {
-        URL.revokeObjectURL(url);
-        reject(error instanceof Error ? error : new Error(String(error)));
-      }
-    };
-    element.src = url;
-  });
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const owned = new Uint8ClampedArray(image.data);
+  canvas.getContext("2d")!.putImageData(new ImageData(owned, image.width, image.height), 0, 0);
+  return canvas.toDataURL("image/png");
 }

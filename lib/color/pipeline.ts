@@ -1,7 +1,7 @@
 /**
  * Turning a shot description into a `.cube` file.
  *
- * The whole module exists to keep three things apart that a single "cinematic
+ * The whole module exists to keep four things apart that a single "cinematic
  * LUT" download normally smears together:
  *
  *   - the **technical transform** — the camera's log curve and gamut to
@@ -9,11 +9,14 @@
  *     published curve.
  *   - the **tone rendering** — how eleven stops get into a two-and-a-half stop
  *     display without clipping. Judgement, but constrained judgement.
+ *   - the **correction** — what this particular clip needs, measured off its
+ *     own frames. See `correction.ts`.
  *   - the **creative look** — taste, and the only part that should ever be
  *     dialled back on the intensity slider.
  *
- * `LutSpec.technicalOnly` emits the first two alone. That is the LUT you put
- * *under* a grade, and it is not the same file as the one you put on top.
+ * `LutSpec.technicalOnly` emits the transform and the rendering alone; adding
+ * `skipLook` keeps the correction and drops the taste. Those are the LUTs you
+ * put *under* a grade, and neither is the same file as the one you put on top.
  */
 import { applyMatrix, gamutMatrix, type Matrix3 } from "./gamut";
 import { TRANSFERS, headroomStops, midGreyCode, type TransferId } from "./transfer";
@@ -39,6 +42,14 @@ import {
   type CubeValidation,
 } from "./cube";
 import type { CameraProfile, LookPreset } from "./presets";
+import {
+  CORRECTION_LABELS,
+  NEUTRAL_CORRECTION,
+  formatCorrection,
+  isNeutralCorrection,
+  type CorrectionOptions,
+  type DerivedCorrection,
+} from "./correction";
 
 /**
  * What the shooter told us about the material.
@@ -55,6 +66,7 @@ export interface ShotMetadata {
   shutter?: string;
   aperture?: string;
   whiteBalance?: string;
+  ev?: string;
   exposureNote?: string;
   resolution?: string;
   frameRate?: string;
@@ -84,12 +96,22 @@ export interface LutSpec {
    * asked rather than assumed.
    */
   inputRange?: "full" | "legal";
-  /** Emit the transform alone, with no creative pass. */
+  /**
+   * The corrective layer, measured off this clip's own frames. Absent means the
+   * material was never analysed, which is a different thing from analysed and
+   * found to need nothing — the report says which.
+   */
+  correction?: DerivedCorrection;
+  /** Emit the transform and the rendering alone: no correction, no look. */
   technicalOnly?: boolean;
+  /** Keep the correction, drop the creative look. */
+  skipLook?: boolean;
+  /** Lines describing the analysed material, written into the file header. */
+  analysisSummary?: string[];
   metadata?: ShotMetadata;
 }
 
-export type LutKind = "technical" | "creative" | "combined";
+export type LutKind = "technical" | "corrected" | "creative" | "combined";
 
 export interface LutReport {
   name: string;
@@ -103,6 +125,9 @@ export interface LutReport {
   /** Stops of highlight headroom above middle grey the input curve carries. */
   inputHeadroom: number;
   transformation: string;
+  /** What the correction layer does, or why it does nothing. */
+  correctionSummary: string;
+  correction: CorrectionOptions;
   lookDescription: string;
   capcutIntensity: number;
   intensityReason: string;
@@ -209,21 +234,61 @@ export function resolveTechnical(
   };
 }
 
+/**
+ * Composes the three layers into the single set of knobs the pixel loop uses.
+ *
+ * The layers are additive and they are applied in a fixed order, because the
+ * order is what makes them separable: the correction is decided against the
+ * *technically converted* material, so it has to sit on top of the transform
+ * and underneath the look. A look chosen for the corrected image would be
+ * wrong if the correction were applied afterwards.
+ *
+ * Nothing here is clever. Each correction value is an offset on a knob the
+ * creative preset also uses, so a colourist reading the report can see exactly
+ * how far the correction moved each one and dial it back by hand.
+ */
 function resolve(spec: LutSpec): ResolvedSpec {
   const technicalOnly = spec.technicalOnly === true;
-  const look: LookOptions = technicalOnly
+  const skipLook = technicalOnly || spec.skipLook === true;
+
+  // Layer 2. Dropped entirely by `technicalOnly`, kept by `skipLook`.
+  const correction: CorrectionOptions = technicalOnly
+    ? NEUTRAL_CORRECTION
+    : (spec.correction?.options ?? NEUTRAL_CORRECTION);
+
+  // Layer 3.
+  const look: LookOptions = skipLook
     ? { ...NEUTRAL_LOOK, skinProtection: 1 }
     : { ...spec.preset.look, ...spec.look };
-  const tone: ToneCurveOptions = technicalOnly
+  const baseTone: ToneCurveOptions = skipLook
     ? NEUTRAL_TONE_CURVE
     : { ...spec.preset.tone, ...spec.tone };
-  const warmth = technicalOnly ? 0 : (spec.warmth ?? spec.preset.warmth);
-  const tint = technicalOnly ? 0 : (spec.tint ?? spec.preset.tint);
+  const creativeWarmth = skipLook ? 0 : (spec.warmth ?? spec.preset.warmth);
+  const creativeTint = skipLook ? 0 : (spec.tint ?? spec.preset.tint);
+  const creativeExposure = skipLook ? 0 : spec.exposureEv;
+
+  // Correction folded in. The clamps are the ranges the controls themselves
+  // offer, so a strong correction plus a strong look cannot walk a knob off
+  // the end of the scale that the UI can express.
+  const tone: ToneCurveOptions = {
+    ...baseTone,
+    slopePerStop: baseTone.slopePerStop * (1 + correction.contrastTrim / 100),
+    // A shoulder power below 1 stops being a shoulder and starts being a kink.
+    shoulderPower: Math.max(1.05, baseTone.shoulderPower + correction.shoulderTrim),
+  };
+  const merged: LookOptions = {
+    ...look,
+    shadowLift: clampRange(look.shadowLift + correction.blackTrim, -100, 100),
+    saturation: clampRange(look.saturation + correction.saturationTrim, -100, 100),
+  };
+  const warmth = clampRange(creativeWarmth + correction.warmth, -100, 100);
+  const tint = clampRange(creativeTint + correction.tint, -100, 100);
+  const exposureEv = clampRange(creativeExposure + correction.exposureEv, -5, 5);
 
   const transfer = spec.profile.transfer;
   const gamut = spec.profile.gamut;
   return {
-    look,
+    look: merged,
     tone,
     warmth,
     tint,
@@ -231,11 +296,15 @@ function resolve(spec: LutSpec): ResolvedSpec {
     inputRange: spec.inputRange ?? "full",
     matrix: gamutMatrix(gamut, "rec709"),
     whiteBalance: creativeWhiteBalance(warmth, tint),
-    gain: 2 ** spec.exposureEv,
+    gain: 2 ** exposureEv,
     sceneReferred: TRANSFERS[transfer].kind === "scene",
     transfer,
     gamut,
   };
+}
+
+function clampRange(value: number, low: number, high: number): number {
+  return value < low ? low : value > high ? high : value;
 }
 
 /**
@@ -336,19 +405,26 @@ export function buildLut(spec: LutSpec): LutResult {
 function classify(spec: LutSpec, resolved: ResolvedSpec): LutKind {
   if (spec.technicalOnly) return "technical";
   if (!resolved.sceneReferred) return "creative";
-  const neutral =
-    isNeutralLook(resolved.look) &&
-    isNeutralTone(resolved.tone) &&
-    Math.abs(resolved.warmth) < 1e-6 &&
-    Math.abs(resolved.tint) < 1e-6 &&
-    spec.exposureEv === 0;
-  return neutral ? "technical" : "combined";
+
+  const corrects =
+    spec.correction !== undefined && !isNeutralCorrection(spec.correction.options);
+  const styles =
+    spec.skipLook !== true &&
+    (!isNeutralLook({ ...spec.preset.look, ...spec.look }) ||
+      !isNeutralTone({ ...spec.preset.tone, ...spec.tone }) ||
+      Math.abs(spec.warmth ?? spec.preset.warmth) > 1e-6 ||
+      Math.abs(spec.tint ?? spec.preset.tint) > 1e-6 ||
+      spec.exposureEv !== 0);
+
+  if (styles) return "combined";
+  return corrects ? "corrected" : "technical";
 }
 
 const KIND_LABELS: Record<LutKind, string> = {
   technical: "Conversión técnica (transformación pura)",
+  corrected: "Técnico + corrección (medida de este material)",
   creative: "Creativo (sobre material ya en Rec.709)",
-  combined: "Combinado (transformación + look)",
+  combined: "Transformación + corrección + look",
 };
 
 // ---------------------------------------------------------------------------
@@ -445,15 +521,22 @@ function describe(
     : `Sin transformación técnica: el material ya es ${transferLabel} · ${gamutLabel}. ` +
       `El LUT sólo aplica la intención creativa.`;
 
+  const correction = spec.correction?.options ?? NEUTRAL_CORRECTION;
+  const correctionSummary = summarizeCorrection(spec, kind);
+
   const strength = lookStrength(resolved, spec.exposureEv);
   let capcutIntensity: number;
   let intensityReason: string;
 
-  if (kind === "technical") {
+  if (kind === "technical" || kind === "corrected") {
     capcutIntensity = 100;
     intensityReason =
-      "Es una conversión técnica: al 100%. Bajar la intensidad de un LUT de transformación " +
-      "deja el material a medio camino entre log y Rec.709, que no es ningún espacio válido.";
+      kind === "technical"
+        ? "Es una conversión técnica: al 100%. Bajar la intensidad de un LUT de transformación " +
+          "deja el material a medio camino entre log y Rec.709, que no es ningún espacio válido."
+        : "Transformación más corrección medida de este material, sin look: al 100%. Todo lo que " +
+          "hay en el archivo es lo que el plano necesitaba, así que rebajarlo sólo deja el trabajo " +
+          "a medias.";
   } else {
     const base = spec.preset.capcutIntensity;
     capcutIntensity = Math.round(Math.min(base, 100 - strength * 45) / 5) * 5;
@@ -477,9 +560,11 @@ function describe(
     inputMidGrey: midGreyCode(resolved.transfer) * 100,
     inputHeadroom: headroomStops(resolved.transfer),
     transformation,
+    correctionSummary,
+    correction,
     lookDescription:
-      kind === "technical"
-        ? "Ninguna. Rendición neutra de Rec.709, lista para corregir encima."
+      kind === "technical" || kind === "corrected"
+        ? "Ninguno. Rendición neutra de Rec.709, lista para poner un look encima."
         : spec.preset.description,
     capcutIntensity,
     intensityReason,
@@ -487,6 +572,39 @@ function describe(
     validation: validateCube(cube),
     measured,
   };
+}
+
+/**
+ * The correction layer in one paragraph.
+ *
+ * The distinction it has to carry is between "analysed and found to need
+ * nothing" and "never analysed", because those recommend completely different
+ * things to the person holding the file.
+ */
+function summarizeCorrection(spec: LutSpec, kind: LutKind): string {
+  if (kind === "creative") {
+    return "No aplica: el material ya está en Rec.709 y no se ha medido para corregirlo.";
+  }
+  if (spec.technicalOnly) {
+    return "Desactivada a propósito: este archivo es sólo la transformación.";
+  }
+  if (!spec.correction) {
+    return (
+      "Ninguna: no se ha analizado material. El LUT es genérico para el perfil de cámara, " +
+      "no para este plano. Carga el vídeo y analízalo para que la corrección se mida."
+    );
+  }
+  const applied = (Object.keys(spec.correction.options) as Array<keyof CorrectionOptions>)
+    .filter((field) => Math.abs(spec.correction!.options[field]) > 1e-6)
+    .map((field) => `${CORRECTION_LABELS[field]} ${formatCorrection(field, spec.correction!.options[field])}`);
+
+  if (applied.length === 0) {
+    return (
+      "Ninguna. El material se analizó y midió correctamente en exposición, balance, contraste " +
+      "y saturación: no hay nada que corregir, que es un resultado y no un fallo."
+    );
+  }
+  return `Medida sobre los fotogramas analizados: ${applied.join(", ")}.`;
 }
 
 function slug(value: string): string {
@@ -498,7 +616,14 @@ function slug(value: string): string {
 }
 
 export function fileNameFor(spec: LutSpec, kind: LutKind): string {
-  const suffix = kind === "technical" ? "Tecnico" : kind === "creative" ? "Look" : "Look-Tecnico";
+  const suffix =
+    kind === "technical"
+      ? "Tecnico"
+      : kind === "corrected"
+        ? "Tecnico-Corregido"
+        : kind === "creative"
+          ? "Look"
+          : "Look-Tecnico";
   return `AdVibe_${slug(spec.name) || "Color-Lab"}_${suffix}_${spec.size}.cube`;
 }
 
@@ -522,8 +647,36 @@ function headerNotes(spec: LutSpec, resolved: ResolvedSpec, kind: LutKind): stri
   if (spec.exposureEv !== 0) {
     notes.push(`Exposición: ${spec.exposureEv > 0 ? "+" : ""}${spec.exposureEv.toFixed(2)} EV`);
   }
-  if (kind !== "technical") {
-    notes.push(`Look: ${spec.preset.label}`);
+  // The three layers, named, so that six months from now the file itself says
+  // which parts of it are opinion.
+  notes.push("--- Capa 1: transformación técnica ---");
+  notes.push(
+    resolved.sceneReferred
+      ? `${TRANSFERS[resolved.transfer].label} · ${GAMUT_LABELS[resolved.gamut]} -> Rec.709, curva fílmica asintótica`
+      : "Ninguna: el material ya es display-referred",
+  );
+
+  notes.push("--- Capa 2: corrección medida ---");
+  const correction = spec.correction;
+  if (spec.technicalOnly) {
+    notes.push("Desactivada: archivo de transformación pura");
+  } else if (!correction) {
+    notes.push("Ninguna: no se analizó material, el LUT es genérico para el perfil");
+  } else if (correction.notes.length === 0) {
+    notes.push("Ninguna: el material analizado no necesitaba corrección");
+  } else {
+    for (const note of correction.notes) {
+      const value = formatCorrection(note.field, note.value);
+      notes.push(`${CORRECTION_LABELS[note.field]} ${value} — ${note.reason}`);
+    }
+  }
+
+  notes.push("--- Capa 3: look creativo ---");
+  notes.push(kind === "technical" || kind === "corrected" ? "Ninguno" : spec.preset.label);
+
+  if (spec.analysisSummary && spec.analysisSummary.length > 0) {
+    notes.push("--- Análisis del material ---");
+    for (const line of spec.analysisSummary) notes.push(line);
   }
 
   // Only what the shooter actually told us. An empty field stays out of the
@@ -537,6 +690,7 @@ function headerNotes(spec: LutSpec, resolved: ResolvedSpec, kind: LutKind): stri
       ["Obturador", metadata.shutter],
       ["Diafragma", metadata.aperture],
       ["Balance de blancos", metadata.whiteBalance],
+      ["EV declarado", metadata.ev],
       ["Exposición declarada", metadata.exposureNote],
       ["Resolución", metadata.resolution],
       ["Frame rate", metadata.frameRate],

@@ -42,7 +42,15 @@ import {
   findLookPreset,
 } from "../lib/color/presets";
 import { buildLut, resolveTechnical, transformPixel } from "../lib/color/pipeline";
-import { analyzeFootage, proxyFrame, renderFrame } from "../lib/color/analyze";
+import {
+  analyzeClip,
+  analyzeFootage,
+  proxyFrame,
+  renderFrame,
+  summarizeClip,
+  type ClipAnalysis,
+} from "../lib/color/analyze";
+import { deriveCorrection, isNeutralCorrection } from "../lib/color/correction";
 import { SKIN_HUE_MAX, SKIN_HUE_MIN } from "../lib/photo/editing/skinGuard";
 import { rgbToHsv } from "../lib/photo/analysis/image";
 
@@ -878,4 +886,352 @@ test("el análisis avisa cuando el material no parece log", async () => {
     analysis.warnings.some((warning) => warning.includes("no log") || warning.includes("Rec.709")),
     `esperaba un aviso de perfil; hubo: ${analysis.warnings.join(" | ")}`,
   );
+});
+
+// ---------------------------------------------------------------------------
+// The corrective layer
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds a synthetic clip in a camera's own log encoding.
+ *
+ * The frame has to be a plausible *scene*, not a colour swatch: a two-tone
+ * patch has no tonal range, so it measures as flat with milky blacks and the
+ * correction quite rightly tries to fix that. So it carries a neutral gradient
+ * from near-black to near-white (contrast, a black floor, and a white-balance
+ * reference at every brightness), a grey card, a face and two saturated
+ * patches.
+ *
+ * `biasStops` shifts the whole frame's exposure before encoding and `cast`
+ * multiplies the linear channels, so a clip can be made a stop under or a stop
+ * too warm on purpose and the correction checked against what was done to it.
+ */
+function syntheticClip(
+  profile: (typeof CAMERA_PROFILES)[number],
+  options: {
+    frames?: number;
+    biasStops?: number;
+    cast?: [number, number, number];
+    skin?: [number, number, number];
+  } = {},
+) {
+  const { frames = 3, biasStops = 0, cast = [1, 1, 1], skin = [0.6, 0.44, 0.35] } = options;
+
+  const curve = TRANSFERS[profile.transfer];
+  const toCamera = gamutMatrix("rec709", profile.gamut);
+  const encode = (display: [number, number, number]): [number, number, number] => {
+    const linear = display.map(
+      (value, index) =>
+        toneCurveInverse(value, NEUTRAL_TONE_CURVE) * 2 ** biasStops * cast[index],
+    );
+    const camera = applyMatrix(toCamera, linear[0], linear[1], linear[2]);
+    return camera.map((value) => Math.min(Math.max(curve.encode(value), 0), 1)) as [
+      number,
+      number,
+      number,
+    ];
+  };
+
+  const width = 160;
+  const height = 120;
+  const face = encode(skin);
+  const card = encode([0.6, 0.6, 0.6]);
+  const red = encode([0.55, 0.18, 0.16]);
+  const green = encode([0.22, 0.42, 0.2]);
+
+  // The neutral ramp is precomputed per row: it is the same in every frame and
+  // it is what gives the white-balance estimate something to work with.
+  const ramp = Array.from({ length: height }, (_, y) => {
+    const value = 0.02 + (y / (height - 1)) * 0.86;
+    return encode([value, value, value]);
+  });
+
+  return Array.from({ length: frames }, (_, index) => {
+    const data = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        let colour = ramp[height - 1 - y];
+        if (x > 12 && x < 44 && y > 12 && y < 40) colour = card;
+        if (x > 118 && x < 148 && y > 14 && y < 40) colour = red;
+        if (x > 118 && x < 148 && y > 50 && y < 76) colour = green;
+        if (((x - 80) / 24) ** 2 + ((y - 74) / 32) ** 2 <= 1) colour = face;
+        const at = (y * width + x) * 4;
+        data[at] = colour[0] * 255;
+        data[at + 1] = colour[1] * 255;
+        data[at + 2] = colour[2] * 255;
+        data[at + 3] = 255;
+      }
+    }
+    return { timeSeconds: index * 2, image: { data, width, height } };
+  });
+}
+
+test("el análisis de clip agrega por mediana e ignora un fotograma atípico", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const good = syntheticClip(profile, { frames: 4 });
+  // One frame where somebody walked in front of the light: two stops down.
+  const outlier = syntheticClip(profile, { frames: 1, biasStops: -2 })[0];
+  const clip = await analyzeClip([...good, { ...outlier, timeSeconds: 9 }], profile);
+
+  assert.equal(clip.frames.length, 5);
+  const reference = await analyzeClip(good, profile);
+  // The median has to be barely moved by one frame in five.
+  closeTo(clip.exposureEv, reference.exposureEv, 0.2, "exposición con un fotograma atípico");
+  closeTo(clip.blackLevel, reference.blackLevel, 0.03, "negros con un fotograma atípico");
+});
+
+test("un clip bien expuesto y neutro no recibe corrección", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const clip = await analyzeClip(syntheticClip(profile), profile);
+  const { options, notes } = deriveCorrection(clip);
+
+  assert.equal(
+    isNeutralCorrection(options),
+    true,
+    `no debería corregir nada, y propuso: ${JSON.stringify(options)}`,
+  );
+  // "Nothing to correct" is still a statement worth making, not silence.
+  assert.ok(notes.every((note) => Math.abs(note.value) < 1e-6));
+});
+
+test("un clip subexpuesto pide subir exposición, y uno sobreexpuesto bajarla", async () => {
+  const profile = findCameraProfile("panasonic-vlog")!;
+  const dark = deriveCorrection(
+    await analyzeClip(syntheticClip(profile, { biasStops: -1.5 }), profile),
+  );
+  const bright = deriveCorrection(
+    await analyzeClip(syntheticClip(profile, { biasStops: 1.2 }), profile),
+  );
+
+  assert.ok(dark.options.exposureEv > 0.3, `esperaba subir, propuso ${dark.options.exposureEv}`);
+  assert.ok(
+    bright.options.exposureEv < -0.1,
+    `esperaba bajar, propuso ${bright.options.exposureEv}`,
+  );
+  assert.ok(dark.notes.some((note) => note.field === "exposureEv"));
+});
+
+test("una dominante de color en superficies neutras se corrige en la dirección contraria", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  // A tungsten-ish cast: red up, blue down. The correction has to cool it.
+  const warm = deriveCorrection(
+    await analyzeClip(syntheticClip(profile, { cast: [1.22, 1, 0.78] }), profile),
+  );
+  const cool = deriveCorrection(
+    await analyzeClip(syntheticClip(profile, { cast: [0.8, 1, 1.24] }), profile),
+  );
+
+  assert.ok(warm.options.warmth < 0, `un plano cálido debe enfriarse, propuso ${warm.options.warmth}`);
+  assert.ok(cool.options.warmth > 0, `un plano frío debe calentarse, propuso ${cool.options.warmth}`);
+});
+
+test("sin superficie neutra fiable el balance se declara decisión creativa, no se corrige", () => {
+  const clip = {
+    frames: [],
+    exposureEv: 0,
+    contrast: 0.2,
+    saturation: 0.2,
+    oversaturated: 0,
+    temperatureBias: 40,
+    tintBias: -30,
+    neutralConfidence: 0.05,
+    blackLevel: 0.02,
+    whiteLevel: 0.9,
+    shadowClipping: 0,
+    highlightClipping: 0,
+    unrecoverableHighlights: 0,
+    skinCoverage: 0,
+    skinLuma: null,
+    skinHue: null,
+    skinSaturation: null,
+    suggestedSkinProtection: 0.6,
+    notes: [],
+    warnings: [],
+  } satisfies ClipAnalysis;
+
+  const { options, notes } = deriveCorrection(clip);
+  // A strong reading on a weak reference is the grey-world trap: a frame full
+  // of one colour reads as a cast and "correcting" it drains the subject.
+  assert.equal(options.warmth, 0);
+  assert.equal(options.tint, 0);
+  assert.ok(notes.some((note) => note.reason.includes("creativa")));
+});
+
+test("la corrección se refleja en el LUT y desactivarla lo devuelve al estado sin corregir", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const preset = findLookPreset("neutral")!;
+  const clip = await analyzeClip(syntheticClip(profile, { biasStops: -1.2 }), profile);
+  const correction = deriveCorrection(clip);
+  assert.ok(!isNeutralCorrection(correction.options), "el montaje debería necesitar corrección");
+
+  const base = { name: "c", profile, preset, size: 17, exposureEv: 0 } as const;
+  const uncorrected = buildLut(base);
+  const corrected = buildLut({ ...base, correction });
+
+  assert.equal(uncorrected.report.kind, "technical");
+  assert.equal(corrected.report.kind, "corrected");
+  // The correction lifts a dark clip, so mid grey has to come out brighter.
+  assert.ok(
+    corrected.report.measured.midGrey > uncorrected.report.measured.midGrey + 0.05,
+    "la corrección debería levantar la imagen",
+  );
+  assert.equal(corrected.report.capcutIntensity, 100);
+  assert.ok(corrected.report.fileName.includes("Tecnico-Corregido"));
+
+  // technicalOnly has to override the correction, not merely the look.
+  const forced = buildLut({ ...base, correction, technicalOnly: true });
+  assert.deepEqual(Array.from(forced.cube.data), Array.from(uncorrected.cube.data));
+});
+
+test("las tres capas quedan escritas y separadas en la cabecera del archivo", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const clip = await analyzeClip(syntheticClip(profile, { biasStops: -1.2 }), profile);
+  const correction = deriveCorrection(clip);
+  const { text, report } = buildLut({
+    name: "Tres capas",
+    profile,
+    preset: findLookPreset("comercial-calido")!,
+    size: 9,
+    exposureEv: 0,
+    correction,
+    analysisSummary: summarizeClip(clip),
+  });
+
+  assert.ok(text.includes("Capa 1: transformación técnica"));
+  assert.ok(text.includes("Capa 2: corrección medida"));
+  assert.ok(text.includes("Capa 3: look creativo"));
+  assert.ok(text.includes("Análisis del material"));
+  assert.ok(text.includes("Fotogramas analizados: 3"));
+  assert.equal(report.kind, "combined");
+  // The reasoning travels with the file, not just with the session that made it.
+  assert.ok(text.includes("EV"));
+});
+
+test("el informe distingue no haber analizado de haber analizado y no necesitar nada", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const preset = findLookPreset("neutral")!;
+  const base = { name: "r", profile, preset, size: 5, exposureEv: 0 } as const;
+
+  const never = buildLut(base).report.correctionSummary;
+  assert.ok(never.includes("no se ha analizado"), never);
+
+  const clean = deriveCorrection(await analyzeClip(syntheticClip(profile), profile));
+  const measured = buildLut({ ...base, correction: clean }).report.correctionSummary;
+  assert.ok(measured.includes("no hay nada que corregir") || measured.includes("Ninguna"), measured);
+  assert.ok(!measured.includes("no se ha analizado"), measured);
+});
+
+test("skipLook conserva la corrección y descarta el look", async () => {
+  const profile = findCameraProfile("arri-logc3")!;
+  const clip = await analyzeClip(syntheticClip(profile, { biasStops: -1 }), profile);
+  const correction = deriveCorrection(clip);
+  const base = { name: "s", profile, preset: findLookPreset("teal-orange")!, size: 9, exposureEv: 0 };
+
+  const withLook = buildLut({ ...base, correction });
+  const without = buildLut({ ...base, correction, skipLook: true });
+  const neither = buildLut({ ...base, correction, technicalOnly: true });
+
+  assert.equal(withLook.report.kind, "combined");
+  assert.equal(without.report.kind, "corrected");
+  assert.equal(neither.report.kind, "technical");
+  assert.notDeepEqual(Array.from(without.cube.data), Array.from(withLook.cube.data));
+  assert.notDeepEqual(Array.from(without.cube.data), Array.from(neither.cube.data));
+});
+
+test("el LUT depende del material: dos clips distintos dan dos archivos distintos", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const preset = findLookPreset("piel-natural")!;
+  const base = { name: "m", profile, preset, size: 17, exposureEv: 0 };
+
+  const dark = deriveCorrection(
+    await analyzeClip(syntheticClip(profile, { biasStops: -1.3 }), profile),
+  );
+  const warm = deriveCorrection(
+    await analyzeClip(syntheticClip(profile, { cast: [1.25, 1, 0.76] }), profile),
+  );
+
+  const first = buildLut({ ...base, correction: dark });
+  const second = buildLut({ ...base, correction: warm });
+
+  // This is the whole point of the tool: same camera, same look, different
+  // footage, different file. A preset pack cannot do this.
+  assert.notDeepEqual(Array.from(first.cube.data), Array.from(second.cube.data));
+  assert.notEqual(first.report.correctionSummary, second.report.correctionSummary);
+});
+
+test("la corrección no saca la piel de su ventana en ningún montaje", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const cases: Array<Parameters<typeof syntheticClip>[1]> = [
+    { biasStops: -1.5 },
+    { biasStops: 1.2 },
+    { cast: [1.25, 1, 0.76] },
+    { cast: [0.78, 1, 1.25] },
+    { cast: [1, 1.18, 1] },
+  ];
+
+  for (const options of cases) {
+    const clip = await analyzeClip(syntheticClip(profile, options), profile);
+    const correction = deriveCorrection(clip);
+    for (const preset of LOOK_PRESETS) {
+      const resolved = {
+        ...resolveTechnical(profile),
+        look: preset.look,
+        tone: preset.tone,
+        warmth: preset.warmth + correction.options.warmth,
+        tint: preset.tint + correction.options.tint,
+        whiteBalance: creativeWhiteBalance(
+          preset.warmth + correction.options.warmth,
+          preset.tint + correction.options.tint,
+        ),
+        gain: 2 ** correction.options.exposureEv,
+      };
+      for (const [name, patch] of SKIN_PATCHES) {
+        const out = transformPixel(skinAsCameraCode(patch, profile), resolved);
+        const hsv = rgbToHsv(out[0] * 255, out[1] * 255, out[2] * 255);
+        assert.ok(
+          hsv.h >= SKIN_HUE_MIN && hsv.h <= SKIN_HUE_MAX,
+          `${JSON.stringify(options)} + ${preset.id}, piel "${name}": ${hsv.h.toFixed(1)}°`,
+        );
+      }
+    }
+  }
+});
+
+test("una rejilla de 65 interpola mejor que una de 33 en el mismo LUT", () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  const preset = findLookPreset("piel-natural")!;
+  const at = (size: number) =>
+    buildLut({ name: "g", profile, preset, size, exposureEv: 0 }).report.measured
+      .interpolationError;
+  const coarse = at(33);
+  const fine = at(65);
+  assert.ok(fine < coarse, `65³ (${fine.toFixed(4)}) debería batir a 33³ (${coarse.toFixed(4)})`);
+  assert.ok(fine < 0.02, `error de ${fine.toFixed(4)} en la rejilla recomendada`);
+});
+
+test("la piel anaranjada se detecta y se baja la saturación, aunque el cuadro no lo pida", async () => {
+  const profile = findCameraProfile("sony-slog3-cine")!;
+  // Skin at 68% HSV saturation: past the point where a face reads as orange,
+  // but a small enough part of the frame that the frame-wide figure is calm.
+  const orange = await analyzeClip(
+    syntheticClip(profile, { skin: [0.62, 0.34, 0.2] }),
+    profile,
+  );
+  const natural = await analyzeClip(syntheticClip(profile), profile);
+
+  assert.ok(
+    (orange.skinSaturation ?? 0) > 0.5,
+    `el montaje debería dar piel saturada, dio ${orange.skinSaturation}`,
+  );
+  assert.ok(orange.oversaturated < 0.015, "el cuadro entero no debería estar sobresaturado");
+
+  const corrected = deriveCorrection(orange);
+  assert.ok(
+    corrected.options.saturationTrim <= -2,
+    `esperaba bajar saturación, propuso ${corrected.options.saturationTrim}`,
+  );
+  assert.ok(corrected.notes.some((note) => note.reason.includes("anaranjada")));
+
+  // And the natural skin must not trigger it.
+  assert.equal(deriveCorrection(natural).options.saturationTrim, 0);
 });

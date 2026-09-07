@@ -201,10 +201,20 @@ export async function analyzeFootage(
   const skinEv =
     skin.coverage >= 0.01 ? subjectExposureOffset(skin, rendered.tone.mean) : 0;
   const frameEv = rendered.exposure.evOffset;
-  const suggestedExposureEv = round(
-    clamp(skin.coverage >= 0.02 ? skinEv : frameEv, -2, 2),
-    2,
-  );
+
+  // With a face in shot the subject decides, because that is what the viewer
+  // judges the exposure by, and because the skin rule is deliberately built not
+  // to mistake a deep skin tone for underexposure.
+  //
+  // The one asymmetry: the frame may always pull the exposure *down*, even when
+  // the skin reading is content. Coming down cannot misjudge how dark somebody's
+  // skin is — it just holds the highlights — whereas going up on frame evidence
+  // alone is exactly the mistake that brightens every dark-skinned subject to
+  // the same pale average. So a hot frame gets recovered and a dark subject
+  // never gets "fixed".
+  const led = skin.coverage >= 0.02 ? skinEv : frameEv;
+  const combined = skin.coverage >= 0.02 && frameEv < 0 ? Math.min(led, frameEv) : led;
+  const suggestedExposureEv = round(clamp(combined, -2, 2), 2);
 
   if (skin.coverage >= 0.02) {
     notes.push(
@@ -273,4 +283,196 @@ export async function analyzeFootage(
     notes,
     warnings,
   };
+}
+
+// ---------------------------------------------------------------------------
+// The whole clip, not one frame
+// ---------------------------------------------------------------------------
+
+/**
+ * A clip, measured across several frames.
+ *
+ * One frame is not a clip. The operator pans off the window, somebody walks
+ * through, the auto-exposure hunts for half a second — any single frame can be
+ * unrepresentative in a way that would push the correction somewhere the rest
+ * of the shot does not want to go. So several frames are sampled and combined
+ * with a **median**, which ignores an outlier frame entirely rather than
+ * averaging a quarter of it into the answer.
+ *
+ * Warnings do not get the median treatment: if the highlights blow in one frame
+ * out of five, that is still a fact about the clip and it is still worth
+ * saying.
+ */
+export interface ClipAnalysis {
+  /** Per-frame results, in the order sampled. */
+  frames: Array<{ timeSeconds: number; analysis: FootageAnalysis }>;
+  /** Exposure correction the clip wants, in stops. */
+  exposureEv: number;
+  /** Standard deviation of luma after the technical conversion. */
+  contrast: number;
+  /** Mean HSV saturation after conversion, and the fraction above 0.85. */
+  saturation: number;
+  oversaturated: number;
+  /** White-balance drift read from near-neutral surfaces, and how much there was. */
+  temperatureBias: number;
+  tintBias: number;
+  neutralConfidence: number;
+  /** Luma at the 1st and 99th percentile after conversion. */
+  blackLevel: number;
+  whiteLevel: number;
+  shadowClipping: number;
+  highlightClipping: number;
+  unrecoverableHighlights: number;
+  /** Skin, aggregated over the frames that actually contain some. */
+  skinCoverage: number;
+  skinLuma: number | null;
+  skinHue: number | null;
+  skinSaturation: number | null;
+  suggestedSkinProtection: number;
+  notes: string[];
+  warnings: string[];
+}
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = sorted.length >> 1;
+  return sorted.length % 2 === 1
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+/** Median over the frames that produced a value at all. */
+function medianOf(values: Array<number | null>): number | null {
+  const present = values.filter((value): value is number => value !== null);
+  return present.length === 0 ? null : median(present);
+}
+
+export interface ClipFrame {
+  timeSeconds: number;
+  image: RgbaImage;
+}
+
+export async function analyzeClip(
+  frames: ClipFrame[],
+  profile: CameraProfile,
+): Promise<ClipAnalysis> {
+  if (frames.length === 0) {
+    throw new Error("No se extrajo ningún fotograma del material.");
+  }
+
+  const analysed = [];
+  for (const frame of frames) {
+    analysed.push({
+      timeSeconds: frame.timeSeconds,
+      analysis: await analyzeFootage(frame.image, profile),
+    });
+  }
+
+  const each = analysed.map((entry) => entry.analysis);
+  const tone = each.map((one) => one.rendered.tone);
+  const colour = each.map((one) => one.rendered.color);
+  const skin = each.map((one) => one.rendered.skin);
+
+  // Skin figures are averaged only over frames that found skin: a cutaway with
+  // no face in it would otherwise drag the subject's measured tone towards zero.
+  const withSkin = skin.filter((one) => one.coverage >= 0.01);
+
+  // Warnings are unioned: a problem in one frame out of five is still a fact
+  // about the clip. Notes are *not* — every frame produces the same three
+  // observations with slightly different numbers, and concatenating them gives
+  // a wall of near-duplicates that reads as noise. The clip-level notes below
+  // are written once, from the aggregated figures.
+  const warnings: string[] = [];
+  for (const one of each) {
+    for (const warning of one.warnings) if (!warnings.includes(warning)) warnings.push(warning);
+  }
+
+  const skinCoverage = median(skin.map((one) => one.coverage));
+  const skinLuma = medianOf(withSkin.map((one) => one.meanLuma));
+  const skinHue = medianOf(withSkin.map((one) => one.meanHue));
+  const blackLevel = median(tone.map((one) => one.p01));
+  const whiteLevel = median(tone.map((one) => one.p99));
+  const contrast = median(tone.map((one) => one.stdDev));
+
+  const notes: string[] = [];
+  notes.push(
+    skinHue !== null
+      ? `Piel en ${(skinCoverage * 100).toFixed(0)}% del cuadro, tono ${skinHue.toFixed(0)}°, ` +
+        `luminancia ${((skinLuma ?? 0) * 100).toFixed(0)}% tras la conversión.`
+      : "Sin piel medible en cuadro: la exposición se juzga por la distribución de tonos.",
+  );
+  notes.push(
+    `Tras la conversión: negros al ${(blackLevel * 100).toFixed(1)}%, ` +
+      `blancos al ${(whiteLevel * 100).toFixed(1)}%, contraste ${(contrast * 100).toFixed(0)}.`,
+  );
+
+  if (frames.length > 1) {
+    const spread =
+      Math.max(...each.map((one) => one.rendered.tone.mean)) -
+      Math.min(...each.map((one) => one.rendered.tone.mean));
+    if (spread > 0.12) {
+      warnings.push(
+        `La luminancia media varía ${(spread * 100).toFixed(0)} puntos entre los fotogramas ` +
+          "analizados. Si el plano cambia de luz a mitad, un solo LUT no puede servir a las dos partes: " +
+          "córtalo y trata cada parte por separado.",
+      );
+    }
+  }
+
+  return {
+    frames: analysed,
+    exposureEv: median(each.map((one) => one.suggestedExposureEv)),
+    contrast,
+    saturation: median(colour.map((one) => one.saturation)),
+    oversaturated: median(colour.map((one) => one.oversaturated)),
+    temperatureBias: median(colour.map((one) => one.temperatureBias)),
+    tintBias: median(colour.map((one) => one.tintBias)),
+    neutralConfidence: median(colour.map((one) => one.neutralConfidence)),
+    blackLevel,
+    whiteLevel,
+    shadowClipping: median(tone.map((one) => one.shadowClipping)),
+    highlightClipping: median(tone.map((one) => one.highlightClipping)),
+    unrecoverableHighlights: median(tone.map((one) => one.unrecoverableHighlights)),
+    skinCoverage,
+    skinLuma,
+    skinHue,
+    skinSaturation: medianOf(withSkin.map((one) => one.meanSaturation)),
+    suggestedSkinProtection: median(each.map((one) => one.suggestedSkinProtection)),
+    notes,
+    warnings,
+  };
+}
+
+/**
+ * The clip in a handful of lines.
+ *
+ * Written once and used twice — on screen and inside the `.cube` header — so
+ * that the file can always answer "what was this built from" without the
+ * project it came from.
+ */
+export function summarizeClip(clip: ClipAnalysis): string[] {
+  const lines = [
+    `Fotogramas analizados: ${clip.frames.length}` +
+      (clip.frames.length > 1
+        ? ` (${clip.frames.map((frame) => frame.timeSeconds.toFixed(1) + "s").join(", ")}), por mediana`
+        : ""),
+    `Exposición: ${clip.exposureEv > 0 ? "+" : ""}${clip.exposureEv.toFixed(2)} EV de corrección`,
+    `Contraste: ${(clip.contrast * 100).toFixed(0)} · Saturación: ${(clip.saturation * 100).toFixed(0)}%` +
+      ` (${(clip.oversaturated * 100).toFixed(1)}% por encima de 0.85)`,
+    `Altas luces al ${(clip.whiteLevel * 100).toFixed(1)}%, ` +
+      `${(clip.unrecoverableHighlights * 100).toFixed(2)}% sin detalle recuperable`,
+    `Sombras al ${(clip.blackLevel * 100).toFixed(1)}%, ` +
+      `${(clip.shadowClipping * 100).toFixed(2)}% pegadas al negro`,
+    clip.neutralConfidence > 0.15
+      ? `Balance de blancos: desviación ${clip.temperatureBias > 0 ? "fría" : "cálida"} ` +
+        `${Math.abs(clip.temperatureBias).toFixed(0)} y ${clip.tintBias > 0 ? "verde" : "magenta"} ` +
+        `${Math.abs(clip.tintBias).toFixed(0)}, con ${(clip.neutralConfidence * 100).toFixed(0)}% de fiabilidad`
+      : "Balance de blancos: sin superficie neutra fiable en cuadro, no se mide",
+    clip.skinHue !== null
+      ? `Piel: ${(clip.skinCoverage * 100).toFixed(0)}% del cuadro, tono ${clip.skinHue.toFixed(0)}°, ` +
+        `luminancia ${((clip.skinLuma ?? 0) * 100).toFixed(0)}%, saturación ${((clip.skinSaturation ?? 0) * 100).toFixed(0)}%`
+      : "Piel: no se detectó piel medible en el cuadro",
+  ];
+  return lines;
 }
