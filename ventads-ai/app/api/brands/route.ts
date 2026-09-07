@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "../../../../lib/auth";
 import { prisma } from "@/lib/db";
 import { brandInputSchema } from "@/lib/validation";
 
