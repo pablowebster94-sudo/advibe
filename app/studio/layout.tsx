@@ -4,7 +4,8 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "AdVibe AI Photo Editor",
   description:
-    "Análisis y edición fotográfica automática con generación de XMP para Lightroom Classic.",
+    "Análisis y edición fotográfica automática con generación de XMP para Lightroom Classic, " +
+    "y generación de LUTs 3D .cube para vídeo.",
   // The studio holds the photographer's own work; it must never be indexed.
   robots: { index: false, follow: false },
 };
@@ -32,6 +33,12 @@ export default function StudioLayout({ children }: { children: React.ReactNode }
               className="flex min-h-11 items-center rounded-lg px-3 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
             >
               Mi estilo
+            </Link>
+            <Link
+              href="/studio/color-lab"
+              className="flex min-h-11 items-center rounded-lg px-3 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+            >
+              Color Lab
             </Link>
           </nav>
         </div>
