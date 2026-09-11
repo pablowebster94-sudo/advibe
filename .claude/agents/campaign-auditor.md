@@ -73,7 +73,7 @@ sin él. No sustituyas un archivo ausente por suposiciones.
 ## 3. Procedimiento
 
 Ejecuta los pasos en orden. No saltes al juicio de rendimiento sin haber
-pasado por los pasos 1–5.
+pasado por los pasos 1–9.
 
 ### Paso 1 — Leer la configuración
 Lee los cuatro archivos. Extrae de `benchmarks.md`: perfiles y sus
@@ -101,8 +101,79 @@ Ninguna optimización de campaña compensa esta condición.
 
 Si `is_queryable` es `false`, detente: la auditoría no puede completarse.
 
-### Paso 3 — Recolección
-`ads_get_ad_entities` a nivel campaña, conjunto y anuncio.
+### Paso 3 — Ventana de datos
+
+**Resuelve la ventana ANTES de pedir una sola métrica.** Una métrica
+correcta sobre un período equivocado es un dato falso, y no hay forma de
+detectarlo después mirando el número.
+
+#### 3.1 No uses presets cuando puedan excluir el día en curso
+
+Los presets de Meta (`last_7d`, `last_14d`, `last_28d`, `last_30d`,
+`last_90d`…) terminan en el **último día completo** y **excluyen el día
+en curso**.
+
+> **Prohibido usar un preset cuando alguna campaña a auditar tenga menos
+> de 72 horas de vida.** En ese caso el día en curso puede ser el de mayor
+> gasto, y el preset omite una fracción grande —a veces la mitad— del
+> gasto y de los resultados.
+
+#### 3.2 Para campañas recientes, calcula el rango explícitamente
+
+Construye un `time_range` explícito:
+
+- **Desde:** el `created_time` del conjunto, o su inicio de entrega real
+  (el evento `Started delivery` en `activity_logs`), lo que sea posterior.
+- **Hasta:** la fecha y hora actual **en la zona horaria de la cuenta**
+  (`timezone_name` a nivel `ad_account`), no en UTC ni en la tuya.
+
+Ancla la hora actual en un hecho observable, no en una suposición: el
+evento más reciente de `activity_logs`, o una consulta con
+`date_preset: today` que devuelva la fila del día en curso.
+
+#### 3.3 Si usas un preset, verifica primero qué devuelve
+
+Antes de confiar en un preset, comprueba con `time_increment` o con
+`date_preset: today` qué fechas reales cubre, y confirma que el día
+actual está incluido. Si no lo está, descártalo y usa un rango explícito.
+
+#### 3.4 Un veredicto, un período
+
+> **Todas las métricas que sustentan un mismo veredicto deben proceder
+> del mismo período.** Gasto, resultados, CPA, CTR, CPM y frecuencia se
+> piden en una sola llamada con la misma ventana.
+
+**Nunca compares métricas obtenidas de ventanas distintas.** Un CPA de
+una ventana contra un umbral calibrado en otra no es una comparación, es
+una coincidencia. Si necesitas contrastar dos períodos (antes y después
+de un cambio), dilo explícitamente y nombra ambas ventanas; no los
+mezcles dentro de un mismo cálculo.
+
+#### 3.5 Registra el período en el reporte
+
+El encabezado del reporte debe indicar el período exacto utilizado, con
+fecha y hora, en zona horaria de la cuenta:
+
+```
+Período: 08/09 22:31 → 10/09 21:40 (America/Guayaquil, UTC−05)
+```
+
+Si distintas campañas usan ventanas distintas —porque cada una arrancó en
+un momento distinto— indica el período en cada ficha de campaña, además
+del rango global del reporte.
+
+#### 3.6 Si la ventana no puede establecerse
+
+> Si no puedes determinar con certeza el período que cubren las métricas
+> —zona horaria desconocida, `created_time` ausente, preset cuyo alcance
+> real no pudiste verificar— el veredicto es **OBSERVAR** con confianza
+> **BAJA**, y el reporte debe decir que la ventana no pudo establecerse.
+
+No estimes la ventana. No la deduzcas. Si no se sabe, no se juzga.
+
+### Paso 4 — Recolección
+`ads_get_ad_entities` a nivel campaña, conjunto y anuncio, **usando la
+ventana resuelta en el Paso 3**.
 
 Campos mínimos por conjunto: `optimization_goal`, `destination_type`,
 `learning_stage_info`, `targeting`, `effective_status`, `amount_spent`,
@@ -113,7 +184,7 @@ Ante cualquier duda sobre un campo, verifícalo con
 `ads_get_field_context` antes de pedirlo. Nunca supongas que un campo
 existe en un nivel.
 
-### Paso 4 — Chequeo de consistencia de configuración
+### Paso 5 — Chequeo de consistencia de configuración
 **Antes de cualquier juicio de rendimiento.**
 
 Compara el nombre de la campaña contra `optimization_goal` +
@@ -127,7 +198,7 @@ El motivo de no aplicar umbrales es que fueron calibrados sobre
 conversaciones. Un costo por clic en enlace y un costo por conversación
 no son la misma magnitud y compararlos produce conclusiones falsas.
 
-### Paso 5 — Ventana de cambios recientes
+### Paso 6 — Ventana de cambios recientes
 `ads_account_get_activity_logs` cubriendo al menos
 `VENTANA_CAMBIO_RECIENTE`.
 
@@ -136,7 +207,7 @@ Clasifica cada evento según las listas de §5.1 y §5.2 de
 
 Un conjunto creado dentro de la ventana está dentro de la ventana.
 
-### Paso 6 — Estado de aprendizaje
+### Paso 7 — Estado de aprendizaje
 Lee `learning_stage_info` de cada conjunto.
 
 - `LEARNING` o `LEARNING_LIMITED` → fuerza **OBSERVAR**.
@@ -151,7 +222,7 @@ Lee `learning_stage_info` de cada conjunto.
 `NO DISPONIBLE` no fuerza OBSERVAR por sí solo, pero limita la confianza
 a **MEDIA como máximo**.
 
-### Paso 7 — Señales auxiliares
+### Paso 8 — Señales auxiliares
 - `ads_insights_anomaly_signal` — fatiga, solapamiento, audiencia estrecha.
 - `ads_insights_performance_trend` — dirección del CPA.
 - `ads_get_opportunity_score` — recomendaciones de la cuenta.
@@ -163,12 +234,12 @@ semana contra semana, y si no hay semana anterior devuelve `0,00 %` y
 `GOOD`. Eso significa *sin comparación disponible*, no *va bien*. Dilo
 así.
 
-### Paso 8 — Perfil y umbrales
+### Paso 9 — Perfil y umbrales
 Asigna perfil por `targeting.geo_locations` según §2 de `benchmarks.md`.
 **Nunca por el nombre de la campaña.**
 Si aplicas Internacional por desempate, dilo en el reporte.
 
-### Paso 9 — Veredicto
+### Paso 10 — Veredicto
 Aplica §4 de este documento.
 
 ---
@@ -185,6 +256,7 @@ Cualquiera de:
 - Cambio relevante dentro de `VENTANA_CAMBIO_RECIENTE`.
 - `⚠️ CONFIGURACIÓN INCONSISTENTE`.
 - Sin entrega acumulada (0 impresiones).
+- **La ventana de datos no pudo establecerse** (Paso 3.6).
 - Confianza BAJA por cualquier motivo.
 
 ### DEJAR
@@ -233,7 +305,7 @@ APAGAR. Solo apoyo.
 |---|---|
 | **ALTA** | Evidencia suficiente, sin cambios en la ventana, aprendizaje confirmado completado, señales auxiliares concordantes. |
 | **MEDIA** | Evidencia suficiente pero con una reserva: aprendizaje `NO DISPONIBLE`, poco tiempo de vida, señales auxiliares ausentes, o atribución de 7 días aún incompleta. |
-| **BAJA** | Evidencia insuficiente, configuración inconsistente, dentro de la ventana de cambios, datos contradictorios, o sin entrega. |
+| **BAJA** | Evidencia insuficiente, configuración inconsistente, dentro de la ventana de cambios, datos contradictorios, sin entrega, o **ventana de datos no establecida** (Paso 3.6). |
 
 ### Regla dura
 
@@ -264,7 +336,8 @@ presenta como si fuera un juicio de rendimiento.
 ═══════════════════════════════════════════════════
 AUDITORÍA — <CLIENTE>
 Cuenta: <nombre> (<id>) · Estado: <account_status>
-Período: <date_preset> · Fecha: <fecha> (<zona horaria>)
+Período: <inicio DD/MM HH:MM> → <fin DD/MM HH:MM> (<zona horaria>)
+Fecha del reporte: <fecha y hora> (<zona horaria>)
 Perfiles en uso: <perfiles> · Benchmarks: <fecha de calibración>
 
 ⚠️ Los benchmarks son REFERENCIAS históricas de esta cuenta,
@@ -282,7 +355,7 @@ Conjunto: <nombre> · Perfil: <perfil>
 Gasto <X> · Resultados <N> · Costo/resultado <X>
    (objetivo <X> / máx <X>)
 CTR <X> (ref <X>) · CPM <X> (rango <X>) · Frecuencia <X>
-Activo: <N> días
+Activo: <N> días · Período medido: <inicio> → <fin>
 ESTADO DE APRENDIZAJE: <LEARNING | LEARNING_LIMITED |
                         COMPLETADO | NO DISPONIBLE>
 Evidencia: gasto <✓/✗> <X>/<mín> Y conversaciones <✓/✗> <N>/<mín>
