@@ -8,6 +8,20 @@ aparecen son contexto; los veredictos los produce el auditor.
 
 Datos no determinables marcados **`NO DISPONIBLE`**.
 
+> **Nota de método — ventana de datos.** Las métricas de este archivo usan
+> `time_range 2026-09-08 → 2026-09-10`, que cubre la vida completa de cada
+> campaña activa **e incluye el día en curso**.
+>
+> **No usar `last_14d` ni `last_7d` para esta cuenta.** Los presets de Meta
+> terminan en el último día completo y **excluyen hoy**. Como todas las
+> campañas activas se crearon hace menos de 72 h, el día en curso es el de
+> mayor gasto: `last_14d` omitía entre el 30 % y el 50 % del gasto y de los
+> resultados de cada campaña.
+>
+> Una versión anterior de este archivo usaba `last_14d` y, por eso,
+> documentaba una falsa "anomalía de entrega" en Santa Bárbara (§1.4).
+> Corregido el 10/09/2026.
+
 ---
 
 ## 1. Campañas activas
@@ -35,8 +49,8 @@ Edad 24–62 (mín. declarado 18, "Unknown age on WhatsApp: Included").
 Advantage+ Audience: **On**.
 **Perfil de benchmark: Ecuador/Local.**
 
-**Métricas (`last_14d`):** $8,75 · 15 conversaciones · $0,58 c/resultado ·
-CTR 6,97 % · CPM $1,73 · Frecuencia 1,26 · 5.061 impresiones.
+**Métricas (08/09 → 10/09):** $13,47 · 28 conversaciones · $0,48 c/resultado ·
+CTR 7,35 % · CPM $1,53 · Frecuencia 1,54 · 8.800 impresiones.
 
 **Anuncio:** `Nuevo anuncio de Interacción` (`120255924724620242`), ACTIVE,
 creado 08/09 22:31. Un segundo anuncio (`..._Group_1`,
@@ -69,8 +83,8 @@ creado 08/09 22:31. Un segundo anuncio (`..._Group_1`,
 Azuay. Edad 22–58. Advantage+ Audience: **On**.
 **Perfil de benchmark: Ecuador/Local.**
 
-**Métricas (`last_14d`):** $8,70 · 12 conversaciones · $0,73 c/resultado ·
-CTR 6,69 % · CPM $1,90 · Frecuencia 1,23 · 4.591 impresiones.
+**Métricas (08/09 → 10/09):** $12,81 · 20 conversaciones · $0,64 c/resultado ·
+CTR 6,18 % · CPM $1,85 · Frecuencia 1,42 · 6.926 impresiones.
 
 **Anuncios:** `Nuevo anuncio de Interacción` (`120255925418330242`),
 ACTIVE. Dos anuncios adicionales del grupo iniciaron entrega el 09/09
@@ -104,8 +118,8 @@ ACTIVE. Dos anuncios adicionales del grupo iniciaron entrega el 09/09
 Edad 18–65+. Advantage+ Audience: **On**.
 **Perfil de benchmark: Internacional.**
 
-**Métricas (`last_14d`):** $7,85 · 4 conversaciones · $1,96 c/resultado ·
-CTR 4,57 % · CPM $10,87 · Frecuencia 1,32 · 722 impresiones.
+**Métricas (08/09 → 10/09):** $13,85 · 15 conversaciones · $0,92 c/resultado ·
+CTR 6,11 % · CPM $9,62 · Frecuencia 1,46 · 1.440 impresiones.
 
 **Observaciones estructurales:**
 - **Desvío de destino:** único conjunto de la cuenta con `MESSENGER`.
@@ -140,7 +154,8 @@ CTR 4,57 % · CPM $10,87 · Frecuencia 1,32 · 722 impresiones.
 Edad 25–65. Advantage+ Audience: **On**.
 **Perfil de benchmark: Ecuador/Local.**
 
-**Métricas (`last_14d`):** $0,00 · 0 resultados · **0 impresiones**.
+**Métricas (08/09 → 10/09):** $4,65 · 7 conversaciones · $0,66 c/resultado ·
+CTR 5,38 % · CPM $1,32 · Frecuencia 1,42 · 3.534 impresiones.
 
 **Anuncio:** `SB Cuenca | Inscripciones | v1` (`120255950583150242`),
 ACTIVE, creado 10/09 01:06. Inició entrega 10/09 **02:23**. Un segundo
@@ -150,11 +165,10 @@ anuncio del grupo (`120255950632930242`) inició entrega 10/09 **01:24**.
 - **Configuración coherente:** nombre, `optimization_goal`,
   `destination_type` e indicador de resultados están alineados. Es la
   única campaña activa con nomenclatura descriptiva del público.
-- **Anomalía de entrega:** dos anuncios registraron "Started delivery"
-  hace ~19 y ~20 horas y la campaña acumula **cero impresiones**.
-  `ads_get_errors` no devuelve ningún error que lo explique.
-  Causa: **`NO DISPONIBLE`** — la hipótesis más plausible es el período
-  de gracia de la cuenta, pero no está confirmada.
+- **Entrega normal.** Una versión anterior de esta ficha reportaba "cero
+  impresiones pese a ~20 h en entrega". Era un artefacto de `last_14d`,
+  que excluía el día en curso. La campaña entrega con normalidad:
+  3.534 impresiones y 7 conversaciones en ~20 h. No hay anomalía.
 - Targeting editado el 10/09 01:09, tras la creación: se añadió Azogues y
   la edad mínima pasó de 18 a 25.
 - `learning_stage_info`: `null` → **NO DISPONIBLE**.
@@ -179,8 +193,8 @@ anuncio del grupo (`120255950632930242`) inició entrega 10/09 **01:24**.
 `targets_spec` consultado. Advantage+ Audience: `On`.
 **Perfil de benchmark: no aplica.**
 
-**Métricas (`last_14d`):** $3,46 · 78 visitas a la página · $0,04
-c/resultado · CTR 5,27 % · CPM $0,85 · Frecuencia 1,35.
+**Métricas (08/09 → 10/09):** $5,61 · 111 visitas a la página · $0,05
+c/resultado · CTR 5,16 % · CPM $0,87 · Frecuencia 1,58.
 
 **Observaciones estructurales:**
 - **No mide conversaciones.** Los umbrales de `benchmarks.md` no aplican
@@ -215,7 +229,7 @@ c/resultado · CTR 5,27 % · CPM $0,85 · Frecuencia 1,35.
 (Editado el 10/09 01:04, justo antes de desactivarse; antes era
 Cuenca + Azogues, 22–62.)
 
-**Métricas (`last_14d`):** $0,00 · 1 impresión · sin resultados.
+**Métricas (08/09 → 10/09):** $0,00 · 1 impresión · sin resultados.
 
 **Observaciones estructurales:**
 - **Inconsistencia doble.** El nombre replica al de una campaña de
@@ -327,7 +341,6 @@ Sin Campaign Budget Optimization.
 | Público detallado de `constructora` | No presente en el registro de `targets_spec` consultado |
 | `bid_strategy` por conjunto | Campo existe, la API no lo devolvió poblado |
 | `learning_stage_info` (los 6 conjuntos) | Devuelto como `null` |
-| Causa de la cero-entrega de Santa Bárbara | Sin error registrado que lo explique |
 | Intencionalidad del destino MESSENGER en Latin Eagle 2 | No determinable desde la plataforma |
 | Número de WhatsApp por campaña | No expuesto por las herramientas de consulta |
 | Texto y creativo de los anuncios | `ads_get_creatives` en listado devuelve solo campos parciales; mapear `creative_id` por anuncio queda fuera de esta ficha |
