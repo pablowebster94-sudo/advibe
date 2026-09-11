@@ -37,3 +37,14 @@ A second positional argument pointing at the raw footage folder adds an
 inventory of which source files the edit uses, which are still unused, and
 which the timeline references but are missing from that folder. Pass `-` to
 skip it. `bk` stays optional and can go in either position.
+
+## media_report.py
+
+```bash
+python3 tools/capcut/media_report.py "<.../Timelines/<UUID>>" ~/Desktop/boda
+```
+
+Read-only. Reports how much of each source file the edit actually uses
+(full length vs. screen time vs. percentage), then lists every file in the
+footage folder ordered by recording time, using Spotlight metadata (`mdls`),
+so the real chronology of the day can be compared against the cut order.
