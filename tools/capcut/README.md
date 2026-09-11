@@ -26,3 +26,14 @@ With `bk` it first copies the whole project folder to
 `~/Desktop/BACKUP_<project>_<timestamp>` (JSON structure only when the project
 exceeds 600 MB) plus a standalone copy of `draft_info.json`. It never writes
 inside the project folder.
+
+## Cross-reference with the source footage folder
+
+```bash
+python3 tools/capcut/dump_timeline.py "<.../Timelines/<UUID>>" ~/Desktop/boda bk
+```
+
+A second positional argument pointing at the raw footage folder adds an
+inventory of which source files the edit uses, which are still unused, and
+which the timeline references but are missing from that folder. Pass `-` to
+skip it. `bk` stays optional and can go in either position.

@@ -1,5 +1,7 @@
 import json,os,sys,shutil,datetime
-TL=sys.argv[1]; DO_BK = (len(sys.argv)>2 and sys.argv[2]=="bk")
+TL=sys.argv[1]
+MEDIA=sys.argv[2] if len(sys.argv)>2 and sys.argv[2] not in ("-","bk") else None
+DO_BK = "bk" in sys.argv[2:]
 US=1000000.0
 def tc(u):
     try: u=float(u)
@@ -166,6 +168,29 @@ rep=[(k,v) for k,v in sorted(use.items(),key=lambda x:-x[1]) if v>1]
 for k,v in rep: print("  %dx  %s"%(v,k[:60]))
 if not rep: print("  ninguno")
 print("")
+if MEDIA and os.path.isdir(os.path.expanduser(MEDIA)):
+    MEDIA=os.path.expanduser(MEDIA)
+    disk=sorted(f for f in os.listdir(MEDIA) if f.lower().endswith((".mp4",".mov",".m4v",".avi",".mts")))
+    used={k.lower() for k in use}
+    for m in VID.values():
+        b=os.path.basename(g(m,"path",dflt="") or "")
+        if b: used.add(b.lower())
+    unused=[f for f in disk if f.lower() not in used]
+    print("=== MATERIAL EN %s ==="%MEDIA)
+    print("  archivos en disco: %d   usados en la edicion: %d   SIN USAR: %d"%(
+        len(disk),len(disk)-len(unused),len(unused)))
+    print("  --- sin usar ---")
+    line=[]
+    for f in unused:
+        line.append(f)
+        if len(line)==8: print("   "+" ".join(line)); line=[]
+    if line: print("   "+" ".join(line))
+    falt=[k for k in use if k.lower() not in {d.lower() for d in disk}]
+    if falt:
+        print("  --- usados en la edicion pero NO en esa carpeta ---")
+        for f in falt: print("   %s"%f[:60])
+    print("")
+
 print("=== CONTINUIDAD (huecos / solapes en la pista principal) ===")
 prev=None; bad=0
 for r in rows:
