@@ -53,8 +53,15 @@ Advantage+ Audience: **On**.
 CTR 7,35 % · CPM $1,53 · Frecuencia 1,54 · 8.800 impresiones.
 
 **Anuncio:** `Nuevo anuncio de Interacción` (`120255924724620242`), ACTIVE,
-creado 08/09 22:31. Un segundo anuncio (`..._Group_1`,
-`120255925365930242`) inició entrega el 09/09 00:04.
+creado 08/09 22:31. Registra además una entrega de `..._Group_1`
+(`120255925365930242`) el 09/09 00:04.
+
+> **Nota sobre los anuncios `_Group_1`.** Aparecen en `activity_logs` como
+> `Ad delivered`, pero **no son anuncios independientes con gasto propio**:
+> al filtrar anuncios con gasto > 0 solo aparece **uno por conjunto**, y
+> `activity_logs` registra un único `Ad created` por conjunto. Son
+> variantes de creativo generadas por Advantage+. La estructura real es
+> **1 campaña → 1 conjunto → 1 anuncio**.
 
 **Observaciones estructurales:**
 - Mejor CPA de la cuenta entre los conjuntos activos.
@@ -87,13 +94,20 @@ Azuay. Edad 22–58. Advantage+ Audience: **On**.
 CTR 6,18 % · CPM $1,85 · Frecuencia 1,42 · 6.926 impresiones.
 
 **Anuncios:** `Nuevo anuncio de Interacción` (`120255925418330242`),
-ACTIVE. Dos anuncios adicionales del grupo iniciaron entrega el 09/09
-00:02 y el **09/09 21:25**.
+ACTIVE — único anuncio con gasto propio. Se registran entregas de
+variantes `_Group_1` el 09/09 00:02 (`120255925431250242`) y el
+**09/09 21:25** (`120255946688650242`). Ver la nota sobre `_Group_1`
+en §1.1.
 
 **Observaciones estructurales:**
 - **El anuncio que entró en entrega el 09/09 21:25 corre la ventana de
   cambios recientes.** Para esta campaña la ventana de 72 h no vence al
   cumplirse 72 h de su creación, sino 72 h después de ese anuncio.
+  Evento verificado: `Ad delivered`, 9/9/2026 9:25 PM, anuncio
+  `120255946688650242`, conjunto `120255925418320242`.
+  **Aviso de consulta:** este evento **no** aparece si se filtra
+  `ads_account_get_activity_logs` con `event_category: ad` — la categoría
+  `ad` no incluye eventos de entrega. Consultar sin filtro de categoría.
 - Es la campaña de reemplazo de `Chemu Tienda` (§3.1).
 - `learning_stage_info`: `null` → **NO DISPONIBLE**.
 - Recomendación de Opportunity Score: video vertical 9:16 en Reels.
@@ -122,12 +136,16 @@ Edad 18–65+. Advantage+ Audience: **On**.
 CTR 6,11 % · CPM $9,62 · Frecuencia 1,46 · 1.440 impresiones.
 
 **Observaciones estructurales:**
-- **Desvío de destino:** único conjunto de la cuenta con `MESSENGER`.
-  Todo el histórico de la marca Latin Eagle usó `WHATSAPP`
-  (`Mensajes Latin Eagle`, `Mensajes Latin Eagle - Centroamérica`,
-  `Latin Eagle ec`). El `optimization_goal` y el indicador de resultados
-  **sí** corresponden a conversaciones, así que los umbrales aplican —
-  pero el benchmark internacional se calibró sobre campañas de WhatsApp.
+- **Destino `MESSENGER`, no `WHATSAPP`.** Es el único conjunto *activo*
+  con este destino, pero **no** el único de la cuenta: el conjunto de
+  `Latin Eagle ec` (`120255925669260242`, pausado) también usa
+  `MESSENGER` con `optimization_goal: CONVERSATIONS`. Es decir, el uso de
+  Messenger en la marca Latin Eagle es un patrón, no un caso aislado.
+  *(Corregido el 11/09/2026: una versión anterior de esta ficha afirmaba
+  que todo el histórico de Latin Eagle usaba WhatsApp. Es falso.)*
+- El `optimization_goal` y el indicador de resultados **sí** corresponden
+  a conversaciones, así que los umbrales aplican — pero el benchmark
+  internacional se calibró mayoritariamente sobre campañas de WhatsApp.
   **Comparabilidad limitada**, no inconsistencia bloqueante.
 - Si el cambio a Messenger fue intencional: **`NO DISPONIBLE`**.
 - `learning_stage_info`: `null` → **NO DISPONIBLE**.
