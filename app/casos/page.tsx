@@ -4,6 +4,7 @@ import { caseStudies } from "@/lib/cases";
 export const metadata = {
   title: "Casos | AdVibe Agencia",
   description: "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.",
+  alternates: { canonical: "/casos" },
 };
 
 const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];

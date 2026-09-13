@@ -9,7 +9,11 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = getCaseStudy(slug);
-  return { title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia", description: project?.summary };
+  return {
+    title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia",
+    description: project?.summary,
+    alternates: { canonical: `/casos/${slug}` },
+  };
 }
 
 export default async function CasePage({ params }: { params: Promise<{ slug: string }> }) {

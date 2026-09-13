@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     "desarrollo web Ecuador",
     "producción audiovisual Ecuador",
   ],
-  alternates: { canonical: siteUrl },
+  alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   openGraph: {
     title: "AdVibe Agencia | Marketing, IA y Automatización",
