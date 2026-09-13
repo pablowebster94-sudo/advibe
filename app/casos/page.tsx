@@ -14,7 +14,7 @@ export const metadata = {
   twitter: { ...sharedTwitter, title, description },
 };
 
-const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];
+const disciplines = ["Audiovisual", "Performance", "Digital", "Branding"];
 
 export default function CasosPage() {
   return (
@@ -43,8 +43,9 @@ export default function CasosPage() {
       </section>
 
       <section id="trabajos" className="mx-auto max-w-7xl px-6 pb-28 sm:px-8">
-        <div className="mb-10 flex flex-wrap gap-2 border-b border-white/10 pb-6">
-          {filters.map((filter, i) => <span key={filter} className={`rounded-full border px-4 py-2 text-xs font-semibold ${i === 0 ? "border-lime-300/40 bg-lime-300/10 text-lime-300" : "border-white/10 text-slate-500"}`}>{filter}</span>)}
+        <div className="mb-10 flex flex-wrap items-center gap-2 border-b border-white/10 pb-6">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Disciplinas</span>
+          {disciplines.map((discipline) => <span key={discipline} className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400">{discipline}</span>)}
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
