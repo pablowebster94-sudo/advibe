@@ -5,7 +5,7 @@ import { clientGroups } from "@/lib/content";
 
 export default function Clients() {
   return (
-    <section id="marcas" className="relative overflow-hidden border-t border-white/6 py-28 sm:py-32 lg:py-40">
+    <section id="sectores" className="relative overflow-hidden border-t border-white/6 py-28 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
