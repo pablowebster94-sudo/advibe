@@ -64,8 +64,12 @@ export default function Footer() {
 
         <div>
           <h3 className="font-semibold text-white">Hablemos</h3>
-          <p className="mt-6 text-slate-400">+593 98 496 6335</p>
-          <p className="mt-2 text-slate-400">hola@advibeagencia.com</p>
+          <a href="tel:+593984966335" className="mt-6 block text-slate-400 transition hover:text-lime-300">
+            +593 98 496 6335
+          </a>
+          <a href="mailto:hola@advibeagencia.com" className="mt-2 block text-slate-400 transition hover:text-lime-300">
+            hola@advibeagencia.com
+          </a>
           <div className="mt-8 flex gap-3">
             {socialLinks.map((link) => (
               <a key={link.label} href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-300 transition hover:border-lime-300/40 hover:bg-lime-300/10 hover:text-lime-300">
