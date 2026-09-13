@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { caseStudies } from "@/lib/cases";
+import { sharedOpenGraph, sharedTwitter } from "@/app/shared-metadata";
+
+const title = "Casos | AdVibe Agencia";
+const description =
+  "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.";
 
 export const metadata = {
-  title: "Casos | AdVibe Agencia",
-  description: "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.",
+  title,
+  description,
   alternates: { canonical: "/casos" },
+  openGraph: { ...sharedOpenGraph, title, description, url: "/casos", type: "website" },
+  twitter: { ...sharedTwitter, title, description },
 };
 
 const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { faq } from "@/lib/content";
+import { sharedOpenGraph, sharedTwitter } from "./shared-metadata";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,16 +33,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   openGraph: {
+    ...sharedOpenGraph,
     title: "AdVibe Agencia | Marketing, IA y Automatización",
     description:
       "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",
-    url: siteUrl,
-    siteName: "AdVibe Agencia",
-    locale: "es_EC",
+    url: "/",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
+    ...sharedTwitter,
     title: "AdVibe Agencia | Marketing, IA y Automatización",
     description:
       "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",

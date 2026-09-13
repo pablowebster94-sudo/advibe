@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { caseStudies, getCaseStudy } from "@/lib/cases";
+import { sharedOpenGraph, sharedTwitter } from "@/app/shared-metadata";
 
 export function generateStaticParams() {
   return caseStudies.map((item) => ({ slug: item.slug }));
@@ -9,10 +10,15 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = getCaseStudy(slug);
+  const title = project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia";
+  const description = project?.summary;
+
   return {
-    title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia",
-    description: project?.summary,
+    title,
+    description,
     alternates: { canonical: `/casos/${slug}` },
+    openGraph: { ...sharedOpenGraph, title, description, url: `/casos/${slug}`, type: "article" },
+    twitter: { ...sharedTwitter, title, description },
   };
 }
 
