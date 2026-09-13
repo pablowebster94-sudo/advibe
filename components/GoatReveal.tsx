@@ -19,7 +19,7 @@ export default function GoatReveal() {
             <div className="mt-8 h-px w-40 bg-lime-300" />
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.32em] text-white/45">ADVIBE · AGENCIA CREATIVA &amp; TECNOLÓGICA</p>
           </div>
-          <motion.div initial={{ opacity: 0, y: 120, scale: 0.96 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }} className="absolute bottom-0 right-[-2%] z-10 w-[58%] max-w-[600px] sm:right-[1%] sm:w-[52%]">
+          <motion.div initial={{ opacity: 0, y: 120, scale: 0.96 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }} className="absolute bottom-0 right-[-2%] z-10 w-[58%] max-w-[500px] sm:right-[1%] sm:w-[52%]">
             <motion.div animate={{ y: [0, -7, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}>
               <Image src="/images/goat-advibe.webp" width={500} height={405} alt="Cabra AdVibe — Creativos por naturaleza" className="block w-full drop-shadow-[0_35px_65px_rgba(0,0,0,0.75)]" />
             </motion.div>
