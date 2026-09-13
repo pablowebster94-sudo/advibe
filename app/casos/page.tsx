@@ -37,7 +37,7 @@ export default function CasosPage() {
           <h1 className="max-w-5xl text-6xl font-semibold leading-[0.92] tracking-[-0.07em] sm:text-8xl lg:text-[9rem]">Trabajo que<br /><span className="text-slate-500">habla por nosotros.</span></h1>
           <div className="mt-10 flex max-w-3xl flex-col justify-between gap-8 sm:flex-row sm:items-end">
             <p className="max-w-xl text-lg leading-8 text-slate-400">Estrategia, creatividad, contenido, performance y tecnología aplicados a marcas reales.</p>
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-600">{caseStudies.length} proyectos seleccionados</span>
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-400">{caseStudies.length} proyectos seleccionados</span>
           </div>
         </div>
       </section>

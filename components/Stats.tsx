@@ -14,7 +14,7 @@ export default function Stats() {
         <div className="mt-20 grid border-y border-white/10 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
             <div key={stat.label} className="group relative border-b border-white/10 px-6 py-10 sm:border-r sm:px-8 lg:border-b-0 lg:last:border-r-0 lg:py-14">
-              <span className="font-mono text-[10px] tracking-[0.25em] text-slate-600">0{index + 1}</span>
+              <span className="font-mono text-[10px] tracking-[0.25em] text-slate-400">0{index + 1}</span>
               <p className="mt-8 text-5xl font-semibold tracking-[-0.06em] text-white transition-colors group-hover:text-lime-300 sm:text-6xl">{stat.value}</p>
               <p className="mt-3 max-w-[16rem] text-sm leading-6 text-slate-500">{stat.label}</p>
               <div className="absolute bottom-0 left-6 h-px w-0 bg-lime-300 transition-all duration-500 group-hover:w-[calc(100%-3rem)]" />

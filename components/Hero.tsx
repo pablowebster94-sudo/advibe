@@ -71,7 +71,7 @@ export default function Hero() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-semibold text-white transition-colors group-hover:text-lime-300">{item.title}</p>
-                          <span className="text-slate-600 transition-transform group-hover:translate-x-1">↗</span>
+                          <span className="text-slate-400 transition-transform group-hover:translate-x-1">↗</span>
                         </div>
                         <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">{item.text}</p>
                       </div>
@@ -95,7 +95,7 @@ export default function Hero() {
 
         <div className="mt-20 border-t border-white/10 pt-5 sm:mt-24">
           <div className="flex flex-wrap items-center justify-between gap-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-600">AdVibe / Creative systems</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">AdVibe / Creative systems</p>
             <div className="flex items-center gap-3 text-xs text-slate-500">
               <span>Contenido</span><span className="text-lime-300">×</span><span>Performance</span><span className="text-lime-300">×</span><span>Technology</span>
             </div>

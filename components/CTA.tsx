@@ -38,7 +38,7 @@ export default function CTA() {
           </div>
 
           <div className="border-t border-white/10 lg:border-t-0 lg:border-l lg:pl-10">
-            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">AdVibe / Contacto</p>
+            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">AdVibe / Contacto</p>
             <div className="divide-y divide-white/10 border-y border-white/10">
               {contactItems.map((item, index) => (
                 <motion.a
@@ -58,7 +58,7 @@ export default function CTA() {
                   className="group flex items-center justify-between gap-5 py-5"
                 >
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-600">{item.label}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">{item.label}</p>
                     <p className="mt-2 text-sm font-semibold text-white transition-colors group-hover:text-lime-300">{item.value}</p>
                   </div>
                   <span className="text-white/20 transition-all group-hover:translate-x-1 group-hover:text-lime-300" aria-hidden="true">↗</span>
