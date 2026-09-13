@@ -42,7 +42,7 @@ export default function CasosPage() {
         </div>
       </section>
 
-      <section id="trabajos" className="mx-auto max-w-7xl px-6 pb-28 sm:px-8">
+      <section id="trabajos" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-28 sm:px-8">
         <div className="mb-10 flex flex-wrap items-center gap-2 border-b border-white/10 pb-6">
           <span className="mr-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Disciplinas</span>
           {disciplines.map((discipline) => <span key={discipline} className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400">{discipline}</span>)}
