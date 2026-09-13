@@ -85,7 +85,7 @@ export default function Footer() {
       </div>
 
       <div className="mt-16 border-t border-white/10 pt-8 text-center text-sm text-slate-500">
-        © 2026 AdVibe Agencia. Todos los derechos reservados.
+        © {new Date().getFullYear()} AdVibe Agencia. Todos los derechos reservados.
       </div>
     </footer>
   );
