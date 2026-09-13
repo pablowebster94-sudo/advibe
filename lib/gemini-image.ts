@@ -88,7 +88,8 @@ export async function generateImage(input: {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     throw new GeminiImageError(
-      "Falta la configuración del servidor: define GEMINI_API_KEY en el archivo .env.local.",
+      "Falta la configuración del servidor: define GEMINI_API_KEY en las variables de entorno " +
+        "del hosting (y vuelve a desplegar), o en un archivo .env.local si ejecutas la app en local.",
       500
     );
   }
