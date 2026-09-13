@@ -14,8 +14,7 @@ export default function GoatReveal() {
           <div className="absolute right-[-9rem] top-[-9rem] h-[30rem] w-[30rem] rounded-full border border-lime-300/10" />
           <div className="absolute right-[-4rem] top-[-4rem] h-[21rem] w-[21rem] rounded-full border border-lime-300/10" />
           <div className="relative z-20 max-w-xl px-7 pt-10 sm:px-12 sm:pt-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.34em] text-lime-300">Creativos por naturaleza</p>
-            <h2 className="mt-5 text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">Resultados.</h2>
+            <h2 className="text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">Resultados.</h2>
             <div className="mt-8 h-px w-40 bg-lime-300" />
             <p className="mt-6 text-xs font-semibold uppercase tracking-[0.32em] text-white/45">ADVIBE · AGENCIA CREATIVA &amp; TECNOLÓGICA</p>
           </div>
