@@ -56,6 +56,14 @@ GEMINI_MOCK_MODE=1 npm run dev
 
 Con esa variable el backend devuelve un marcador de posición local (`lib/mock-image.ts`) y **nunca** contacta con Gemini. La interfaz avisa con un banner cuando el modo simulado está activo.
 
+## Despliegue
+
+1. Sube la rama y despliega el proyecto como cualquier app de Next.js (Vercel, por ejemplo).
+2. En el panel del hosting añade la variable de entorno **`GEMINI_API_KEY`** con tu clave. No subas nunca el archivo `.env.local` al repositorio.
+3. No definas `GEMINI_MOCK_MODE` en producción: si vale `1`, la aplicación devuelve imágenes simuladas en lugar de llamar a Gemini.
+
+> **Tiempo máximo de ejecución:** la ruta `app/api/generate-image/route.ts` declara `maxDuration = 300` porque una generación en 4K puede tardar. Algunos planes gratuitos de hosting (entre ellos el plan Hobby de Vercel) limitan las funciones a 60 segundos y cortarían la petición antes de tiempo. Si generas en 4K en producción, usa un plan que permita funciones largas o quédate en 1K/2K.
+
 ## Estructura relevante
 
 | Ruta | Contenido |
