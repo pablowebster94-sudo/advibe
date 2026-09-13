@@ -1,12 +1,18 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { observeViewOnce, trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
 
 const whatsappNumber = "593984966335";
 
 export default function DigitalAudit() {
   const [submitted, setSubmitted] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(
+    () => observeViewOnce(formRef.current, "diagnostic_form_view", { source: "digital_audit_form" }),
+    []
+  );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,7 +67,7 @@ export default function DigitalAudit() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="rounded-[2rem] border border-white/10 bg-black/40 p-6 sm:p-8">
+          <form ref={formRef} onSubmit={handleSubmit} className="rounded-[2rem] border border-white/10 bg-black/40 p-6 sm:p-8">
             <div className="space-y-5">
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-white">Tu nombre</span>

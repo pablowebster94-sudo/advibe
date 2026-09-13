@@ -70,3 +70,51 @@ export function buildTrackedHref(href: string, params: EventParams = {}) {
     return href;
   }
 }
+
+const viewedOnce = new Set<string>();
+
+/**
+ * Dispara un evento de visualización como máximo una vez por carga de página,
+ * para que volver a pasar por la sección no infle el conteo.
+ * Devuelve `true` solo la primera vez.
+ */
+export function trackViewOnce(name: string, params: EventParams = {}) {
+  if (typeof window === "undefined") return false;
+  if (viewedOnce.has(name)) return false;
+
+  viewedOnce.add(name);
+  trackEvent(name, { ...params, ...getCtaUtmParams(params) });
+  return true;
+}
+
+/**
+ * Registra `name` cuando `element` entra en el viewport. Devuelve la función de
+ * limpieza para el efecto que lo monta. Si el navegador no expone
+ * `IntersectionObserver`, el evento se dispara de inmediato: preferimos un
+ * conteo ligeramente optimista antes que perder el denominador del embudo.
+ */
+export function observeViewOnce(
+  element: Element | null,
+  name: string,
+  params: EventParams = {},
+  threshold = 0.25
+) {
+  if (typeof window === "undefined" || !element) return () => {};
+
+  if (typeof IntersectionObserver === "undefined") {
+    trackViewOnce(name, params);
+    return () => {};
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      trackViewOnce(name, params);
+      observer.disconnect();
+    },
+    { threshold }
+  );
+
+  observer.observe(element);
+  return () => observer.disconnect();
+}
