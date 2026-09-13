@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-[#050505] text-white">
       <StickyDesktopCTA />
-      <main className="relative overflow-hidden pb-24">
+      <main className="relative overflow-x-clip pb-24">
         <Navbar />
         <Hero />
         <ClientsMarquee />

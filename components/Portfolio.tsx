@@ -39,7 +39,7 @@ export default function Portfolio() {
         </div>
 
         <div className="mt-7 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center justify-between gap-8 text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-600"><span>AdVibe / Selected work</span><span>{projects.length} destacados</span></div>
+          <div className="flex items-center justify-between gap-8 text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-400"><span>AdVibe / Selected work</span><span>{projects.length} destacados</span></div>
           <EventButton href="/casos" eventName="portfolio_view_all" eventParams={{ source: "home_portfolio" }} className="inline-flex w-fit items-center rounded-full border border-white/10 px-5 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-slate-300 transition hover:border-lime-300/40 hover:text-lime-300">Ver todos los casos <span className="ml-3">→</span></EventButton>
         </div>
       </div>

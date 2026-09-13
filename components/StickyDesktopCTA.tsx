@@ -18,7 +18,7 @@ export default function StickyDesktopCTA() {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -80, opacity: 0 }} className="fixed inset-x-0 top-0 z-[48] hidden md:block">
+        <motion.div initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -80, opacity: 0 }} className="fixed inset-x-0 top-[82px] z-[48] hidden md:block">
           <div className="border-b border-white/10 bg-[#050505]/92 shadow-[0_4px_32px_-8px_rgba(0,0,0,0.6)] backdrop-blur-xl">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3">
               <div className="flex items-center gap-3">

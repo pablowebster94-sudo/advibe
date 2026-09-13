@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { caseStudies } from "@/lib/cases";
+import { sharedOpenGraph, sharedTwitter } from "@/app/shared-metadata";
+
+const title = "Casos | AdVibe Agencia";
+const description =
+  "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.";
 
 export const metadata = {
-  title: "Casos | AdVibe Agencia",
-  description: "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.",
+  title,
+  description,
+  alternates: { canonical: "/casos" },
+  openGraph: { ...sharedOpenGraph, title, description, url: "/casos", type: "website" },
+  twitter: { ...sharedTwitter, title, description },
 };
 
-const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];
+const disciplines = ["Audiovisual", "Performance", "Digital", "Branding"];
 
 export default function CasosPage() {
   return (
@@ -29,14 +37,15 @@ export default function CasosPage() {
           <h1 className="max-w-5xl text-6xl font-semibold leading-[0.92] tracking-[-0.07em] sm:text-8xl lg:text-[9rem]">Trabajo que<br /><span className="text-slate-500">habla por nosotros.</span></h1>
           <div className="mt-10 flex max-w-3xl flex-col justify-between gap-8 sm:flex-row sm:items-end">
             <p className="max-w-xl text-lg leading-8 text-slate-400">Estrategia, creatividad, contenido, performance y tecnología aplicados a marcas reales.</p>
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-600">{caseStudies.length} proyectos seleccionados</span>
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-400">{caseStudies.length} proyectos seleccionados</span>
           </div>
         </div>
       </section>
 
-      <section id="trabajos" className="mx-auto max-w-7xl px-6 pb-28 sm:px-8">
-        <div className="mb-10 flex flex-wrap gap-2 border-b border-white/10 pb-6">
-          {filters.map((filter, i) => <span key={filter} className={`rounded-full border px-4 py-2 text-xs font-semibold ${i === 0 ? "border-lime-300/40 bg-lime-300/10 text-lime-300" : "border-white/10 text-slate-500"}`}>{filter}</span>)}
+      <section id="trabajos" className="mx-auto max-w-7xl scroll-mt-24 px-6 pb-28 sm:px-8">
+        <div className="mb-10 flex flex-wrap items-center gap-2 border-b border-white/10 pb-6">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Disciplinas</span>
+          {disciplines.map((discipline) => <span key={discipline} className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400">{discipline}</span>)}
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">

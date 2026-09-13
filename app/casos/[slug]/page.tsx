@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { caseStudies, getCaseStudy } from "@/lib/cases";
+import { sharedOpenGraph, sharedTwitter } from "@/app/shared-metadata";
 
 export function generateStaticParams() {
   return caseStudies.map((item) => ({ slug: item.slug }));
@@ -9,7 +10,16 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = getCaseStudy(slug);
-  return { title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia", description: project?.summary };
+  const title = project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia";
+  const description = project?.summary;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/casos/${slug}` },
+    openGraph: { ...sharedOpenGraph, title, description, url: `/casos/${slug}`, type: "article" },
+    twitter: { ...sharedTwitter, title, description },
+  };
 }
 
 export default async function CasePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -69,7 +79,7 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_2fr]"><p className="font-mono text-xs uppercase tracking-[0.3em] text-lime-300">Resultado / impacto</p><p className="text-2xl leading-10 text-slate-300 sm:text-3xl">{project.outcome}</p></div>
       </section>
 
-      <section className="px-6 py-28 sm:px-8"><div className="mx-auto max-w-7xl"><p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-600">Siguiente caso</p><Link href={`/casos/${next.slug}`} className="group mt-6 block border-b border-white/10 pb-8"><div className="flex items-end justify-between gap-5"><h2 className="text-5xl font-semibold tracking-[-0.06em] transition group-hover:text-lime-300 sm:text-7xl">{next.client}</h2><span className="text-3xl transition group-hover:-rotate-45">↗</span></div></Link><Link href="/#contacto" className="mt-12 inline-flex rounded-full bg-lime-300 px-7 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-200">Implementar algo similar <span className="ml-3">↗</span></Link></div></section>
+      <section className="px-6 py-28 sm:px-8"><div className="mx-auto max-w-7xl"><p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-400">Siguiente caso</p><Link href={`/casos/${next.slug}`} className="group mt-6 block border-b border-white/10 pb-8"><div className="flex items-end justify-between gap-5"><h2 className="text-5xl font-semibold tracking-[-0.06em] transition group-hover:text-lime-300 sm:text-7xl">{next.client}</h2><span className="text-3xl transition group-hover:-rotate-45">↗</span></div></Link><Link href="/#contacto" className="mt-12 inline-flex rounded-full bg-lime-300 px-7 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-200">Implementar algo similar <span className="ml-3">↗</span></Link></div></section>
     </main>
   );
 }

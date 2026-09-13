@@ -5,7 +5,7 @@ import { clientGroups } from "@/lib/content";
 
 export default function Clients() {
   return (
-    <section id="marcas" className="relative overflow-hidden border-t border-white/6 py-28 sm:py-32 lg:py-40">
+    <section id="sectores" className="relative overflow-hidden border-t border-white/6 py-28 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
@@ -25,10 +25,10 @@ export default function Clients() {
               transition={{ duration: 0.5, delay: index * 0.05 }}
               className="group relative grid gap-5 border-b border-white/10 py-8 last:border-b-0 sm:grid-cols-[150px_1fr_auto] sm:items-center sm:py-10"
             >
-              <span className="font-mono text-xs tracking-[0.22em] text-slate-600">0{index + 1}</span>
+              <span className="font-mono text-xs tracking-[0.22em] text-slate-400">0{index + 1}</span>
               <div>
                 <h3 className="text-2xl font-semibold tracking-[-0.035em] text-white transition-transform duration-500 group-hover:translate-x-2 sm:text-3xl">{group.sector}</h3>
-                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600">
+                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-400">
                   {group.clients.map((client) => <span key={client}>{client}</span>)}
                 </div>
               </div>
@@ -38,7 +38,7 @@ export default function Clients() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-4 text-xs uppercase tracking-[0.2em] text-slate-600">
+        <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-4 text-xs uppercase tracking-[0.2em] text-slate-400">
           <span><strong className="mr-2 text-white">+50</strong> empresas atendidas</span>
           <span><strong className="mr-2 text-white">Ecuador + EE. UU.</strong> mercados</span>
           <span><strong className="mr-2 text-white">360°</strong> estrategia + creatividad + tecnología</span>
