@@ -36,7 +36,7 @@ export default function Hero() {
             <p className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
               <span className="h-px w-8 bg-lime-300" /> Agencia creativa + tecnológica · Ecuador
             </p>
-            <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
+            <h1 className="max-w-5xl text-[clamp(2.6rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
               <span className="block">Creamos marcas</span>
               <span className="block">que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
                 <AnimatePresence initial={false}>
