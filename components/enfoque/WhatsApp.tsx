@@ -5,9 +5,10 @@ export function WhatsApp({message,id,type="property",value,city,ctaSource="ficha
   const n=process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const onClick=()=>{
     const ref=refCode();
-    track("Contact",{content_id:id,content_type:type,value,currency:"USD",event_id:crypto.randomUUID(),cta_source:ctaSource});
+    const eventId=crypto.randomUUID();
+    track("Contact",{content_id:id,content_type:type,value,currency:"USD",event_id:eventId,cta_source:ctaSource});
     navigator.sendBeacon?.("/api/enfoque/track",new Blob([JSON.stringify({
-      event_name:"Contact",event_id:crypto.randomUUID(),property_id:type==="property"?id:undefined,vehicle_id:type==="vehicle"?id:undefined,
+      event_name:"Contact",event_id:eventId,property_id:type==="property"?id:undefined,vehicle_id:type==="vehicle"?id:undefined,
       value,currency:"USD",city,cta_source:ctaSource,ref_code:ref,event_source_url:location.href
     })],{type:"application/json"}));
     const text=`${message} (Ref: ${ref})`;
