@@ -1,15 +1,28 @@
 import {NextResponse} from "next/server";
-export async function POST(req:Request){
-  try{
+import {getAttribution} from "@/lib/enfoque-attribution";
+import {supabaseAdmin,supabaseAdminConfigured} from "@/lib/enfoque-supabase";
+
+export async function POST(req:Request) {
+  try {
     const body=await req.json();
-    const url=process.env.SUPABASE_URL; const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if(url&&key){
-      const r=await fetch(url+"/rest/v1/leads",{method:"POST",headers:{"Content-Type":"application/json","apikey":key,"Authorization":"Bearer "+key,"Prefer":"return=minimal"},body:JSON.stringify(body)});
-      if(!r.ok)return NextResponse.json({ok:false,error:"No se pudo guardar el lead."},{status:500});
+    if (!body.name || (!body.phone && !body.email)) return NextResponse.json({ok:false,error:"Nombre y teléfono o correo son obligatorios."},{status:400});
+    const attr=await getAttribution();
+    const lead={
+      name:String(body.name).slice(0,120),phone:body.phone || null,email:body.email || null,
+      interest_type:body.interest_type || "informacion_general",property_id:body.property_id || null,vehicle_id:body.vehicle_id || null,
+      message:body.message ? String(body.message).slice(0,2000) : null,channel:body.channel || "formulario",
+      ref_code:body.ref_code || null,visitor_id:attr.visitorId || null,
+      utm_source:attr.last_touch?.utm_source || null,utm_medium:attr.last_touch?.utm_medium || null,
+      utm_campaign:attr.last_touch?.utm_campaign || null,utm_content:attr.last_touch?.utm_content || null,utm_term:attr.last_touch?.utm_term || null,
+      fbclid:attr.last_touch?.fbclid || null,gclid:attr.last_touch?.gclid || null,fbp:body.fbp || null,fbc:body.fbc || null,
+      first_touch:attr.first_touch || null,landing_url:attr.landing_url || null,privacy_accepted_at:new Date().toISOString()
+    };
+    if (supabaseAdminConfigured()) {
+      const rows=await supabaseAdmin<any[]>("leads",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify(lead)});
+      return NextResponse.json({ok:true,lead_id:rows?.[0]?.id || null});
     }
-    if(process.env.META_ACCESS_TOKEN&&process.env.META_PIXEL_ID){
-      fetch("https://graph.facebook.com/v23.0/"+process.env.META_PIXEL_ID+"/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({data:[{event_name:"Lead",event_time:Math.floor(Date.now()/1000),action_source:"website",user_data:{em:body.email?[body.email]:undefined,ph:body.phone?[body.phone]:undefined},custom_data:{content_id:body.content_id,content_type:body.content_type,value:body.value,currency:"USD"}}],access_token:process.env.META_ACCESS_TOKEN})}).catch(()=>{});
-    }
-    return NextResponse.json({ok:true});
-  }catch{return NextResponse.json({ok:false,error:"Solicitud inválida"},{status:400})}
+    return NextResponse.json({ok:true,lead_id:null,mode:"preview"});
+  } catch {
+    return NextResponse.json({ok:false,error:"No se pudo registrar el lead."},{status:500});
+  }
 }
