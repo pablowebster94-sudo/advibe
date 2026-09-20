@@ -1,2 +1,29 @@
-import Link from "next/link";import {properties,vehicles} from "@/lib/enfoque-data";import {Header} from "@/components/enfoque/Header";import {PropertyCard,VehicleCard} from "@/components/enfoque/Cards";
-export default function Home(){return <><Header/><main><section className="ev-noise bg-black px-5 py-20 text-white md:py-28"><div className="mx-auto max-w-7xl"><p className="text-xs font-black uppercase tracking-[.25em] text-[#d9ff3f]">ENFOQUE VISUAL · ECUADOR</p><h1 className="ev-display mt-5 max-w-5xl text-6xl font-black leading-[.88] md:text-8xl">Encuentra algo que <span className="text-[#d9ff3f]">valga la pena.</span></h1><p className="mt-7 max-w-xl text-lg leading-8 text-white/60">Propiedades y vehículos presentados con fotografía, video e información clara.</p><div className="mt-9 flex flex-wrap gap-3"><Link href="/propiedades" className="rounded-full bg-[#d9ff3f] px-6 py-3 font-black text-black">Ver propiedades</Link><Link href="/vehiculos" className="rounded-full border border-white/20 px-6 py-3 font-bold">Ver vehículos</Link></div></div></section><section className="mx-auto max-w-7xl px-5 py-16"><div className="mb-8 flex items-end justify-between"><h2 className="ev-display text-4xl font-black md:text-5xl">Propiedades destacadas</h2><Link href="/propiedades" className="text-sm font-bold underline">Ver todas</Link></div><div className="grid gap-5 md:grid-cols-3">{properties.filter(x=>x.featured).map(x=><PropertyCard key={x.id} x={x}/>)}</div></section><section className="bg-[#e8e5dd]"><div className="mx-auto max-w-7xl px-5 py-16"><div className="mb-8 flex items-end justify-between"><h2 className="ev-display text-4xl font-black md:text-5xl">Vehículos destacados</h2><Link href="/vehiculos" className="text-sm font-bold underline">Ver todos</Link></div><div className="grid gap-5 md:grid-cols-2">{vehicles.map(x=><VehicleCard key={x.id} x={x}/>)}</div></div></section><section id="contacto" className="bg-[#d9ff3f] px-5 py-16"><div className="mx-auto max-w-4xl text-center"><h2 className="ev-display text-5xl font-black md:text-7xl">¿Tienes algo que vender?</h2><p className="mx-auto mt-5 max-w-xl text-black/65">Enfoque Visual es una marca de AdVibe Agencia enfocada en contenido y captación digital.</p><a href="https://wa.me/593999999999?text=Hola%2C%20quiero%20publicar%20en%20Enfoque%20Visual." className="mt-8 inline-flex rounded-full bg-black px-7 py-3 font-black text-white">Quiero publicar ↗</a></div></section></main></>}
+import Link from "next/link";
+import {properties as demoProperties,vehicles as demoVehicles} from "@/lib/enfoque-data";
+import {getPublishedProperties,getPublishedVehicles,supabaseConfigured} from "@/lib/enfoque-supabase";
+import {Header} from "@/components/enfoque/Header";
+import {PropertyCard,VehicleCard} from "@/components/enfoque/Cards";
+
+export const dynamic="force-dynamic";
+
+export default async function Home(){
+  const [properties,vehicles]=supabaseConfigured()?await Promise.all([
+    getPublishedProperties().catch(()=>demoProperties),
+    getPublishedVehicles().catch(()=>demoVehicles)
+  ]):[demoProperties,demoVehicles];
+  return <><Header/><main>
+    <section className="ev-noise bg-black px-5 py-20 text-white md:py-28"><div className="mx-auto max-w-7xl">
+      <p className="text-xs font-black uppercase tracking-[.25em] text-[#d9ff3f]">ENFOQUE VISUAL · ECUADOR</p>
+      <h1 className="ev-display mt-5 max-w-5xl text-6xl font-black leading-[.88] md:text-8xl">Encuentra algo que <span className="text-[#d9ff3f]">valga la pena.</span></h1>
+      <p className="mt-7 max-w-xl text-lg leading-8 text-white/60">Propiedades y vehículos presentados con fotografía, video e información clara.</p>
+      <div className="mt-9 flex flex-wrap gap-3"><Link href="/propiedades" className="rounded-full bg-[#d9ff3f] px-6 py-3 font-black text-black">Ver propiedades</Link><Link href="/vehiculos" className="rounded-full border border-white/20 px-6 py-3 font-bold">Ver vehículos</Link></div>
+    </div></section>
+    <section className="mx-auto max-w-7xl px-5 py-16"><div className="mb-8 flex items-end justify-between"><h2 className="ev-display text-4xl font-black md:text-5xl">Propiedades destacadas</h2><Link href="/propiedades" className="text-sm font-bold underline">Ver todas</Link></div>
+      <div className="grid gap-5 md:grid-cols-3">{properties.filter(x=>x.featured).slice(0,3).map(x=><PropertyCard key={x.id} x={x}/>)}</div>
+    </section>
+    <section className="bg-[#e8e5dd]"><div className="mx-auto max-w-7xl px-5 py-16"><div className="mb-8 flex items-end justify-between"><h2 className="ev-display text-4xl font-black md:text-5xl">Vehículos destacados</h2><Link href="/vehiculos" className="text-sm font-bold underline">Ver todos</Link></div>
+      <div className="grid gap-5 md:grid-cols-2">{vehicles.filter(x=>x.featured).slice(0,4).map(x=><VehicleCard key={x.id} x={x}/>)}</div>
+    </div></section>
+    <section id="contacto" className="bg-[#d9ff3f] px-5 py-16"><div className="mx-auto max-w-4xl text-center"><h2 className="ev-display text-5xl font-black md:text-7xl">¿Tienes algo que vender?</h2><p className="mx-auto mt-5 max-w-xl text-black/65">Enfoque Visual es una marca de AdVibe Agencia enfocada en contenido y captación digital.</p><Link href="/contacto" className="mt-8 inline-flex rounded-full bg-black px-7 py-3 font-black text-white">Quiero publicar ↗</Link></div></section>
+  </main></>;
+}
