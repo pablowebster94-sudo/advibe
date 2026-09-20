@@ -16,10 +16,8 @@ async function rest(path:string, init:RequestInit = {}, token?:string) {
   const url = baseUrl();
   if (!url) throw new Error("Supabase URL is not configured");
   const headers = new Headers(init.headers);
-  headers.set("apikey", token || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "");
-  if (token || process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    headers.set("Authorization", `Bearer ${token || process.env.SUPABASE_SERVICE_ROLE_KEY}`);
-  }
+  headers.set("apikey", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "");
+  if (token || process.env.SUPABASE_SERVICE_ROLE_KEY) headers.set("Authorization", `Bearer ${token || process.env.SUPABASE_SERVICE_ROLE_KEY}`);
   headers.set("Content-Type","application/json");
   const response = await fetch(`${url}/rest/v1/${path}`, {...init, headers, cache:"no-store"});
   if (!response.ok) throw new Error(`Supabase ${response.status}: ${await response.text()}`);
