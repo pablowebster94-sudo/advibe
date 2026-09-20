@@ -1,0 +1,3 @@
+"use client";
+import {track} from "./Tracking";
+export function WhatsApp({message,id,type="property"}:{message:string;id?:string;type?:string}){const n=process.env.NEXT_PUBLIC_WHATSAPP_NUMBER||"593999999999";return <a href={"https://wa.me/"+n+"?text="+encodeURIComponent(message)} target="_blank" rel="noreferrer" onClick={()=>track("Contact",{content_id:id,content_type:type})} className="inline-flex rounded-full bg-[#d9ff3f] px-6 py-3 text-sm font-black text-black hover:scale-[1.02] transition">WhatsApp ↗</a>}
