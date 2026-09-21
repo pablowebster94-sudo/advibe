@@ -66,7 +66,7 @@ function DiagnosticBar() {
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-t-3xl border border-white/10 border-b-0 bg-[#050505]/95 px-4 py-4 backdrop-blur-xl">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Diagnóstico gratuito</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-cyan-300">Diagnóstico estratégico</p>
           <p className="text-sm font-semibold text-white">Descubre oportunidades</p>
         </div>
         <EventButton
@@ -76,7 +76,7 @@ function DiagnosticBar() {
           leadOnClick
           className="inline-flex items-center justify-center rounded-full bg-lime-400 px-5 py-3 text-sm font-semibold text-[#07101a] hover:bg-lime-300"
         >
-          Analizar mi marca
+          Analizar mi negocio
         </EventButton>
       </div>
     </div>
