@@ -23,7 +23,7 @@ export default function StickyDesktopCTA() {
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3">
               <div className="flex items-center gap-3">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
-                <p className="text-sm font-semibold text-white">Diagnóstico digital gratuito</p>
+                <p className="text-sm font-semibold text-white">Diagnóstico estratégico</p>
                 <span className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-400 lg:block">Sin compromiso · Enfoque en oportunidades reales</span>
               </div>
               <div className="flex items-center gap-3">
@@ -40,8 +40,8 @@ export default function StickyDesktopCTA() {
                 >
                   WhatsApp
                 </a>
-                <EventButton href="#diagnostico" eventName="sticky_cta_click" eventParams={{ source: "sticky_desktop" }} leadOnClick className="rounded-full bg-white px-5 py-2 text-xs font-semibold text-slate-950 hover:bg-[#f3f3f0]">
-                  Quiero mi diagnóstico
+                <EventButton href="#contacto" eventName="sticky_cta_click" eventParams={{ source: "sticky_desktop" }} leadOnClick className="rounded-full bg-white px-5 py-2 text-xs font-semibold text-slate-950 hover:bg-[#f3f3f0]">
+                  Analizar mi negocio
                 </EventButton>
               </div>
             </div>
