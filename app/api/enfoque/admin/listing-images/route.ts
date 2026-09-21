@@ -22,7 +22,7 @@ export async function DELETE(req:Request){
  const s=await getAdminSession();if(!s)return NextResponse.json({error:"No autorizado"},{status:401});
  try{
   const {id}=await req.json();const rows=await supabaseAdmin<any[]>(`listing_images?id=eq.${encodeURIComponent(id)}&select=id,storage_path`,{},s.token);const item=rows[0];if(!item)return NextResponse.json({error:"Imagen no encontrada."},{status:404});
-  const base=storageBase();await fetch(`${base}/storage/v1/object/listing-media`,{method:"DELETE",headers:{"Authorization":`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,"apikey":process.env.SUPABASE_SERVICE_ROLE_KEY||"","Content-Type":"application/json"},body:JSON.stringify({prefixes:[item.storage_path]})});
+  const base=storageBase();await fetch(`${base}/storage/v1/object/listing-media/${item.storage_path}`,{method:"DELETE",headers:{"Authorization":`Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,"apikey":process.env.SUPABASE_SERVICE_ROLE_KEY||"","Content-Type":"application/json"}});
   await supabaseAdmin(`listing_images?id=eq.${encodeURIComponent(id)}`,{method:"DELETE"},s.token);return NextResponse.json({ok:true});
  }catch{return NextResponse.json({error:"No se pudo eliminar la imagen."},{status:500})}
 }
