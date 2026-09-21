@@ -17,9 +17,9 @@ const siteUrl = "https://www.advibeagencia.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "AdVibe Agencia | Marketing, IA y Automatización",
+  title: "AdVibe Agencia | Marketing, Meta Ads, Web e IA en Ecuador",
   description:
-    "AdVibe integra marketing, contenido audiovisual, desarrollo web, inteligencia artificial y automatización para ayudar a empresas a atraer clientes y crecer.",
+    "AdVibe conecta creatividad, Meta Ads, contenido, desarrollo web, IA y automatización para convertir atención en oportunidades de negocio.",
   keywords: [
     "AdVibe Agencia",
     "agencia de marketing Ecuador",
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
   alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "AdVibe Agencia | Marketing, IA y Automatización",
+    title: "AdVibe Agencia | Marketing, Meta Ads, Web e IA en Ecuador",
     description:
-      "Estrategia, creatividad y tecnología para construir sistemas de crecimiento.",
+      "Creatividad, performance y tecnología conectadas para convertir atención en oportunidades de negocio.",
     url: siteUrl,
     siteName: "AdVibe Agencia",
     locale: "es_EC",
