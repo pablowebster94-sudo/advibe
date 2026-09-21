@@ -9,7 +9,7 @@ function hash(value: string) {
 
 export async function POST(request: NextRequest) {
   const pixelId = process.env.META_PIXEL_ID;
-  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+  const accessToken = process.env.META_CAPI_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
 
   if (!pixelId || !accessToken) {
     return NextResponse.json({ ok: false, configured: false }, { status: 503 });
