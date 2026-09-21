@@ -13,18 +13,18 @@ export default function DigitalAudit() {
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") || "").trim();
     const company = String(form.get("company") || "").trim();
-    const website = String(form.get("website") || "").trim();
+    const objective = String(form.get("objective") || "").trim();
 
     const message = [
       "Hola AdVibe, quiero solicitar un diagnóstico de mi presencia digital.",
       "",
       `Nombre: ${name}`,
       `Empresa: ${company}`,
-      `Sitio web: ${website}`,
+      `Objetivo principal: ${objective}`,
     ].join("\n");
 
     setSubmitted(true);
-    trackEvent("diagnostic_form_submitted", { source: "digital_audit_form" });
+    trackEvent("submit_contact_form", { source: "digital_audit_form" });
     trackWhatsAppOpen("digital_audit_form");
     trackLead({ source: "digital_audit_form", cta: "diagnostic_form_submitted" });
     window.open(
@@ -48,7 +48,7 @@ export default function DigitalAudit() {
               Descubre qué está frenando el crecimiento de tu marca.
             </h2>
             <p className="mt-6 text-lg leading-8 text-slate-300">
-              Revisamos tu presencia digital, captación y experiencia comercial para detectar oportunidades concretas de mejora.
+              Revisamos tu presencia digital, captación, conversión y seguimiento para detectar oportunidades concretas de mejora.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -74,8 +74,8 @@ export default function DigitalAudit() {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-white">Sitio web</span>
-                <input required type="url" name="website" inputMode="url" placeholder="https://tumarca.com" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60" />
+                <span className="mb-2 block text-sm font-medium text-white">Objetivo principal</span>
+                <input required name="objective" placeholder="Ej. conseguir más clientes por WhatsApp" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/60" />
               </label>
 
               <button type="submit" className="w-full rounded-xl bg-white px-5 py-3.5 font-semibold text-black transition hover:scale-[1.01] hover:bg-cyan-100">
