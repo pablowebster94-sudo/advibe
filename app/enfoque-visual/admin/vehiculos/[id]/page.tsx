@@ -1,0 +1,3 @@
+import {redirect} from "next/navigation";import {getAdminSession,adminGet} from "@/lib/enfoque-admin";import {AdminVehicleEdit} from "@/components/enfoque/AdminVehicleEdit";
+export const dynamic="force-dynamic";
+export default async function Page({params}:{params:Promise<{id:string}>}){const s=await getAdminSession();if(!s)redirect("/enfoque-visual/admin/login");const {id}=await params;const rows=await adminGet<any[]>(`vehicles?id=eq.${encodeURIComponent(id)}&limit=1`,s.token);if(!rows[0])redirect("/enfoque-visual/admin/vehiculos");const images=await adminGet<any[]>(`listing_images?vehicle_id=eq.${encodeURIComponent(id)}&order=sort_order.asc`,s.token);return <AdminVehicleEdit item={rows[0]} images={images}/>;}
