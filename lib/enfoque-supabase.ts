@@ -29,8 +29,8 @@ export async function supabasePublic<T>(path:string) {
   return rest(path, {headers:{"Prefer":"return=representation"}}) as Promise<T>;
 }
 
-export async function supabaseAdmin<T>(path:string, init:RequestInit = {}) {
-  return rest(path, init) as Promise<T>;
+export async function supabaseAdmin<T>(path:string, init:RequestInit = {}, token?:string) {
+  return rest(path, init, token) as Promise<T>;
 }
 
 export async function supabaseAuthPassword(email:string,password:string) {
