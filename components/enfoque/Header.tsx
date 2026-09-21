@@ -22,7 +22,7 @@ export function Header(){
             <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/contacto">Contacto</Link>
           </nav>
         </details>
-        <Link href="/enfoque-visual/contacto" className="rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:scale-[1.02]">
+        <Link href="/enfoque-visual/publicar" className="rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:scale-[1.02]">
           Publicar
         </Link>
       </div>
