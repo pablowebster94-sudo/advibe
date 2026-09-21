@@ -28,7 +28,7 @@ create type public.transmission_type   as enum ('manual','automatica','otra');
 create type public.vehicle_condition   as enum ('nuevo','usado');
 create type public.owner_kind          as enum ('propio','particular','inmobiliaria','concesionario','empresa');
 create type public.user_role           as enum ('admin','editor');
-create type public.interest_type       as enum ('comprar_propiedad','alquilar_propiedad','comprar_vehiculo','informacion_general');
+create type public.interest_type       as enum ('publicar_propiedad','publicar_vehiculo','comprar_propiedad','alquilar_propiedad','comprar_vehiculo','informacion_general');
 create type public.lead_channel        as enum ('formulario','whatsapp','llamada','otro');
 create type public.lead_status         as enum ('nuevo','contactado','calificado','visita_agendada','negociacion','cerrado','descartado');
 
