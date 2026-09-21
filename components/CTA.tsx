@@ -23,9 +23,9 @@ export default function CTA() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.34em] text-lime-300">Hablemos de tu proyecto</p>
             <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="mt-6 max-w-5xl text-5xl font-semibold leading-[0.88] tracking-[-0.065em] sm:text-7xl lg:text-[6.2rem]">
-              ¿Listo para hacer que tu marca <span className="text-lime-300">se vea y venda mejor?</span>
+              Descubre qué está frenando tu crecimiento digital.
             </motion.h2>
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-500">Cuéntanos qué necesitas. Revisamos tu situación y te proponemos el siguiente paso con claridad.</p>
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-500">Revisamos tu presencia digital, captación, conversión y seguimiento para identificar prioridades concretas y definir el siguiente paso con claridad.</p>
             <EventButton
               href="https://wa.me/593984966335?text=Hola,%20quiero%20agendar%20un%20diagnóstico%20estratégico."
               eventName="final_cta_whatsapp_click"
@@ -33,7 +33,7 @@ export default function CTA() {
               leadOnClick
               className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white px-7 py-3 text-sm font-semibold text-slate-950 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:bg-[#f3f3f0] hover:shadow-[0_16px_60px_-30px_rgba(255,255,255,0.45)] mt-9 bg-lime-300 text-slate-950 hover:bg-lime-200"
             >
-              Agendar diagnóstico ↗
+              Analizar mi negocio ↗
             </EventButton>
           </div>
 
