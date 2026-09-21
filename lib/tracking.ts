@@ -42,6 +42,7 @@ export async function sendCapiEvent(input: {
   eventId: string;
   email?: string;
   phone?: string;
+  testEventCode?: string;
 }) {
   if (typeof window === "undefined") return;
   const cookies = document.cookie.split(";").reduce<Record<string, string>>((acc, part) => {
@@ -63,6 +64,7 @@ export async function sendCapiEvent(input: {
         fbp: cookies._fbp,
         fbc: cookies._fbc,
         event_source_url: window.location.href,
+        test_event_code: input.testEventCode,
       }),
     });
   } catch {
