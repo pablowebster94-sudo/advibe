@@ -1,0 +1,3 @@
+import {redirect} from "next/navigation";import {getAdminSession,adminGet} from "@/lib/enfoque-admin";import {AdminPropertyEdit} from "@/components/enfoque/AdminPropertyEdit";
+export const dynamic="force-dynamic";
+export default async function Page({params}:{params:Promise<{id:string}>}){const s=await getAdminSession();if(!s)redirect("/enfoque-visual/admin/login");const {id}=await params;const rows=await adminGet<any[]>(`properties?id=eq.${encodeURIComponent(id)}&limit=1`,s.token);if(!rows[0])redirect("/enfoque-visual/admin/propiedades");const images=await adminGet<any[]>(`listing_images?property_id=eq.${encodeURIComponent(id)}&order=sort_order.asc`,s.token);return <AdminPropertyEdit item={rows[0]} images={images}/>;}
