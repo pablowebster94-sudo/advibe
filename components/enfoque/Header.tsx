@@ -12,9 +12,20 @@ export function Header(){
         <Link href="/enfoque-visual/vehiculos" className="hover:opacity-60">Vehículos</Link>
         <Link href="/enfoque-visual/contacto" className="hover:opacity-60">Contacto</Link>
       </nav>
-      <Link href="/enfoque-visual/contacto" className="rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:scale-[1.02]">
-        Publicar
-      </Link>
+      <div className="flex items-center gap-2">
+        <details className="relative md:hidden">
+          <summary className="cursor-pointer list-none rounded-full border border-black/15 px-4 py-2 text-sm font-bold">Menú</summary>
+          <nav className="absolute right-0 top-12 w-52 rounded-2xl bg-white p-3 shadow-xl ring-1 ring-black/10" aria-label="Navegación móvil">
+            <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/propiedades">Propiedades</Link>
+            <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/alquiler">Alquiler</Link>
+            <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/vehiculos">Vehículos</Link>
+            <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/contacto">Contacto</Link>
+          </nav>
+        </details>
+        <Link href="/enfoque-visual/publicar" className="rounded-full bg-black px-4 py-2 text-sm font-bold text-white hover:scale-[1.02]">
+          Publicar
+        </Link>
+      </div>
     </div>
   </header>;
 }
