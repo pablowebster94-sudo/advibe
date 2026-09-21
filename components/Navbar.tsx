@@ -6,8 +6,9 @@ import EventButton from "@/components/EventButton";
 
 const navLinks = [
   { label: "Servicios", href: "#servicios" },
+  { label: "Soluciones", href: "#soluciones" },
   { label: "Casos", href: "/casos" },
-  { label: "Nosotros", href: "#nosotros" },
+  { label: "Proceso", href: "#proceso" },
   { label: "Diagnóstico", href: "#contacto" },
 ];
 
@@ -43,7 +44,7 @@ export default function Navbar() {
         </nav>
         <div className="flex items-center gap-2.5">
           <div className="hidden items-center gap-2 sm:flex">{socials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[10px] font-bold text-slate-400 hover:border-lime-300/30 hover:text-lime-300">{item.icon}</a>)}</div>
-          <EventButton href="#diagnostico" eventName="navbar_diagnostic_cta" eventParams={{ source: "navbar" }} leadOnClick className="inline-flex items-center justify-center rounded-full border border-lime-300/60 bg-transparent px-7 py-3 text-sm font-semibold text-lime-300 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:border-lime-300 hover:bg-lime-300/10 hover:text-lime-200">Agenda un diagnóstico</EventButton>
+          <EventButton href="#diagnostico" eventName="navbar_diagnostic_cta" eventParams={{ source: "navbar" }} leadOnClick className="inline-flex items-center justify-center rounded-full border border-lime-300/60 bg-transparent px-7 py-3 text-sm font-semibold text-lime-300 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:border-lime-300 hover:bg-lime-300/10 hover:text-lime-200">Analizar mi negocio</EventButton>
         </div>
       </div>
     </motion.header>
