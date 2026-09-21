@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     };
 
     if (email) userData.em = [hash(email)];
-    if (phone) userData.ph = [hash(phone.replace(/\\D/g, ""))];
+    if (phone) userData.ph = [hash(phone.replace(/[^0-9]/g, ""))];
 
     const event = {
       event_name: eventName,
