@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import ConversionStrategy from "@/components/ConversionStrategy";
 import Clients from "@/components/Clients";
 import ClientsMarquee from "@/components/ClientsMarquee";
 import Services from "@/components/Services";
@@ -23,6 +24,7 @@ export default function Home() {
       <main className="relative overflow-hidden pb-24">
         <Navbar />
         <Hero />
+        <ConversionStrategy />
         <ClientsMarquee />
         <Services />
         <Portfolio />
