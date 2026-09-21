@@ -42,7 +42,8 @@ export default function DiagnosticPage() {
     const eventId = crypto.randomUUID();
     trackEvent("diagnostic_form_submit", { source: "diagnostic_landing", service: data.service, budget: data.budget });
     trackMetaEvent("Lead", { content_name: "Diagnóstico digital AdVibe", content_category: "lead_generation" }, eventId);
-    await sendCapiEvent({ eventName: "Lead", eventId, email: data.email, phone: data.phone });
+    const testEventCode = new URLSearchParams(window.location.search).get("test_event_code") || undefined;
+    await sendCapiEvent({ eventName: "Lead", eventId, email: data.email, phone: data.phone, testEventCode });
 
     const message = [
       "Hola AdVibe, quiero solicitar un diagnóstico estratégico.",
@@ -66,7 +67,7 @@ export default function DiagnosticPage() {
       });
       window.location.href = `${bookingUrl}${bookingUrl.includes("?") ? "&" : "?"}${params.toString()}`;
     } else {
-      window.location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
     }
   }
 
