@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
@@ -163,6 +164,6 @@ export default function ControlPage(){
 }
 
 function Card({title,value,sub}:{title:string,value:string,sub:string}){return <div className="rounded-2xl bg-white border p-5 shadow-sm"><div className="text-[10px] uppercase tracking-widest font-black text-slate-400">{title}</div><div className="mt-2 text-2xl font-black">{value}</div><div className="mt-1 text-xs text-slate-500">{sub}</div></div>}
-function List({title,children}:{title:string,children:React.ReactNode}){return <div className="rounded-2xl bg-white border shadow-sm overflow-hidden"><div className="px-4 py-3 border-b font-black text-sm">{title}</div><div className="divide-y">{children}</div></div>}
+function List({title,children}:{title:string,children:ReactNode}){return <div className="rounded-2xl bg-white border shadow-sm overflow-hidden"><div className="px-4 py-3 border-b font-black text-sm">{title}</div><div className="divide-y">{children}</div></div>}
 function Row({title,sub,action}:{title:string,sub:string,action?:React.ReactNode}){return <div className="p-4 flex items-center justify-between gap-3"><div className="min-w-0"><div className="font-bold text-sm truncate">{title}</div><div className="text-xs text-slate-500 mt-1">{sub}</div></div>{action}</div>}
 function HeaderAction({title,button,onClick}:{title:string,button:string,onClick:()=>void}){return <div className="flex items-center justify-between gap-3"><h1 className="text-2xl font-black">{title}</h1><button onClick={onClick} className="rounded-xl bg-blue-600 text-white px-4 py-2.5 text-xs font-black">{button}</button></div>}
