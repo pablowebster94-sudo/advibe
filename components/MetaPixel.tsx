@@ -2,15 +2,23 @@
 
 import Script from "next/script";
 
+const AM_MOTORSPORT_PIXEL_ID = "1780546316542423";
+
 export default function MetaPixel() {
   const isEnfoque =
     typeof window !== "undefined" &&
     (window.location.hostname === "enfoque.advibeagencia.com" ||
       window.location.hostname === "enfoquevisual.advibeagencia.com");
 
-  const pixelId = isEnfoque
-    ? process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID
-    : process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const isAMMotorsport =
+    typeof window !== "undefined" &&
+    window.location.pathname.startsWith("/drive/");
+
+  const pixelId = isAMMotorsport
+    ? AM_MOTORSPORT_PIXEL_ID
+    : isEnfoque
+      ? process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID
+      : process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
   if (!pixelId) return null;
 
