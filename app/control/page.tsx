@@ -92,7 +92,9 @@ export default function ControlPage(){
     const title=prompt("Título de la pieza:");
     if(!title?.trim()) return;
     const id=`PRD-${String(production.length+1).padStart(4,"0")}`;
-    setProduction([...production,{id,clientId,title:title.trim(),type:"REEL",status:"PENDIENTE",due:new Date().toISOString().slice(0,10)}]);
+    const client = clients.find(c=>c.id===clientId);
+    if(!client) return alert("Cliente no encontrado");
+    setProduction([...production,{id,clientId:client.id,title:title.trim(),type:"REEL",status:"PENDIENTE",due:new Date().toISOString().slice(0,10)}]);
   };
 
   const pay=(id:string)=>{
