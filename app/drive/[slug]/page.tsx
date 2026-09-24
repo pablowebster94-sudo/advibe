@@ -20,7 +20,7 @@ const VEHICLES: Record<string, Vehicle> = {
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
     description: "Mini Cooper S 2023 con motor 2.0 Turbo, 178 HP y aproximadamente 17.000 km. Conoce la unidad y déjanos tus datos para recibir atención.",
     price: "$41.500",
-    image: "https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=1600&q=85",
+    image: "/images/1.png",
     specs: ["2.0 Turbo · 178 HP", "DCT automática de 7 velocidades", "17.000 km aprox."],
   },
   "ford-f150": {
@@ -29,7 +29,7 @@ const VEHICLES: Record<string, Vehicle> = {
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
     description: "Ford F-150 2013 con motor 3.7 V6 Ti-VCT, transmisión automática y aproximadamente 124.000 km.",
     price: "$18.700",
-    image: "https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?auto=format&fit=crop&w=1600&q=85",
+    image: "/images/2.png",
     specs: ["3.7 V6 Ti-VCT · 3.726 cc", "Automática de 6 velocidades con Tow/Haul", "124.000 km aprox."],
   },
   "peugeot-208": {
@@ -38,7 +38,7 @@ const VEHICLES: Record<string, Vehicle> = {
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
     description: "Peugeot 208 2022 con motor 1.2 Turbo, caja automática y aproximadamente 29.000 km. Mantenimiento al día.",
     price: "$16.800",
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=85",
+    image: "/images/3.png",
     specs: ["1.2 Turbo", "Caja automática", "29.000 km aprox. · Mantenimiento al día"],
   },
 };
