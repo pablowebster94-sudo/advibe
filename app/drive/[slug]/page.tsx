@@ -37,7 +37,7 @@ const VEHICLES: Record<string, Vehicle> = {
     name: "Peugeot 208",
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
     description: "Peugeot 208 2022 con motor 1.2 Turbo, caja automática y aproximadamente 29.000 km. Mantenimiento al día.",
-    price: "Consultar precio",
+    price: "$16.800",
     image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=85",
     specs: ["1.2 Turbo", "Caja automática", "29.000 km aprox. · Mantenimiento al día"],
   },
