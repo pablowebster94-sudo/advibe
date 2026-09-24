@@ -16,30 +16,30 @@ type Vehicle = {
 const VEHICLES: Record<string, Vehicle> = {
   "mini-cooper": {
     slug: "mini-cooper",
-    name: "Mini Cooper",
+    name: "Mini Cooper S",
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
-    description: "Conoce este Mini Cooper y cuéntanos cómo estás pensando comprarlo. Un asesor de AM Motorsport te contactará con la información disponible.",
-    price: "Consultar precio",
+    description: "Mini Cooper S 2023 con motor 2.0 Turbo, 178 HP y aproximadamente 17.000 km. Conoce la unidad y déjanos tus datos para recibir atención.",
+    price: "$41.500",
     image: "https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=1600&q=85",
-    specs: ["Mini Cooper", "Disponibilidad sujeta a inventario", "Opciones de compra por confirmar"],
+    specs: ["2.0 Turbo · 178 HP", "DCT automática de 7 velocidades", "17.000 km aprox."],
   },
   "ford-f150": {
     slug: "ford-f150",
     name: "Ford F-150",
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
-    description: "Conoce esta Ford F-150 y dinos qué necesitas para avanzar. Recibe atención de un asesor de AM Motorsport.",
-    price: "Consultar precio",
+    description: "Ford F-150 2013 con motor 3.7 V6 Ti-VCT, transmisión automática y aproximadamente 124.000 km.",
+    price: "$18.700",
     image: "https://images.unsplash.com/photo-1605893477799-b99e3b8b93fe?auto=format&fit=crop&w=1600&q=85",
-    specs: ["Ford F-150", "Disponibilidad sujeta a inventario", "Opciones de compra por confirmar"],
+    specs: ["3.7 V6 Ti-VCT · 3.726 cc", "Automática de 6 velocidades con Tow/Haul", "124.000 km aprox."],
   },
-  "peugeot-206": {
-    slug: "peugeot-206",
-    name: "Peugeot 206",
+  "peugeot-208": {
+    slug: "peugeot-208",
+    name: "Peugeot 208",
     eyebrow: "AM MOTORSPORT · VEHÍCULOS",
-    description: "Conoce este Peugeot 206 y déjanos tus datos. El equipo de AM Motorsport podrá orientarte según tu forma y momento de compra.",
+    description: "Peugeot 208 2022 con motor 1.2 Turbo, caja automática y aproximadamente 29.000 km. Mantenimiento al día.",
     price: "Consultar precio",
     image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=85",
-    specs: ["Peugeot 206", "Disponibilidad sujeta a inventario", "Opciones de compra por confirmar"],
+    specs: ["1.2 Turbo", "Caja automática", "29.000 km aprox. · Mantenimiento al día"],
   },
 };
 
