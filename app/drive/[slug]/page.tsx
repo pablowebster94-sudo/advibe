@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
 type Vehicle = {
@@ -69,9 +69,6 @@ export default function DriveVehiclePage() {
     return value >= 5 ? "HOT" : value >= 3 ? "WARM" : "COLD";
   }, [answers]);
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [step]);
 
   async function submitLead() {
     setError("");
