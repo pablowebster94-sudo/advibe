@@ -9,6 +9,7 @@ import { generateCopy } from "@/lib/services/copy-service";
 import { activeImageProviderName, imageGeneration } from "@/lib/services/image-generation";
 import { currentJobConcurrency, dispatchWorkers } from "@/lib/services/job-dispatch";
 import { storage } from "@/lib/services/storage";
+import { conceptTypeForVariant, generateAICampaign } from "@/lib/services/ai-orchestrator";
 
 // Backoff before a retriable job becomes claimable again, indexed by
 // attempts-so-far (1st failure -> 10s, 2nd -> 60s, 3rd+ -> 300s). Keeps a
@@ -27,6 +28,7 @@ function backoffMs(attempts: number) {
  * returns as soon as the rows are written; the caller (the API route)
  * responds immediately after this resolves.
  */
+
 export async function createCampaignJobs(campaignId: string): Promise<void> {
   const campaign = await prisma.campaign.findUniqueOrThrow({
     where: { id: campaignId },
@@ -35,35 +37,46 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
 
   const { product } = campaign;
   const brief = buildProductBrief(product, product.brand);
-  const analysis = analyzeProduct(brief, campaign.objective as ObjectiveId);
-  const conceptPlans = buildConcepts(brief, analysis);
+  const objective = campaign.objective as ObjectiveId;
+  const baseAnalysis = analyzeProduct(brief, objective);
+  const ai = await generateAICampaign(brief, baseAnalysis, { objective });
+
+  await prisma.campaign.update({
+    where: { id: campaign.id },
+    data: {
+      aiAnalysis: JSON.stringify(ai.analysis),
+      providerStatus: JSON.stringify(ai.providerStatus),
+    },
+  });
+
   const productImage = product.images.find((image) => image.role === "PRODUCT");
 
-  for (const plan of conceptPlans) {
-    const copy = generateCopy(plan, brief, analysis, campaign.objective as ObjectiveId);
-
+  for (const [index, variant] of ai.variants.entries()) {
+    const type = conceptTypeForVariant(index, brief);
     await prisma.concept.create({
       data: {
         campaignId: campaign.id,
-        type: plan.type,
-        label: plan.label,
-        rationale: plan.rationale,
-        highlightedFeature: plan.highlightedFeature,
+        type,
+        label: variant.angle,
+        rationale: variant.hook,
+        highlightedFeature: variant.angle,
         copy: {
           create: {
-            headline: copy.headline,
-            primaryText: copy.primaryText,
-            description: copy.description,
-            cta: copy.cta,
-            shortCopy: copy.shortCopy,
-            longCopy: copy.longCopy,
-            missingInfo: copy.missingInfo.length
-              ? JSON.stringify(copy.missingInfo)
+            headline: variant.headline,
+            primaryText: variant.primary_text,
+            description: variant.description,
+            cta: variant.cta,
+            shortCopy: variant.hook,
+            longCopy: variant.primary_text,
+            angle: variant.angle,
+            whatsappMessage: variant.whatsapp_message,
+            visualPrompt: variant.visual_prompt,
+            missingInfo: baseAnalysis.missingFields.length
+              ? JSON.stringify(baseAnalysis.missingFields)
               : null,
           },
         },
         creatives: {
-          // status defaults to PENDING — nothing is generated here.
           create: FORMATS.map((format) => ({
             format: format.id,
             sourceImageId: productImage?.id,
