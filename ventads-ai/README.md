@@ -60,8 +60,9 @@ Open http://localhost:3000. Set `BASIC_AUTH_USER`/`BASIC_AUTH_PASSWORD` in
 production).
 
 The MVP works with **zero API keys**: image generation is a local
-compositor (sharp + SVG) and copywriting is a deterministic template
-engine. Both are swappable — see
+compositor (sharp + SVG) and the AI campaign layer falls back to deterministic
+analysis/copy. When configured, Gemini handles strategy, Claude handles direct-response
+copy, and OpenAI handles art direction. See
 [Generación de imágenes](./ARCHITECTURE.md#image-generation) and
 [Copywriting](./ARCHITECTURE.md#copywriting).
 
@@ -89,6 +90,10 @@ No code changes needed. Without `IMAGE_PROVIDER` set (or set back to
 | `npm run lint` | ESLint |
 | `npm run db:push` | Sync `prisma/schema.prisma` to `dev.db` |
 | `npm run db:studio` | Open Prisma Studio |
+
+## AI campaign orchestration
+
+The campaign flow can use a three-model server-side pipeline: Gemini for market analysis and strategy, Claude for direct-response copy, and OpenAI for visual direction. Every provider is optional and failures fall back to the existing deterministic engines. The generated campaign is a draft and publication to Meta remains a separate human-approved step. Full contract and setup: docs/AI_ORCHESTRATOR.md.
 
 ## Environment variables
 
