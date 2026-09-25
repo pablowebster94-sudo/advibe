@@ -22,11 +22,11 @@ function backoffMs(attempts: number) {
 }
 
 /**
- * Creates a campaign's Concepts/CopyVariants (fast, local, no external
- * calls) and one PENDING Creative job per concept x format — no image
+ * Creates a campaign's AI-assisted Concepts/CopyVariants and one PENDING Creative
+ * job per concept x format. Gemini/Claude/OpenAI are optional; deterministic
+ * fallback engines keep the campaign functional when providers are unavailable.
  * generation happens here. Dispatches JOB_CONCURRENCY worker chains and
- * returns as soon as the rows are written; the caller (the API route)
- * responds immediately after this resolves.
+ * returns after strategy/copy metadata is persisted; image rendering remains asynchronous.
  */
 
 export async function createCampaignJobs(campaignId: string): Promise<void> {
