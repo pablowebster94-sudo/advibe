@@ -104,6 +104,8 @@ model Campaign {
   objective  String // lib/catalog/objectives.ts
   style      String // lib/catalog/styles.ts
   status     String     @default("PENDING") // PENDING | READY | FAILED
+  aiAnalysis String?
+  providerStatus String?
   concepts   Concept[]
   createdAt  DateTime   @default(now())
 }
@@ -135,6 +137,9 @@ model CopyVariant {
   cta         String
   shortCopy   String
   longCopy    String
+  angle       String?
+  whatsappMessage String?
+  visualPrompt String?
   missingInfo String? // JSON array of fields the engine couldn't fill in
   createdAt   DateTime @default(now())
 }
