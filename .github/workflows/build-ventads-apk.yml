@@ -1,0 +1,66 @@
+name: Build VentAds APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "ventads-ai/mobile/**"
+      - ".github/workflows/build-ventads-apk.yml"
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: "VentAds HTTPS URL to package"
+        required: false
+        default: "https://id-preview--d77c7bc9-c09c-4000-a642-467b377d8d6e.lovable.app"
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ventads-ai/mobile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ventads-ai/mobile/package.json
+
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Capacitor
+        run: npm install
+
+      - name: Configure app URL
+        shell: bash
+        run: |
+          APP_URL="${{ github.event.inputs.app_url }}"
+          if [ -z "$APP_URL" ]; then
+            APP_URL="https://id-preview--d77c7bc9-c09c-4000-a642-467b377d8d6e.lovable.app"
+          fi
+          echo "VENTADS_APP_URL=$APP_URL" >> "$GITHUB_ENV"
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: ventads-ai/mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VentAds-Android-APK
+          path: ventads-ai/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
