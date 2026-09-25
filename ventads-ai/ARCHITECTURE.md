@@ -382,37 +382,14 @@ provider class, never in a route handler, never sent to the client.
 
 ## Deployment
 
-`../.github/workflows/deploy-ventads.yml` (repo root — GitHub only reads
-workflows from there, but its `working-directory` is scoped to
-`ventads-ai/` and it never touches the AdVibe site) builds and deploys to
-Vercel on every push to `claude/ventads-ai-platform-huo7d1` that touches
-this directory, or on manual dispatch. It runs on GitHub's own runners
-specifically because it may need to work from a sandbox whose network
-policy blocks `vercel.com` directly.
+`../.github/workflows/deploy-ventads.yml` builds and deploys VentAds to Vercel from GitHub Actions on pushes to the VentAds branch. The workflow is scoped to `ventads-ai/` and requires the Vercel repository secrets documented below.
 
-One-time setup, done once from a machine with real access to
-vercel.com (not required per-deploy after this):
+One-time production setup:
 
-1. On vercel.com: **Add New -> Project**, import this GitHub repo,
-   set **Root Directory** to `ventads-ai`. This is only needed to create
-   the project + get its IDs — the CI workflow doesn't depend on the
-   dashboard's root-directory setting since it already runs from
-   `ventads-ai/`.
-2. In that project's **Settings -> Environment Variables**, set every
-   variable from the Configuration table above marked *(required)* or
-   *(required in prod)*, plus the `STORAGE_PROVIDER=s3` block if using
-   S3/R2. `APP_URL` gets filled in with the deployment's real URL after
-   the first deploy, then redeploy once.
-3. In the GitHub repo's **Settings -> Secrets and variables -> Actions**,
-   add three repository secrets the workflow needs to talk to Vercel's
-   API (never the app's own env vars above — those live in Vercel, not
-   GitHub):
-   - `VERCEL_TOKEN` — from vercel.com/account/tokens
-   - `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` — from that project's
-     Settings -> General
-4. After the first deploy, run `npm run db:deploy` once from anywhere
-   with network access to the `DATABASE_URL` in use, to apply the
-   committed migration.
+1. Create/import the Vercel project with root directory `ventads-ai`.
+2. Configure production environment variables from the Configuration table, including PostgreSQL, Basic Auth, `CRON_SECRET`, `APP_URL`, and S3/R2 storage when using persistent production storage.
+3. Add GitHub Actions secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
+4. Run `npm run db:deploy` once against the production `DATABASE_URL` to apply committed migrations.
 
 ## Security notes
 
