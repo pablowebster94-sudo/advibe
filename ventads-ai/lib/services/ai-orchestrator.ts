@@ -96,7 +96,7 @@ async function geminiJson(prompt: string): Promise<unknown> {
 async function claudeJson(prompt: string): Promise<unknown> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY no configurada.");
-  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
+  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
   const raw = await requestText("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
