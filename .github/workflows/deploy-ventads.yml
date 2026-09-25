@@ -1,0 +1,72 @@
+name: Deploy ventADS.ai to Vercel
+
+# Lives at the repo root because GitHub only recognizes workflows under
+# .github/workflows/ at the repository root — but everything it does is
+# scoped to ventads-ai/ (working-directory below) and does not touch or
+# build the AdVibe site at the repo root.
+#
+# Runs on GitHub's own runners, which have normal internet access to
+# vercel.com — this exists specifically because the Claude session that
+# authored ventads-ai runs in a sandbox whose egress proxy blocks
+# vercel.com/api.vercel.com by policy, so deployment can't happen from
+# there directly.
+#
+# Requires three repository secrets (Settings -> Secrets and variables ->
+# Actions), documented in ventads-ai/ARCHITECTURE.md -> "Configuration":
+#   VERCEL_TOKEN      - a personal token from vercel.com/account/tokens
+#   VERCEL_ORG_ID     - from the Vercel project's Settings -> General
+#   VERCEL_PROJECT_ID - from the Vercel project's Settings -> General
+# The project itself (and its own env vars: DATABASE_URL, BASIC_AUTH_*,
+# CRON_SECRET, APP_URL, STORAGE_PROVIDER, S3_*) is configured once in the
+# Vercel dashboard — this workflow only builds and deploys, it does not
+# manage the app's runtime configuration.
+
+on:
+  push:
+    branches:
+      - claude/ventads-ai-platform-huo7d1
+    paths:
+      - "ventads-ai/**"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ventads-ai
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build (production)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy (prebuilt)
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Print deployment URL
+        run: echo "Deployed to ${{ steps.deploy.outputs.url }}"

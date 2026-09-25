@@ -380,6 +380,17 @@ No secret is required to run the MVP. Provider API keys (documented but
 commented out in `.env.example`) are only read inside the matching
 provider class, never in a route handler, never sent to the client.
 
+## Deployment
+
+`../.github/workflows/deploy-ventads.yml` builds and deploys VentAds to Vercel from GitHub Actions on pushes to the VentAds branch. The workflow is scoped to `ventads-ai/` and requires the Vercel repository secrets documented below.
+
+One-time production setup:
+
+1. Create/import the Vercel project with root directory `ventads-ai`.
+2. Configure production environment variables from the Configuration table, including PostgreSQL, Basic Auth, `CRON_SECRET`, `APP_URL`, and S3/R2 storage when using persistent production storage.
+3. Add GitHub Actions secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
+4. Run `npm run db:deploy` once against the production `DATABASE_URL` to apply committed migrations.
+
 ## Security notes
 
 - Uploads are validated by MIME type, size (≤10MB), dimensions, and
