@@ -1,0 +1,3 @@
+import {vehicles as demo} from "@/lib/enfoque-data";import {getPublishedVehicles,supabaseConfigured} from "@/lib/enfoque-supabase";import {Header} from "@/components/enfoque/Header";import {VehicleCard} from "@/components/enfoque/Cards";
+export const dynamic="force-dynamic";
+export default async function Page(){const vehicles=supabaseConfigured()?await getPublishedVehicles().catch(()=>demo):demo;return <><Header/><main className="mx-auto max-w-7xl px-5 py-14"><p className="text-xs font-black uppercase tracking-[.2em] text-black/40">Enfoque Visual</p><h1 className="ev-display mt-2 text-6xl font-black">Vehículos</h1><div className="mt-10 grid gap-5 md:grid-cols-2">{vehicles.map(x=><VehicleCard key={x.id} x={x}/>)}</div></main></>}

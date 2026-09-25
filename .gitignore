@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# end-to-end verification artefacts (regenerate with tests/e2e/make-*.mjs)
+/tests/e2e/.artifacts/
+/.verify/
+/.scratch/
