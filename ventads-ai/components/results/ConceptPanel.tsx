@@ -132,10 +132,23 @@ export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
       </div>
 
       {concept.copy && (
-        <div className="flex flex-col gap-1 rounded-[var(--radius-sm)] bg-surface-muted p-3 text-xs">
+        <div className="flex flex-col gap-2 rounded-[var(--radius-sm)] bg-surface-muted p-3 text-xs">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">Copy para revisión</p>
           <p className="font-semibold text-foreground">{concept.copy.headline}</p>
           <p className="text-muted">{concept.copy.primaryText}</p>
           <p className="text-accent-strong font-medium">{concept.copy.cta}</p>
+          {concept.copy.whatsappMessage && (
+            <div className="border-t border-border pt-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted">Mensaje WhatsApp</p>
+              <p className="mt-1 text-foreground">{concept.copy.whatsappMessage}</p>
+            </div>
+          )}
+          {concept.copy.visualPrompt && (
+            <details className="border-t border-border pt-2">
+              <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-muted">Prompt visual</summary>
+              <p className="mt-1 leading-relaxed text-muted">{concept.copy.visualPrompt}</p>
+            </details>
+          )}
         </div>
       )}
 
@@ -156,7 +169,10 @@ export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
             Descargar
           </a>
         )}
-      </div>
+
+        <Button variant="ghost" size="sm" disabled title="La conexión de publicación a Meta está pendiente de aprobación y configuración.">
+          Publicar en Meta · Pendiente de conexión
+        </Button>      </div>
     </div>
   );
 }
