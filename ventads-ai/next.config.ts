@@ -1,12 +1,16 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
+const repoRoot = path.join(__dirname, "..");
+
 const nextConfig: NextConfig = {
-  // ventADS.ai lives inside the AdVibe repo but is a fully independent
-  // project; pin the workspace root so Turbopack doesn't try to reach
-  // outside this directory because of the sibling package-lock.json.
+  // ventADS.ai lives inside the AdVibe repo (Vercel Root Directory =
+  // ventads-ai). Vercel injects `outputFileTracingRoot` = the repo root,
+  // and Next requires `turbopack.root` to match it, so pin both to the
+  // repo root explicitly (this also silences the multiple-lockfile guess).
+  outputFileTracingRoot: repoRoot,
   turbopack: {
-    root: path.join(__dirname),
+    root: repoRoot,
   },
   images: {
     // Product photos and generated creatives are served from our own
