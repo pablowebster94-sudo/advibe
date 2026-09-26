@@ -54,6 +54,13 @@ describe("AI campaign orchestrator", () => {
         "CARACTERISTICA",
         "ASPIRACIONAL",
       ]);
+      // Catalog id from the wizard, with no vehicle keyword anywhere else.
+      const wizardVehicle = { ...brief, category: "vehiculos", productName: "Hilux", description: null };
+      expect([0, 1, 2].map((index) => conceptTypeForVariant(index, wizardVehicle))).toEqual([
+        "VENTA_DIRECTA",
+        "CARACTERISTICA",
+        "ASPIRACIONAL",
+      ]);
       for (const variant of result.variants) {
         expect(variant.headline).toBeTruthy();
         expect(variant.primary_text).toBeTruthy();

@@ -247,7 +247,8 @@ export async function generateAICampaign(
 }
 
 export function conceptTypeForVariant(index: number, brief: ProductBrief): ConceptPlan["type"] {
-  const isVehicle = /auto|vehículo|camioneta|camión|moto|pickup|sedán|suv/i.test(
+  // The wizard stores the catalog id "vehiculos" (no accent), so match both.
+  const isVehicle = brief.category === "vehiculos" || /auto|veh[ií]culo|camioneta|camión|moto|pickup|sedán|suv/i.test(
     brief.category + " " + brief.productName + " " + (brief.description || "")
   );
   if (isVehicle && index === 0) return "VENTA_DIRECTA";
