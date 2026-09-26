@@ -64,8 +64,11 @@ export default async function Home() {
         </div>
 
         {products.length === 0 ? (
-          <div className="rounded-[var(--radius-lg)] border border-dashed border-border p-10 text-center text-sm text-muted">
-            Todavía no creaste ningún producto. Empieza con &quot;Crear producto&quot;.
+          <div className="flex flex-col items-center gap-4 rounded-[var(--radius-lg)] border border-dashed border-border p-10 text-center text-sm text-muted">
+            <span>Sin productos todavía.</span>
+            <Link href="/new">
+              <Button>Crear el primer producto</Button>
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

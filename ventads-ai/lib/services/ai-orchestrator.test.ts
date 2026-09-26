@@ -1,7 +1,7 @@
 
 import { describe, expect, it } from "vitest";
 import { analyzeProduct } from "@/lib/services/analysis-engine";
-import { generateAICampaign } from "@/lib/services/ai-orchestrator";
+import { conceptTypeForVariant, generateAICampaign } from "@/lib/services/ai-orchestrator";
 import type { ProductBrief } from "@/lib/product-brief";
 
 const brief: ProductBrief = {
@@ -43,6 +43,24 @@ describe("AI campaign orchestrator", () => {
         openai: "not_configured",
       });
       expect(result.variants[0]?.angle).toBe("Venta directa");
+      // Vehicles keep their dedicated angle mix in the deterministic fallback.
+      expect(result.variants.map((variant) => variant.angle)).toEqual([
+        "Venta directa",
+        "Característica",
+        "Aspiracional",
+      ]);
+      expect([0, 1, 2].map((index) => conceptTypeForVariant(index, brief))).toEqual([
+        "VENTA_DIRECTA",
+        "CARACTERISTICA",
+        "ASPIRACIONAL",
+      ]);
+      for (const variant of result.variants) {
+        expect(variant.headline).toBeTruthy();
+        expect(variant.primary_text).toBeTruthy();
+        expect(variant.cta).toBeTruthy();
+        expect(variant.whatsapp_message).toBeTruthy();
+        expect(variant.visual_prompt).toBeTruthy();
+      }
     } finally {
       if (oldGemini === undefined) delete process.env.GEMINI_API_KEY;
       else process.env.GEMINI_API_KEY = oldGemini;

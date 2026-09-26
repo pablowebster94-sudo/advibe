@@ -2,9 +2,12 @@
 import { z } from "zod";
 import type { ProductBrief } from "@/lib/product-brief";
 import type { AnalysisResult } from "@/lib/services/analysis-engine";
-import type { ConceptPlan } from "@/lib/services/concept-engine";
+import { buildConcepts, type ConceptPlan } from "@/lib/services/concept-engine";
+import { generateCopy } from "@/lib/services/copy-service";
+import { getConceptType } from "@/lib/catalog/concepts";
+import { OBJECTIVES, type ObjectiveId } from "@/lib/catalog/objectives";
+import { productTitle } from "@/lib/product-brief";
 
-const providerStatusSchema = z.enum(["ai", "fallback", "not_configured"]);
 const analysisSchema = z.object({
   category: z.string().default(""),
   target_audience: z.string().default(""),
@@ -29,7 +32,7 @@ const variantSchema = z.object({
 const copyResponseSchema = z.object({ variants: z.array(variantSchema).min(1).max(5) });
 const visualResponseSchema = z.object({ prompts: z.array(z.string()).min(1).max(5) });
 
-export type AIProviderStatus = z.infer<typeof providerStatusSchema>;
+export type AIProviderStatus = "ai" | "fallback" | "not_configured";
 export type AIAnalysis = z.infer<typeof analysisSchema>;
 export type AIVariant = z.infer<typeof variantSchema>;
 export type AICampaignResult = {
@@ -127,40 +130,56 @@ async function openaiJson(prompt: string): Promise<unknown> {
   return cleanJson(text);
 }
 
-function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult): AIVariant[] {
-  const title = [brief.manufacturer, brief.productName, brief.model].filter(Boolean).join(" ");
-  const feature = analysis.topFeatures[0] || brief.description || "una propuesta pensada para tu cliente";
-  const benefit = analysis.primaryBenefit || feature;
-  const cta = analysis.recommendedCta;
-  return [
-    {
-      id: "variant-1", angle: "Venta directa",
-      hook: brief.priceDisplay ? title + " por " + brief.priceDisplay : title,
-      primary_text: title + ". " + (analysis.topFeatures.join(" · ") || brief.description || "Conoce todos sus detalles") + ". " + cta + ".",
-      headline: title, description: brief.priceDisplay || "Solicita información", cta,
-      whatsapp_message: "Hola, quiero información sobre " + title + ".",
-      visual_prompt: "Professional advertising photography of the real " + title + ", clean premium composition, realistic lighting, 4:5 portrait format, no text in image.",
-    },
-    {
-      id: "variant-2", angle: "Beneficio / problema", hook: benefit,
-      primary_text: benefit + ". Descubre " + title + " y revisa sus características reales. " + cta + ".",
-      headline: benefit, description: title, cta,
-      whatsapp_message: "Hola, quiero conocer más sobre " + title + " y sus características.",
-      visual_prompt: "Photorealistic advertising scene centered on the real " + title + ", visually communicating its main benefit without inventing attributes, premium commercial lighting, 4:5 portrait, no text.",
-    },
-    {
-      id: "variant-3", angle: "Aspiracional / diferenciación",
-      hook: "Una opción diferente: " + title,
-      primary_text: "Si buscas " + (brief.targetAudience || "una opción que encaje con tus necesidades") + ", conoce " + title + ". " + cta + ".",
-      headline: "Conoce " + title, description: brief.features[0] || title, cta,
-      whatsapp_message: "Hola, quiero saber si " + title + " es una buena opción para mí.",
-      visual_prompt: "Premium lifestyle advertising photography featuring the real " + title + ", aspirational but factual, cinematic depth, polished composition, 4:5 portrait, no text or invented product details.",
-    },
-  ];
+function toObjectiveId(objective: string): ObjectiveId {
+  return OBJECTIVES.some((item) => item.id === objective) ? (objective as ObjectiveId) : "VENDER";
 }
 
-function normalizeVariants(variants: AIVariant[], brief: ProductBrief, analysis: AnalysisResult) {
-  const fallback = fallbackVariants(brief, analysis);
+function fallbackVisualPrompt(type: ConceptPlan["type"], title: string, feature: string | null) {
+  switch (type) {
+    case "VENTA_DIRECTA":
+      return "Professional advertising photography of the real " + title + ", clean premium composition, realistic lighting, 4:5 portrait format, no text in image.";
+    case "CARACTERISTICA":
+      return "Detail-focused advertising photography of the real " + title + (feature ? ", highlighting " + feature : "") + ", sharp close-up, realistic commercial lighting, 4:5 portrait, no text or invented product details.";
+    case "BENEFICIO":
+      return "Photorealistic advertising scene centered on the real " + title + ", visually communicating its main benefit without inventing attributes, premium commercial lighting, 4:5 portrait, no text.";
+    default:
+      return "Premium lifestyle advertising photography featuring the real " + title + ", aspirational but factual, cinematic depth, polished composition, 4:5 portrait, no text or invented product details.";
+  }
+}
+
+/**
+ * Deterministic variants built from the existing concept/copy engines, so
+ * the fallback keeps their "never invent facts" templates and the
+ * vehicle-specific angle mix (VENTA_DIRECTA / CARACTERISTICA / ASPIRACIONAL).
+ */
+function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult, objective = "VENDER"): AIVariant[] {
+  const title = productTitle(brief);
+  const plans = buildConcepts(brief, analysis);
+  return [0, 1, 2].map((index) => {
+    const type = conceptTypeForVariant(index, brief);
+    const plan: ConceptPlan = plans.find((item) => item.type === type) ?? {
+      type,
+      label: getConceptType(type).label,
+      rationale: "",
+      highlightedFeature: analysis.topFeatures[0] ?? null,
+    };
+    const copy = generateCopy(plan, brief, analysis, toObjectiveId(objective));
+    return {
+      id: "variant-" + (index + 1),
+      angle: plan.label,
+      hook: copy.shortCopy,
+      primary_text: copy.primaryText,
+      headline: copy.headline,
+      description: copy.description,
+      cta: copy.cta,
+      whatsapp_message: "Hola, quiero información sobre " + title + ".",
+      visual_prompt: fallbackVisualPrompt(type, title, plan.highlightedFeature),
+    };
+  });
+}
+
+function normalizeVariants(variants: AIVariant[], brief: ProductBrief, analysis: AnalysisResult, objective: string) {
+  const fallback = fallbackVariants(brief, analysis, objective);
   return [...variants, ...fallback].slice(0, 3).map((variant, index) => ({
     ...fallback[index],
     ...variant,
@@ -209,7 +228,7 @@ export async function generateAICampaign(
     claudeStatus = "ai";
   } catch {
     claudeStatus = process.env.ANTHROPIC_API_KEY ? "fallback" : "not_configured";
-    variants = fallbackVariants(brief, analysis);
+    variants = fallbackVariants(brief, analysis, input.objective);
   }
 
   let openaiStatus: AIProviderStatus = "not_configured";
@@ -217,14 +236,14 @@ export async function generateAICampaign(
     const result = visualResponseSchema.parse(await openaiJson(
       "Eres director de arte y prompt engineer para Meta Ads. Crea exactamente 3 prompts visuales en inglés, uno por variante. Especifica subject/action/environment/composition/perspective/lighting/style/palette/depth of field/lens y 4:5. Usa únicamente atributos reales del producto; no inventes. No pongas texto, precios, logos ni tipografías dentro de la imagen. Devuelve JSON con la forma {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants)
     ));
-    variants = normalizeVariants(variants.map((v, i) => ({ ...v, visual_prompt: result.prompts[i] || v.visual_prompt })), brief, analysis);
+    variants = normalizeVariants(variants.map((v, i) => ({ ...v, visual_prompt: result.prompts[i] || v.visual_prompt })), brief, analysis, input.objective);
     openaiStatus = "ai";
   } catch {
     openaiStatus = process.env.OPENAI_API_KEY ? "fallback" : "not_configured";
-    variants = normalizeVariants(variants, brief, analysis);
+    variants = normalizeVariants(variants, brief, analysis, input.objective);
   }
 
-  return { analysis: strategic, variants: normalizeVariants(variants, brief, analysis), providerStatus: { gemini: geminiStatus, claude: claudeStatus, openai: openaiStatus } };
+  return { analysis: strategic, variants: normalizeVariants(variants, brief, analysis, input.objective), providerStatus: { gemini: geminiStatus, claude: claudeStatus, openai: openaiStatus } };
 }
 
 export function conceptTypeForVariant(index: number, brief: ProductBrief): ConceptPlan["type"] {
