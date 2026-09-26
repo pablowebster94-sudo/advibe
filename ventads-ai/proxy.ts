@@ -3,28 +3,26 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Whole-app Basic Auth. This is the only thing standing between an
- * unauthenticated visitor and `/api/campaigns` (which burns a real,
- * billable GEMINI_API_KEY call per creative) — see ARCHITECTURE.md ->
- * "Auth". Deliberately "simple y suficiente": one shared username/password
- * pair, not a real multi-user session system (that's `lib/auth.ts`'s demo
- * user, unrelated).
+ * Whole-app Basic Auth.
  *
- * Excluded: `/api/jobs/process` and `/api/cron/sweep`, which are called
- * server-to-server (self-chaining dispatch, Vercel Cron) with a
- * `Authorization: Bearer ${CRON_SECRET}` header — colliding that with
- * Basic Auth would break both mechanisms. They're independently
- * authenticated by `lib/auth.ts#isWorkerRequestAuthorized`, which fails
- * closed on its own.
+ * Preferred credentials:
+ *   BASIC_AUTH_USER / BASIC_AUTH_PASSWORD
+ *
+ * Safe production fallback:
+ *   if the explicit pair is absent, CRON_SECRET is used as the password
+ *   with the fixed username "advibe". This keeps the app fail-closed
+ *   without requiring a second secret solely for the UI gate.
+ *
+ * The worker/cron endpoints below bypass Basic Auth because they have their
+ * own independent Bearer CRON_SECRET authentication.
  */
 const BYPASS_PREFIXES = ["/api/jobs/process", "/api/cron/sweep"];
+const FALLBACK_AUTH_USER = "advibe";
 
 function safeEqual(a: string, b: string) {
   const bufA = Buffer.from(a);
   const bufB = Buffer.from(b);
   if (bufA.length !== bufB.length) {
-    // Still run a comparison of equal-length buffers so a length mismatch
-    // doesn't return measurably faster than a same-length mismatch.
     timingSafeEqual(bufA, bufA);
     return false;
   }
@@ -40,22 +38,30 @@ function unauthorized() {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  if (BYPASS_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+
+  if (
+    BYPASS_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    )
+  ) {
     return NextResponse.next();
   }
 
-  const expectedUser = process.env.BASIC_AUTH_USER;
-  const expectedPassword = process.env.BASIC_AUTH_PASSWORD;
+  const explicitUser = process.env.BASIC_AUTH_USER;
+  const explicitPassword = process.env.BASIC_AUTH_PASSWORD;
+  const fallbackPassword = process.env.CRON_SECRET;
 
+  const expectedUser = explicitUser || (fallbackPassword ? FALLBACK_AUTH_USER : "");
+  const expectedPassword = explicitPassword || fallbackPassword;
+
+  // Production remains fail-closed. We never silently expose the app.
   if (!expectedUser || !expectedPassword) {
-    // Fails closed in production (never serve unauthenticated) but stays
-    // out of the way for local dev where these are optional.
     if (process.env.NODE_ENV === "production") {
       console.error(
-        "[proxy] BASIC_AUTH_USER/BASIC_AUTH_PASSWORD not set — refusing all requests."
+        "[proxy] No UI authentication secret configured. Set BASIC_AUTH_USER/BASIC_AUTH_PASSWORD or CRON_SECRET."
       );
       return new Response(
-        "Server misconfigured: BASIC_AUTH_USER/BASIC_AUTH_PASSWORD not set.",
+        "Server misconfigured: UI authentication secret is not configured.",
         { status: 500 }
       );
     }
@@ -65,16 +71,23 @@ export function proxy(request: NextRequest) {
   const header = request.headers.get("authorization");
   if (header?.startsWith("Basic ")) {
     let decoded: string;
+
     try {
       decoded = Buffer.from(header.slice("Basic ".length), "base64").toString("utf8");
     } catch {
       return unauthorized();
     }
-    const separatorIndex = decoded.indexOf(":");
-    const suppliedUser = separatorIndex === -1 ? decoded : decoded.slice(0, separatorIndex);
-    const suppliedPassword = separatorIndex === -1 ? "" : decoded.slice(separatorIndex + 1);
 
-    if (safeEqual(suppliedUser, expectedUser) && safeEqual(suppliedPassword, expectedPassword)) {
+    const separatorIndex = decoded.indexOf(":");
+    const suppliedUser =
+      separatorIndex === -1 ? decoded : decoded.slice(0, separatorIndex);
+    const suppliedPassword =
+      separatorIndex === -1 ? "" : decoded.slice(separatorIndex + 1);
+
+    if (
+      safeEqual(suppliedUser, expectedUser) &&
+      safeEqual(suppliedPassword, expectedPassword)
+    ) {
       return NextResponse.next();
     }
   }
