@@ -14,6 +14,10 @@
 | Comunicaciones | Gmail | Solo lectura y borradores |
 | Configuración operativa | hoja CONTROL, CONFIGURACION | Existe |
 
+## Cómo entra el dato
+
+Pablo registra producción, grabaciones, publicaciones y tareas con la web app **ADvibe CONTROL** (`apps-script/advibe-control/`), vinculada a la hoja oficial. Los agentes de Claude solo leen: no deben escribir en la hoja sin pasar por el nivel 2.
+
 ## Reglas
 
 - Métricas de Meta: la API manda sobre cualquier hoja o CSV exportado.
