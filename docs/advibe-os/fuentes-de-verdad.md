@@ -21,6 +21,6 @@ Pablo registra producción, grabaciones, publicaciones y tareas con la web app *
 ## Reglas
 
 - Métricas de Meta: la API manda sobre cualquier hoja o CSV exportado.
-- Si hay varias copias de una hoja, manda la indicada arriba. Las copias se listan como duplicados en `auditoria.md`.
+- Si hay varias copias de una hoja, manda la indicada arriba. En Drive hay 12 hojas relacionadas; están inventariadas en `AdVibe OS/Reportes/Revisión: marcas, campañas y copias de hojas`. Las nº 5 (`1x5X7g9d…`) y nº 9 (`16D3eHPM…`) contienen cobros y producción que la oficial no tiene: pendiente de migrar, no borrar. La nº 12 (`1dX6Iz38…`) es un CRM de portafolio con clientes fuera de la hoja oficial.
 - No se guardan en este repo contratos, cifras de facturación ni datos personales de clientes: quedan en Drive.
 - Escribir en la hoja CONTROL es nivel 2 (preparar el cambio y esperar un "sí").

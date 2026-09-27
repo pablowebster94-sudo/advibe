@@ -6,7 +6,7 @@ Cuando la petición trata de la operación de AdVibe Agencia (clientes, campaña
 
 Declara en una línea, al inicio de la respuesta: **Cliente · Cuenta/fuente · Periodo**.
 - El cliente se resuelve con `docs/advibe-os/clientes.md`. Si la petición no deja claro el cliente, pregunta; no lo adivines.
-- Una cuenta publicitaria puede contener campañas de varios clientes (hoy "Enfoque Visual ADS" las tiene casi todas). El cliente se aísla **por campaña**, con el patrón de nombre de `clientes.md`, nunca por cuenta.
+- Una cuenta publicitaria puede contener campañas de varios clientes (hoy "Enfoque Visual ADS" las tiene casi todas). El cliente se aísla por la **página de Facebook que publica cada anuncio** (tabla en `clientes.md`), nunca por cuenta. El nombre de la campaña solo sirve de respaldo.
 - Nunca uses datos de un cliente para responder sobre otro.
 
 ## 2. Delegar o no

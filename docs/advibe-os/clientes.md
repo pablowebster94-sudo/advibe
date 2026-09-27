@@ -1,35 +1,47 @@
 # Registro de clientes y aislamiento
 
-Este archivo solo mapea **identidad → dónde viven sus datos**. Mensualidades, días de pago y contratos NO van aquí: están en la hoja `ADvibe_CONTROL_2026` (ver `fuentes-de-verdad.md`).
+Este archivo solo mapea **identidad → dónde viven sus datos**. Mensualidades, días de pago y contratos NO van aquí: están en la hoja `ADvibe_CONTROL_2026 (1)` (ver `fuentes-de-verdad.md`).
 
-Estado a 2026-09-27 (auditoría). Marcado ❓ lo que no está confirmado.
+Revisión del 2026-09-27. El detalle y las pruebas están en Drive: `AdVibe OS/Reportes/Revisión: marcas, campañas y copias de hojas (2026-09-27)`.
 
-| Slug | Cliente (hoja CONTROL) | Cuenta Meta Ads | Patrón de campañas (nombre contiene) | En Calendar como | Estado |
-|---|---|---|---|---|---|
-| `kamauto` | KAMAUTO | ❓ (campaña "Kamauto" en un análisis antiguo) | `Kamauto` | — | Activo en hoja |
-| `muebles-ideal` | MUEBLES IDEAL (en redes: "Muebles Ideal Gualaceo") | ❓ Tiene anuncios activos en la Biblioteca de Anuncios; no se sabe desde qué cuenta | ❓ | — | Activo en hoja |
-| `paola-miguitama` | PAOLA MIGUITAMA | 960229743528284 (Enfoque Visual ADS) | `Paola Miguitama`, `PM` ❓ | — | Activo en hoja |
-| `sb-cuenca` | CLUB SANTA BÁRBARA CUENCA | 960229743528284 | `Santa Bárbara Cuenca`, `Santa Barbara Cuenca` | — | Activo en hoja |
-| `sb-gualaceo` | CLUB SANTA BÁRBARA GUALACEO | ❓ | ❓ | — | Activo en hoja |
-| `am-motorsport` | AM MOTORSPORT | 960229743528284 | `AM Motorsport`, `AM Carrucel`, `Leads AM`, `Leads Web AM` | Publicación - AM Motorsport | Activo |
-| `cetad-san-lucas` | CETAD SAN LUCAS | 960229743528284 | `CETAD` | — | Estado/día de pago sin definir |
+## Regla de aislamiento en Meta Ads
 
-## Nombres que aparecen fuera de la hoja CONTROL
+El cliente se identifica por la **página de Facebook que publica el anuncio**, no por el nombre de la campaña. Los nombres engañan: "Santa Bárbara Cuenca" se publica desde la página de Gualaceo, y "Mini Cooper" es de AM Motorsport.
 
-CONFLICTO DETECTADO: estos nombres tienen actividad en Calendar o Meta Ads pero no están en la hoja CLIENTES. Hasta que Pablo los clasifique, trátalos como "sin clasificar" y no los mezcles con ningún cliente.
+Cómo hacerlo:
+1. `ads_get_ad_entities` a nivel `ad`, con los campos `campaign_name` y `creative_id`.
+2. `ads_get_creatives` con `effective_object_story_id`. El número antes del `_` es el `page_id`.
+3. Cruza ese `page_id` con la tabla de abajo.
 
-- Calendar (publicaciones recurrentes mar/jue 09:00): **Bocabel** (también hay videos "bocabell" en Drive), **Cardagali**, **Kueva**, **Panera**, **La Trinidad Restaurant**.
-- Meta Ads (Enfoque Visual ADS), el 55 % del gasto de la semana del 20 al 26 sep: **venta local**, **Chemu** / Terreno Chemu, **Latin Eagle**, **Venta Peralta**, **Venta Bus**, **Mensajes FB Joyeria**, **constructora**, **venta local**, **Terreno Los Pinos Gualaceo**, **uk**.
-- Meta Ads, posibles de AM Motorsport (nombres de vehículos): **Mini Cooper**, **Citroen C4**, **Hyundai Tucson**, **Trailblazer**. Sin confirmar.
-- Meta Ads, propias de AdVibe: **AdVibe | Diagnóstico Digital Gratuito** (v1, v2), **ADVIBE MENSAJES**, **mensajes uk (advibe)**. Tratar como cliente interno `advibe`.
-- Cuenta **Enfoque Visual ADS**: ¿es un cliente, una marca propia o la cuenta operativa de la agencia?
+Si no se puede consultar la página, usa como respaldo el patrón de nombre y márcalo como "asignación por nombre, sin verificar".
 
-## Regla de aislamiento
+## Clientes de la hoja oficial (CLIENTES)
 
-1. Resuelve el slug antes de consultar datos.
-2. En Meta Ads, filtra por el patrón de nombre de campaña; si una campaña no encaja en ningún patrón, repórtala aparte como "sin asignar".
-3. En la hoja CONTROL, filtra por la columna Cliente / Cliente ID.
-4. Material de marca de un cliente: Drive `AdVibe OS/Clientes/<slug>/`. Las carpetas se crearon el 2026-09-27 y están vacías: falta subir el brand kit de cada cliente.
+| Slug | Cliente | Página de Facebook (page_id) en Enfoque Visual ADS | Notas |
+|---|---|---|---|
+| `kamauto` | KAMAUTO | ❓ "Komauto Importadora" (106355732206742), sin anuncios | ¿Es la misma marca con otra ortografía? Confirmar |
+| `muebles-ideal` | MUEBLES IDEAL | — (no está en esta cuenta; tiene anuncios propios activos) | **Dos ubicaciones: Gualaceo y Montecristi** (confirmado por Pablo). "Pendiente prod. Manta" = Montecristi. En el CRM de portafolio figura como prospecto y con Paola Miguitama como contacto: CONFLICTO |
+| `paola-miguitama` | PAOLA MIGUITAMA | Paola Miguitama (1226660540522114) | Campañas: MENSAJES PM, PM ago, Dormitorios |
+| `sb-cuenca` | CLUB SANTA BÁRBARA CUENCA | ❓ Sus campañas salen de la página de Gualaceo | CONFLICTO: ¿no tiene página propia? |
+| `sb-gualaceo` | CLUB SANTA BÁRBARA GUALACEO | Club Formativo Santa Bárbara "Gualaceo" (502746606252797) | También publica las campañas llamadas "Cuenca" |
+| `am-motorsport` | AM MOTORSPORT | AM Motorsport (124405067312010) | Incluye Mini Cooper, Citroen C4, Hyundai Tucson y Trailblazer (verificado por página). El CRM lo marca como cliente anterior: CONFLICTO |
+| `cetad-san-lucas` | CETAD SAN LUCAS | Cetad San Lucas (456955030832533) | Estado y día de pago sin definir |
+| `advibe` | AdVibe (interno) | Ad Vibe Agencia (592020173996524) | ADVIBE MENSAJES, Diagnóstico Digital Gratuito, Tráfico Instagram |
+
+## Marcas con actividad que no están en la hoja oficial (sin clasificar)
+
+Mientras Pablo no las clasifique, no se mezclan con ningún cliente de la hoja.
+
+| Marca | Evidencia |
+|---|---|
+| United Kingdom English Academy - Cuenca | Página 111042744144670, campañas "uk", $35. El CRM la marca como cliente activo |
+| LatinEagle Multiservices | Página 1305480965973274, campañas "Latin", $67,61. "Latin 3" se creó el 27-09 |
+| Multiservices A&N Latino Corp | Página 911320888728139, "venta eeuu" |
+| Roxy's Joyería | Página 101351141775273, "Mensajes FB Joyeria" ACTIVA |
+| Constructora Peralta | Página 220405694491935, "Venta Peralta" y "constructora" |
+| Enfoque Visual | Página 531199800087373. Publica Chemu, terrenos, casa, bus y venta local. Según `docs/enfoque-visual.md` es la plataforma de propiedades y vehículos de AdVibe (hipótesis: la pauta la paga el anunciante de cada propiedad) |
+| Bocabel(l), Cardagali/Cardagal, Kueva, Panera, La Trinidad Restaurant | Publicaciones recurrentes mar/jue 09:00 en Calendar. Bocabell, Cardagal y La Trinidad también están en la web de AdVibe |
+| G3L, Verónica López (Arquitectura), Carla Molina | El CRM de portafolio los marca como clientes activos |
 
 ## Carpetas de Drive
 
@@ -47,3 +59,9 @@ CONFLICTO DETECTADO: estos nombres tienen actividad en Calendar o Meta Ads pero 
 | Clientes/am-motorsport | `1vW11AvzL5misUMUXQJtyhG4ScZcbNkM8` |
 | Clientes/cetad-san-lucas | `1BfXjpkGZmCixnWaz9dySTBbfuSO6fY9j` |
 | Clientes/advibe | `1xrxLMQJGMfXG6oTe_wHUesjPQuqFgaI3` |
+
+## Otras fuentes
+
+1. Hoja CONTROL: filtra por la columna Cliente / Cliente ID.
+2. Material de marca: Drive `AdVibe OS/Clientes/<slug>/`.
+3. Hay 12 hojas relacionadas en Drive. Solo manda la oficial (ver `fuentes-de-verdad.md`).
