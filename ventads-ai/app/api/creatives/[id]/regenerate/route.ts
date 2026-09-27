@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { withResolvedCreativeUrl } from "@/lib/serialize";
-import { regenerateCreative } from "@/lib/services/campaign-service";
 import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
@@ -24,6 +23,9 @@ async function handlePOST(
   try {
     // Creates a new PENDING job (next version) and dispatches a worker —
     // does not wait for the image to actually be generated.
+    // Loaded inside the handler: it pulls in sharp (native), and a module-load
+    // failure there must still answer JSON through jsonRoute, never an HTML 500.
+    const { regenerateCreative } = await import("@/lib/services/campaign-service");
     const created = await regenerateCreative(id);
     return NextResponse.json(
       { creative: await withResolvedCreativeUrl(created) },

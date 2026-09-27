@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { storage } from "@/lib/services/storage";
-import { processUploadedImage, UploadValidationError } from "@/lib/uploads";
 import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
@@ -21,6 +20,10 @@ async function handlePOST(request: Request) {
   if (!/^[a-z0-9_-]+$/i.test(folder)) {
     return NextResponse.json({ error: "Carpeta inválida." }, { status: 400 });
   }
+
+  // Loaded inside the handler: it pulls in sharp (native), and a module-load
+  // failure there must still answer JSON through jsonRoute, never an HTML 500.
+  const { processUploadedImage, UploadValidationError } = await import("@/lib/uploads");
 
   try {
     const processed = await processUploadedImage(file);

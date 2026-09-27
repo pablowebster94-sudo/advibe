@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { withResolvedConcepts } from "@/lib/serialize";
-import { createCampaignJobs } from "@/lib/services/campaign-service";
 import { campaignInputSchema } from "@/lib/validation";
 import { jsonRoute } from "@/lib/api-route";
 
@@ -48,6 +47,9 @@ async function handlePOST(request: Request) {
     // Fast, local, synchronous: creates Concepts/CopyVariants + PENDING
     // Creative jobs, and dispatches the background workers. No image
     // generation happens in this request.
+    // Loaded inside the handler: it pulls in sharp (native), and a module-load
+    // failure there must still answer JSON through jsonRoute, never an HTML 500.
+    const { createCampaignJobs } = await import("@/lib/services/campaign-service");
     await createCampaignJobs(campaign.id);
   } catch (error) {
     console.error("Campaign setup failed", error);
