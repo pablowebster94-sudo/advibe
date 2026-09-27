@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { withResolvedConcepts } from "@/lib/serialize";
 import { campaignInputSchema } from "@/lib/validation";
 import { jsonRoute } from "@/lib/api-route";
+import { errorCode } from "@/lib/error-code";
 
 export const runtime = "nodejs";
 // The AI strategy/copy chain runs inside this request (bounded to ~40s by
@@ -58,7 +59,7 @@ async function handlePOST(request: Request) {
       data: { status: "FAILED" },
     });
     return NextResponse.json(
-      { error: "No se pudo preparar la campaña." },
+      { error: "No se pudo preparar la campaña.", code: errorCode(error) },
       { status: 500 }
     );
   }

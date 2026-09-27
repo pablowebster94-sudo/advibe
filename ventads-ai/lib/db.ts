@@ -8,7 +8,13 @@ function createClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
   // Same dedicated schema the migrations use (see lib/database-url.ts).
-  const adapter = new PrismaPg(connectionString, { schema: databaseSchema(connectionString) });
+  // Small, quickly-released pool per serverless instance: Supabase's Session
+  // pooler holds one server connection per client for the whole session, so
+  // several instances with pg's default of 10 each exhaust it.
+  const adapter = new PrismaPg(
+    { connectionString, max: 3, idleTimeoutMillis: 10_000 },
+    { schema: databaseSchema(connectionString) }
+  );
   return new PrismaClient({ adapter });
 }
 
