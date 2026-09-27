@@ -154,7 +154,11 @@ export class GeminiImageProvider implements ImageGenerationService {
       const detail = error instanceof Error ? error.message : String(error);
       console.error(`[gemini-image] ${this.model} failed, using the local compositor: ${detail.slice(0, 300)}`);
       const local = await this.fallback.generateCreative(input);
-      return { ...local, provider: "local-compositor:gemini-fallback" };
+      return {
+        ...local,
+        provider: "local-compositor:gemini-fallback",
+        note: `Gemini (${this.model}) no generó la escena: ${redactSecrets(detail, this.apiKey).slice(0, 400)}`,
+      };
     }
 
     // Gemini draws the scene only; the exact copy goes on top here.

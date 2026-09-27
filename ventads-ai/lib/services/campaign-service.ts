@@ -188,7 +188,9 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
         imageKey: saved.key,
         provider: rendered.provider ?? activeImageProviderName(),
         completedAt: new Date(),
-        error: null,
+        // A completed creative normally has no error; after a provider
+        // fallback this keeps the reason (e.g. Gemini's API error) visible.
+        error: rendered.note ?? null,
       },
     });
   } catch (error) {

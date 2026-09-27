@@ -132,7 +132,7 @@ jobs:
             sleep 4
           done
           echo "campaign finished in $(( $(date +%s) - started ))s (from POST /api/campaigns to $state)"
-          curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json,collections;c=json.load(sys.stdin)["campaign"];print("image providers:",dict(collections.Counter(x["provider"] for k in c["concepts"] for x in k["creatives"])))'
+          curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json,collections;c=json.load(sys.stdin)["campaign"];cr=[x for k in c["concepts"] for x in k["creatives"]];print("image providers:",dict(collections.Counter(x["provider"] for x in cr)));[print("provider note:",n) for n in sorted({x["error"] for x in cr if x.get("error")})]'
           set -- $state
           [ "$1" = "READY" ] && [ "$2" = "$3" ] || { echo "::error::Campaign ended as: $state"; exit 1; }
           # Keep a few rendered creatives from production for visual review.

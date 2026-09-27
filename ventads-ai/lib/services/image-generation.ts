@@ -12,6 +12,8 @@ export type GeneratedImage = {
   provider?: string;
   /** File extension of `buffer` ("jpg" for finished creatives). */
   extension?: string;
+  /** Why the preferred provider was not used (e.g. Gemini's error), when it fell back. */
+  note?: string;
 };
 
 /**
