@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { caseStudies } from "@/lib/cases";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Casos | AdVibe Agencia",
-  description: "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.",
-};
+export const metadata = pageMetadata({
+  title: "Casos de éxito",
+  description: "Trabajo seleccionado de AdVibe: estrategia, producción audiovisual, contenido, Meta Ads y tecnología para marcas en Ecuador.",
+  path: "/casos",
+});
 
 const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];
 

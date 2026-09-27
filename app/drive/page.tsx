@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const VEHICLES = [
@@ -48,11 +49,13 @@ export default function DrivePage() {
               href={`/drive/${vehicle.slug}`}
               className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] transition hover:border-white/25 hover:bg-white/[0.08]"
             >
-              <div className="aspect-[4/3] overflow-hidden bg-black">
-                <img
+              <div className="relative aspect-[4/3] overflow-hidden bg-black">
+                <Image
                   src={vehicle.image}
                   alt={vehicle.name}
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className="object-cover transition duration-500 group-hover:scale-105"
                 />
               </div>
               <div className="p-6">

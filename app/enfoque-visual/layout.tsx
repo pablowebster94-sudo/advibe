@@ -3,7 +3,7 @@ import Script from "next/script";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Enfoque Visual | Propiedades y vehículos",
+  title: { absolute: "Enfoque Visual | Propiedades y vehículos" },
   description: "Casas, departamentos, terrenos, alquileres y vehículos en Ecuador.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://enfoque.advibeagencia.com"),
 };
