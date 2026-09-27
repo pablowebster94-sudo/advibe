@@ -12,10 +12,12 @@ export const runtime = "nodejs";
 // which resets anything PROCESSING for longer than 5 minutes back to
 // PENDING (see app/api/cron/sweep/route.ts).
 export const maxDuration = 240;
+const CLAIM_WINDOW_MS = 45_000;
 
 /**
- * Processes exactly one job per invocation (see AGENTS.md — the original
- * problem this replaces was up to 15 Gemini calls inside a single request).
+ * Processes jobs one at a time for up to CLAIM_WINDOW_MS per invocation
+ * (the original problem this replaces was up to 15 Gemini calls inside the
+ * user's own request, with no retry story).
  * Auth-gated: only Vercel Cron (auto-attaches CRON_SECRET) and our own
  * self-chain kicks (lib/services/job-dispatch.ts) may call this.
  */
@@ -28,17 +30,28 @@ export async function POST(request: Request) {
   const campaignId = typeof body.campaignId === "string" ? body.campaignId : undefined;
   const invocationId = randomUUID();
 
-  const job = await claimNextJob({ campaignId, claimedBy: invocationId });
-  if (!job) {
+  // Several jobs per invocation, not one: each self-chain kick is a function
+  // calling its own deployment, and a stopped chain leaves a campaign stuck
+  // until something kicks it again. A new job is only claimed while
+  // CLAIM_WINDOW_MS has not elapsed, so even a slow provider call started at
+  // the end of the window (Gemini's own timeout is 180s) ends inside
+  // maxDuration.
+  const startedAt = Date.now();
+  const processed: string[] = [];
+  while (Date.now() - startedAt < CLAIM_WINDOW_MS) {
+    const job = await claimNextJob({ campaignId, claimedBy: invocationId });
+    if (!job) break;
+    await processClaimedJob(job.id);
+    processed.push(job.id);
+  }
+  if (processed.length === 0) {
     return NextResponse.json({ claimed: false }, { status: 200 });
   }
-
-  await processClaimedJob(job.id);
 
   // Keep this chain's lane alive while there's more work for it to do.
   if (await hasClaimableWork(campaignId)) {
     dispatchWorkers(campaignId, 1);
   }
 
-  return NextResponse.json({ claimed: true, jobId: job.id }, { status: 200 });
+  return NextResponse.json({ claimed: true, jobIds: processed }, { status: 200 });
 }

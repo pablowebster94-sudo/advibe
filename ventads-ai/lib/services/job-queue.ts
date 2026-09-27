@@ -113,3 +113,20 @@ export async function hasClaimableWork(campaignId?: string): Promise<boolean> {
   });
   return candidates.some((row) => row.attempts < row.maxAttempts);
 }
+
+/**
+ * True when a campaign has claimable work but no job currently being
+ * processed (nothing PROCESSING claimed within `activeWindowMs`) — i.e. its
+ * worker chain has stopped. Used by the results polling to restart it.
+ */
+export async function isCampaignStalled(campaignId: string, activeWindowMs = 30_000): Promise<boolean> {
+  const active = await prisma.creative.count({
+    where: {
+      status: "PROCESSING",
+      claimedAt: { gte: new Date(Date.now() - activeWindowMs) },
+      concept: { campaignId },
+    },
+  });
+  if (active > 0) return false;
+  return hasClaimableWork(campaignId);
+}
