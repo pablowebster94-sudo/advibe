@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "ask": [
+      "mcp__Gmail__send_message",
+      "mcp__Gmail__reply",
+      "mcp__Gmail__forward",
+      "mcp__Gmail__trash_message",
+      "mcp__Gmail__trash_thread",
+      "mcp__Gmail__delete_draft",
+      "mcp__Gmail__delete_label",
+      "mcp__Google_Drive__share_file",
+      "mcp__Google_Drive__trash_file",
+      "mcp__Google_Drive__update_file",
+      "mcp__Google_Calendar__create_event",
+      "mcp__Google_Calendar__update_event",
+      "mcp__Google_Calendar__delete_event",
+      "mcp__Google_Calendar__respond_to_event",
+      "mcp__META_ADS__ads_create_campaign",
+      "mcp__META_ADS__ads_create_ad_set",
+      "mcp__META_ADS__ads_create_ad",
+      "mcp__META_ADS__ads_create_creative",
+      "mcp__META_ADS__ads_create_custom_audience",
+      "mcp__META_ADS__ads_update_entity",
+      "mcp__META_ADS__ads_activate_entity",
+      "mcp__META_ADS__ads_boost_ig_post",
+      "mcp__META_ADS__ads_creative_update",
+      "mcp__META_ADS__ads_creative_delete",
+      "mcp__META_ADS__ads_update_custom_audience",
+      "mcp__META_ADS__ads_update_custom_audience_users",
+      "mcp__META_ADS__ads_delete_custom_audience",
+      "mcp__META_ADS__ads_experiment_abtest_create_test",
+      "mcp__META_ADS__ads_experiment_abtest_update_test",
+      "mcp__META_ADS__ads_experiment_lift_create_test",
+      "mcp__META_ADS__ads_catalog_create",
+      "mcp__META_ADS__ads_catalog_delete_product",
+      "mcp__META_ADS__ads_catalog_update_catalog",
+      "mcp__META_ADS__ads_pixel_event_create",
+      "mcp__META_ADS__ads_pixel_event_update",
+      "mcp__META_ADS__ads_pixel_event_delete"
+    ]
+  }
+}
