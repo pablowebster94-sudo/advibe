@@ -1,12 +1,14 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
+import { databaseSchema } from "@/lib/database-url";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  const adapter = new PrismaPg(connectionString);
+  // Same dedicated schema the migrations use (see lib/database-url.ts).
+  const adapter = new PrismaPg(connectionString, { schema: databaseSchema(connectionString) });
   return new PrismaClient({ adapter });
 }
 

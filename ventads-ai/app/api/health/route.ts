@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { databaseSchema } from "@/lib/database-url";
 import { resolveStorageProvider } from "@/lib/services/storage";
 import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
 
@@ -71,13 +73,17 @@ export async function GET() {
 
   let database: Record<string, unknown>;
   try {
+    const migrationsTable = Prisma.raw(
+      `"${databaseSchema(process.env.DATABASE_URL).replace(/"/g, '""')}"."_prisma_migrations"`
+    );
     const migrations = await prisma.$queryRaw<Array<{ migration_name: string }>>`
-      SELECT migration_name FROM "_prisma_migrations"
+      SELECT migration_name FROM ${migrationsTable}
       WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
       ORDER BY finished_at`;
     const [users, products] = await Promise.all([prisma.user.count(), prisma.product.count()]);
     database = {
       connected: true,
+      schema: databaseSchema(process.env.DATABASE_URL),
       migrationsApplied: migrations.map((row) => row.migration_name),
       tables: { User: users, Product: products },
     };
