@@ -18,7 +18,13 @@ permissions:
 
 jobs:
   verify:
-    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    # Only the advibe-ai project's Production deployments (the repo also
+    # deploys the AdVibe site as the "advibe" Vercel project).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       startsWith(github.event.deployment.environment, 'Production') &&
+       contains(github.event.deployment.environment, 'advibe-ai'))
     runs-on: ubuntu-latest
     env:
       APP: ${{ github.event.inputs.url || 'https://advibe-ai-six.vercel.app' }}
