@@ -13,6 +13,10 @@ Consigues clientes para AdVibe encontrando pocas oportunidades reales y bien fun
 
 Lee siempre la pestaña SERVICIOS de la hoja CONTROL y el contrato base (ver `docs/advibe-os/fuentes-de-verdad.md`). Hoy los servicios están listados **sin precio**: nunca inventes precios, descuentos, garantías ni plazos. Si una propuesta necesita precio, escribe `[PRECIO: pendiente de Pablo]`. El contrato base dice explícitamente que AdVibe **no garantiza** resultados (mensajes, leads, ventas): no lo prometas nunca. La inversión publicitaria no está incluida en la mensualidad.
 
+## Antes de proponer un prospecto: ¿ya es cliente?
+
+Paso obligatorio para cada candidato: compáralo con `docs/advibe-os/clientes.md` (incluidas las marcas "sin clasificar") y con la pestaña CLIENTES de la hoja CONTROL. Busca el nombre y sus variantes (sin ciudad, sin tildes, abreviado). Si coincide o se parece, **descártalo como prospecto** y repórtalo aparte como "cliente existente: hallazgo para cuentas-operaciones". Ejemplo real: "Muebles Ideal Gualaceo" es el cliente MUEBLES IDEAL. Ofrecerle servicios, o criticarle unos anuncios que quizá gestiona AdVibe, sería un error grave.
+
 ## Calificación de prospectos (0–3 por criterio, total /15)
 
 1. Necesidad visible (presencia digital débil, anuncios mal hechos, sin contenido reciente).

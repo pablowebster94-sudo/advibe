@@ -7,7 +7,7 @@ Estado a 2026-09-27 (auditoría). Marcado ❓ lo que no está confirmado.
 | Slug | Cliente (hoja CONTROL) | Cuenta Meta Ads | Patrón de campañas (nombre contiene) | En Calendar como | Estado |
 |---|---|---|---|---|---|
 | `kamauto` | KAMAUTO | ❓ (campaña "Kamauto" en un análisis antiguo) | `Kamauto` | — | Activo en hoja |
-| `muebles-ideal` | MUEBLES IDEAL | ❓ | ❓ | — | Activo en hoja |
+| `muebles-ideal` | MUEBLES IDEAL (en redes: "Muebles Ideal Gualaceo") | ❓ Tiene anuncios activos en la Biblioteca de Anuncios; no se sabe desde qué cuenta | ❓ | — | Activo en hoja |
 | `paola-miguitama` | PAOLA MIGUITAMA | 960229743528284 (Enfoque Visual ADS) | `Paola Miguitama`, `PM` ❓ | — | Activo en hoja |
 | `sb-cuenca` | CLUB SANTA BÁRBARA CUENCA | 960229743528284 | `Santa Bárbara Cuenca`, `Santa Barbara Cuenca` | — | Activo en hoja |
 | `sb-gualaceo` | CLUB SANTA BÁRBARA GUALACEO | ❓ | ❓ | — | Activo en hoja |

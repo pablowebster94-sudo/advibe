@@ -25,7 +25,7 @@ UNSETTLED suele indicar un saldo pendiente con Meta. Es probable que sea la caus
 
 ## Drive: hallazgos
 
-- **Hoja CONTROL duplicada 4 veces.** Existen `ADvibe CONTROL 2026` (`1S365…`, `1gSAE…`) y `ADvibe_CONTROL_2026 (1)` (`137Ed…`, `1d5v7…`). Se eligió `137Ed…` como oficial porque es la más completa y la más reciente. Además hay una `AdVibe_Control_DB` vacía y una `Hoja de cálculo sin título`.
+- **Hoja CONTROL duplicada 4 veces.** Existen `ADvibe CONTROL 2026` (`1S365…`, `1gSAE…`) y `ADvibe_CONTROL_2026 (1)` (`137Ed…`, `1d5v7…`). Se eligió `137Ed…` como oficial porque es la más completa y la más reciente. Además hay una `AdVibe_Control_DB` vacía, una `Hoja de cálculo sin título` y una quinta hoja, `AdVibe_Control_Clientes_Cobros_2026`, que encontró el agente de contenido y que incluye la nota "Pendiente prod. Manta" para Muebles Ideal.
 - CONFLICTO DETECTADO entre copias:
   - `DIAS_AVISO_COBRO` vale 1 en la oficial y 3 en `1S365…`.
   - En la oficial, la fila de CETAD está desplazada una columna: "PENDIENTE_DEFINICION" cae en Día de pago y Estado queda vacío.
