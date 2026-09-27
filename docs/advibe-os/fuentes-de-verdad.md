@@ -14,6 +14,16 @@
 | Comunicaciones | Gmail | Solo lectura y borradores |
 | Configuración operativa | hoja CONTROL, CONFIGURACION | Existe |
 
+## Conflictos pendientes de conciliación
+
+No se borra ni se sobrescribe ninguna de las fuentes en conflicto: se conservan las originales y el conflicto se muestra siempre que afecte a una respuesta.
+
+| Conflicto | Fuente A | Fuente B | Estado |
+|---|---|---|---|
+| Cobros de septiembre 2026 | Hoja nº 5 "Hoja de cálculo sin título" (`1x5X7g9d23KkX5bZ2e8E8Lrz8HDGEDL1W3cWi3e8wgcY`): Kamauto PAGADO $200, Muebles Ideal abono $100 (saldo $100), Paola pendiente $150 | Hoja nº 9 "AdVibe_Control_Clientes_Cobros_2026" (`16D3eHPMakpQ_39CeyxeHwdgML-yoLW5JZwoyEg59De8`): los 6 cobros de septiembre VENCIDOS | **Pendiente de conciliación.** Pablo no ha confirmado qué se cobró. No reportes septiembre como pagado ni como vencido: cita ambas fuentes |
+| Estado de UKEA, LatinEagle, Roxy's y Constructora Peralta | Tienen campañas en Meta y el CRM (nº 12) marca a UKEA como activo | No están en CLIENTES | **Estado de cliente pendiente de confirmar** |
+| Muebles Ideal / Paola Miguitama: dos filas en CLIENTES ($200 día 2 y $150 día 5) | Hoja oficial | Pablo confirma que son el mismo negocio | Pendiente saber si son dos líneas o un duplicado. No fusionar |
+
 ## Cómo entra el dato
 
 Pablo registra producción, grabaciones, publicaciones y tareas con la web app **ADvibe CONTROL** (`apps-script/advibe-control/`), vinculada a la hoja oficial. Los agentes de Claude solo leen: no deben escribir en la hoja sin pasar por el nivel 2.

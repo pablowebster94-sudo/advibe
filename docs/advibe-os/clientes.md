@@ -20,17 +20,26 @@ Si no se puede consultar la página, usa como respaldo el patrón de nombre y m�
 | Slug | Cliente | Página de Facebook (page_id) en Enfoque Visual ADS | Notas |
 |---|---|---|---|
 | `kamauto` | KAMAUTO | ❓ "Komauto Importadora" (106355732206742), sin anuncios | ¿Es la misma marca con otra ortografía? Confirmar |
-| `muebles-ideal` | MUEBLES IDEAL | — (no está en esta cuenta; tiene anuncios propios activos) | **Dos ubicaciones: Gualaceo y Montecristi** (confirmado por Pablo). "Pendiente prod. Manta" = Montecristi. En el CRM de portafolio figura como prospecto y con Paola Miguitama como contacto: CONFLICTO |
-| `paola-miguitama` | PAOLA MIGUITAMA | Paola Miguitama (1226660540522114) | Campañas: MENSAJES PM, PM ago, Dormitorios |
+| `muebles-ideal` | MUEBLES IDEAL | Paola Miguitama (1226660540522114): la página de su contacto (ver nota) | **Dos ubicaciones: Gualaceo y Montecristi** (confirmado por Pablo). "Pendiente prod. Manta" = Montecristi. También tiene anuncios propios activos fuera de esta cuenta |
+| `paola-miguitama` | PAOLA MIGUITAMA | Paola Miguitama (1226660540522114) | **Mismo negocio que Muebles Ideal** (confirmado por Pablo, 2026-09-27). Campañas: MENSAJES PM, PM ago, Dormitorios |
 | `sb-cuenca` | CLUB SANTA BÁRBARA CUENCA | ❓ Sus campañas salen de la página de Gualaceo | CONFLICTO: ¿no tiene página propia? |
 | `sb-gualaceo` | CLUB SANTA BÁRBARA GUALACEO | Club Formativo Santa Bárbara "Gualaceo" (502746606252797) | También publica las campañas llamadas "Cuenca" |
 | `am-motorsport` | AM MOTORSPORT | AM Motorsport (124405067312010) | Incluye Mini Cooper, Citroen C4, Hyundai Tucson y Trailblazer (verificado por página). El CRM lo marca como cliente anterior: CONFLICTO |
 | `cetad-san-lucas` | CETAD SAN LUCAS | Cetad San Lucas (456955030832533) | Estado y día de pago sin definir |
 | `advibe` | AdVibe (interno) | Ad Vibe Agencia (592020173996524) | ADVIBE MENSAJES, Diagnóstico Digital Gratuito, Tráfico Instagram |
 
-## Marcas con actividad que no están en la hoja oficial (sin clasificar)
+### Nota: Muebles Ideal y Paola Miguitama son el mismo negocio
+
+Pablo lo confirmó el 2026-09-27: Paola Miguitama es el contacto de Muebles Ideal, y los dos nombres son el mismo negocio.
+- En los análisis, sus datos se pueden juntar (campañas, contenido, material de marca). Aquí no aplica la regla de aislamiento entre clientes.
+- La hoja CLIENTES tiene dos filas con mensualidad, día de pago y meta de contenido distintos (CLI-002 y CLI-003). **No se tocan.** Queda pendiente confirmar si son dos líneas de servicio o dos ubicaciones, o si hay un duplicado. Hasta entonces, los cobros y metas se reportan por fila, sin sumarlos ni fusionarlos.
+- Las carpetas de Drive `muebles-ideal` y `paola-miguitama` se conservan las dos.
+
+## Marcas con actividad que no están en la hoja oficial
 
 Mientras Pablo no las clasifique, no se mezclan con ningún cliente de la hoja.
+
+**Estado de cliente pendiente de confirmar** (Pablo, 2026-09-27): United Kingdom English Academy, LatinEagle Multiservices, Roxy's Joyería y Constructora Peralta. No son clientes confirmados. Sus campañas se pueden analizar, pero no se cuentan como ingreso, no se añaden a CLIENTES ni se les proyectan cobros.
 
 | Marca | Evidencia |
 |---|---|
