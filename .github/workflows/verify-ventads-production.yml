@@ -1,0 +1,69 @@
+name: Verify VentAds production
+
+# Runs automatically when Vercel reports a successful deployment (Vercel's
+# GitHub integration publishes GitHub Deployments), and on demand.
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Production URL to verify"
+        required: false
+        default: "https://advibe-ai-six.vercel.app"
+
+permissions:
+  contents: read
+  deployments: read
+  statuses: read
+
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    env:
+      APP: ${{ github.event.inputs.url || 'https://advibe-ai-six.vercel.app' }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Vercel deployments for main
+        shell: bash
+        run: |
+          sha=$(gh api "repos/${{ github.repository }}/commits/main" --jq .sha)
+          echo "main HEAD: $sha"
+          gh api "repos/${{ github.repository }}/deployments?sha=$sha&per_page=10" \
+            --jq '.[] | "\(.environment) id=\(.id) creator=\(.creator.login)"' || true
+          for id in $(gh api "repos/${{ github.repository }}/deployments?sha=$sha&per_page=10" --jq '.[].id'); do
+            gh api "repos/${{ github.repository }}/deployments/$id/statuses" \
+              --jq '.[0] | "  -> \(.state) \(.environment_url // "") \(.description // "")"' || true
+          done
+          echo "Commit statuses:"
+          gh api "repos/${{ github.repository }}/commits/$sha/status" \
+            --jq '.statuses[] | "  \(.context): \(.state) \(.description // "")"' || true
+
+      - name: Health (database, migrations, configuration)
+        shell: bash
+        run: |
+          code=$(curl -sS -o health.json -w '%{http_code}' "$APP/api/health" || echo 000)
+          echo "HTTP $code"
+          cat health.json; echo
+          [ "$code" = "200" ] || { echo "::error::/api/health is not healthy (HTTP $code). See the JSON above."; exit 1; }
+
+      - name: Auth gate is configured (401, not 500)
+        shell: bash
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' "$APP/")
+          echo "GET / without credentials -> HTTP $code"
+          [ "$code" = "401" ] || { echo "::error::Expected 401 from the auth gate, got $code."; exit 1; }
+
+      - name: Login and dashboard
+        shell: bash
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::Repository secret CRON_SECRET not set here; skipping the authenticated checks."
+            exit 0
+          fi
+          for path in / /products /new /api/products; do
+            code=$(curl -sS -u "advibe:$CRON_SECRET" -o /dev/null -w '%{http_code}' "$APP$path")
+            echo "GET $path (authenticated) -> HTTP $code"
+            [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
+          done

@@ -16,7 +16,9 @@ import type { NextRequest } from "next/server";
  * The worker/cron endpoints below bypass Basic Auth because they have their
  * own independent Bearer CRON_SECRET authentication.
  */
-const BYPASS_PREFIXES = ["/api/jobs/process", "/api/cron/sweep"];
+// /api/health is public by design: it reports only booleans, counts and
+// error codes (see app/api/health/route.ts) for deploy verification.
+const BYPASS_PREFIXES = ["/api/jobs/process", "/api/cron/sweep", "/api/health"];
 const FALLBACK_AUTH_USER = "advibe";
 
 function safeEqual(a: string, b: string) {
