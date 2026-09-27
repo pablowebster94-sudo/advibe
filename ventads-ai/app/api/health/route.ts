@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveStorageProvider } from "@/lib/services/storage";
+import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,11 +61,11 @@ export async function GET() {
         ? "cron-secret-fallback"
         : "missing",
     CRON_SECRET: has("CRON_SECRET"),
-    APP_URL: has("APP_URL"),
+    APP_URL: resolveAppUrlSource(),
     GEMINI_API_KEY: has("GEMINI_API_KEY"),
     ANTHROPIC_API_KEY: has("ANTHROPIC_API_KEY"),
     OPENAI_API_KEY: has("OPENAI_API_KEY"),
-    STORAGE_PROVIDER: process.env.STORAGE_PROVIDER || "local",
+    STORAGE_PROVIDER: resolveStorageProvider(),
     IMAGE_PROVIDER: process.env.IMAGE_PROVIDER || "local-compositor",
   };
 
@@ -90,7 +92,7 @@ export async function GET() {
     database.connected === true &&
     config.auth !== "missing" &&
     config.CRON_SECRET &&
-    config.APP_URL;
+    config.APP_URL !== "missing";
 
   return NextResponse.json(
     { status: ok ? "ok" : "degraded", database, config },

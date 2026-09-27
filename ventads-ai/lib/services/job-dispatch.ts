@@ -10,12 +10,25 @@ import { after } from "next/server";
 function resolveAppUrl(): string {
   const configured = process.env.APP_URL?.trim();
   if (configured) return configured.replace(/\/+$/, "");
+  // Vercel system variable: the project's stable production domain (not the
+  // per-deployment VERCEL_URL), so production works without APP_URL.
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (production && process.env.VERCEL_ENV === "production") return `https://${production}`;
   if (process.env.NODE_ENV !== "production") {
     return `http://localhost:${process.env.PORT ?? "3000"}`;
   }
   throw new Error(
     "APP_URL no está configurada. En producción es obligatoria — debe ser el dominio público de la app (no VERCEL_URL, que cambia por deployment)."
   );
+}
+
+/** Where the worker URL comes from, for /api/health (never the value). */
+export function resolveAppUrlSource(): "APP_URL" | "vercel-production-domain" | "localhost" | "missing" {
+  if (process.env.APP_URL?.trim()) return "APP_URL";
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() && process.env.VERCEL_ENV === "production") {
+    return "vercel-production-domain";
+  }
+  return process.env.NODE_ENV !== "production" ? "localhost" : "missing";
 }
 
 function jobConcurrency(): number {

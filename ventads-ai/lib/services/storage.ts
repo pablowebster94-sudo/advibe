@@ -7,6 +7,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { prisma } from "@/lib/db";
 
 /**
  * Storage is abstracted behind this interface so the local-disk provider
@@ -170,11 +171,62 @@ function contentTypeFromExtension(extension: string) {
   }
 }
 
+/**
+ * Stores file bytes in PostgreSQL (StoredFile). Zero-config: it needs only
+ * the DATABASE_URL the app already requires, which makes it the working
+ * default on Vercel (read-only, per-invocation filesystem) until an
+ * S3-compatible bucket is configured. Files are served by /api/files,
+ * exactly like the local provider.
+ */
+class DatabaseStorageService implements StorageService {
+  async save({
+    buffer,
+    folder,
+    extension,
+  }: {
+    buffer: Buffer;
+    folder: string;
+    extension: string;
+  }) {
+    const safeFolder = folder.replace(/[^a-z0-9/_-]/gi, "");
+    const safeExtension = extension.replace(/[^a-z0-9]/gi, "");
+    const key = `${safeFolder}/${randomUUID()}.${safeExtension}`;
+    await prisma.storedFile.create({
+      data: {
+        key,
+        contentType: contentTypeFromExtension(safeExtension),
+        data: new Uint8Array(buffer),
+        size: buffer.length,
+      },
+    });
+    return { key, url: await this.urlFor(key) };
+  }
+
+  async read(key: string) {
+    const file = await prisma.storedFile.findUnique({ where: { key } });
+    if (!file) throw new Error("File not found");
+    return Buffer.from(file.data);
+  }
+
+  async urlFor(key: string) {
+    return `/api/files/${key}`;
+  }
+}
+
+export function resolveStorageProvider() {
+  const configured = process.env.STORAGE_PROVIDER?.trim();
+  // Local disk cannot persist anything on Vercel; fall back to the database.
+  if (process.env.VERCEL && (!configured || configured === "local")) return "database";
+  return configured || "local";
+}
+
 function createStorageService(): StorageService {
-  const provider = process.env.STORAGE_PROVIDER ?? "local";
+  const provider = resolveStorageProvider();
   switch (provider) {
     case "local":
       return new LocalStorageService();
+    case "database":
+      return new DatabaseStorageService();
     case "s3":
       return new S3StorageService();
     default:

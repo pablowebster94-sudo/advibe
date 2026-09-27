@@ -185,3 +185,15 @@ model Creative {
   @@index([status, nextAttemptAt])
   @@index([conceptId])
 }
+
+// File bytes for STORAGE_PROVIDER=database (lib/services/storage.ts): the
+// zero-config production default on Vercel, whose filesystem is read-only
+// and ephemeral. `key` is the same opaque storage key every other model
+// stores, so switching to S3 later needs no data model change.
+model StoredFile {
+  key         String   @id
+  contentType String
+  data        Bytes
+  size        Int
+  createdAt   DateTime @default(now())
+}
