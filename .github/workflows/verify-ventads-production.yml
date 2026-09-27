@@ -107,11 +107,21 @@ jobs:
               return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
           open("photo.png", "wb").write(png(900, 900, (40, 90, 160)))
           PY
-          photo=$(curl -sS "${auth[@]}" -F "file=@photo.png;type=image/png" -F folder=products "$APP/api/uploads" | python3 -c 'import sys,json;print(json.load(sys.stdin)["key"])')
-          echo "photo uploaded"
+          failed=0
+          code=$(curl -sS "${auth[@]}" -F "file=@photo.png;type=image/png" -F folder=products \
+            -o up.json -w '%{http_code} %{content_type} %{time_total}s' "$APP/api/uploads")
+          echo "POST /api/uploads -> HTTP $code"
+          if head -c1 up.json | grep -q '{'; then
+            photo=$(python3 -c 'import json;print(json.load(open("up.json")).get("key",""))')
+          else
+            echo "::error::POST /api/uploads did not return JSON. Body starts with:"; head -c 400 up.json; echo
+            photo=""; failed=1
+          fi
+          [ -n "$photo" ] || { echo "::warning::continuing without a product photo"; failed=1; }
+          images=""; [ -n "$photo" ] && images='{"key":"'"$photo"'","role":"PRODUCT"}'
           call POST /api/brands '{"name":"[QA] AdVibe","defaultCta":"Escríbenos"}'
           brand=$(python3 -c 'import json;print(json.load(open("out.json"))["brand"]["id"])')
-          call POST /api/products "{\"category\":\"vehiculos\",\"name\":\"[QA] Hilux\",\"manufacturer\":\"Toyota\",\"model\":\"SRV 4x4\",\"price\":38900,\"features\":\"Motor 2.8 diésel\\nTracción 4x4\",\"brandId\":\"$brand\",\"images\":[{\"key\":\"$photo\",\"role\":\"PRODUCT\"}]}"
+          call POST /api/products "{\"category\":\"vehiculos\",\"name\":\"[QA] Hilux\",\"manufacturer\":\"Toyota\",\"model\":\"SRV 4x4\",\"price\":38900,\"features\":\"Motor 2.8 diésel\\nTracción 4x4\",\"brandId\":\"$brand\",\"images\":[$images]}"
           product=$(python3 -c 'import json;print(json.load(open("out.json"))["product"]["id"])')
           call POST /api/campaigns "{\"productId\":\"$product\",\"objective\":\"MENSAJES\",\"style\":\"PREMIUM\"}"
           python3 -c 'import json;d=json.load(open("out.json"));c=d.get("campaign");print("error:",d) if not c else print("providerStatus:",c["providerStatus"]);print("concepts:",[k["type"] for k in c["concepts"]]) if c else exit(1)'
@@ -126,4 +136,5 @@ jobs:
           [ "$1" = "READY" ] && [ "$2" = "$3" ] || { echo "::error::Campaign ended as: $state"; exit 1; }
           code=$(curl -sS "${auth[@]}" -o /dev/null -w '%{http_code}' "$APP/results/$campaign")
           echo "GET /results/$campaign -> HTTP $code"
-          [ "$code" = "200" ]
+          [ "$code" = "200" ] || failed=1
+          [ "$failed" = "0" ] || { echo "::error::End-to-end flow had failures (see above)."; exit 1; }
