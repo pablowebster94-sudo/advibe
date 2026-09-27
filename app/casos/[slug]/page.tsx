@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { caseStudies, getCaseStudy } from "@/lib/cases";
+import { pageMetadata } from "@/lib/seo";
 
 export function generateStaticParams() {
   return caseStudies.map((item) => ({ slug: item.slug }));
@@ -9,7 +10,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = getCaseStudy(slug);
-  return { title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia", description: project?.summary };
+  return pageMetadata({ title: project ? `${project.client}: caso de éxito` : "Caso", description: project?.summary, path: `/casos/${slug}` });
 }
 
 export default async function CasePage({ params }: { params: Promise<{ slug: string }> }) {

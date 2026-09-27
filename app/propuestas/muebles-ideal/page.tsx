@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Propuesta Comercial | Muebles Ideal × AdVibe",
+  title: { absolute: "Propuesta Comercial | Muebles Ideal × AdVibe" },
   description: "Propuesta de contenido audiovisual, diseño gráfico y Meta Ads para Muebles Ideal.",
   alternates: { canonical: "/propuestas/muebles-ideal" },
   robots: { index: false, follow: false },

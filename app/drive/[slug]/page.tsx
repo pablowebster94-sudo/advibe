@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
 
 type Vehicle = {
@@ -110,7 +111,7 @@ export default function DriveVehiclePage() {
   return (
     <main className="min-h-screen bg-[#070707] text-white">
       <section className="relative min-h-[92vh] overflow-hidden">
-        <img src={vehicle.image} alt={vehicle.name} className="absolute inset-0 h-full w-full object-cover opacity-55" />
+        <Image src={vehicle.image} alt={vehicle.name} fill preload sizes="100vw" className="object-cover opacity-55" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/55 to-[#070707]" />
         <div className="relative mx-auto flex min-h-[92vh] max-w-6xl flex-col justify-between px-5 py-6 sm:px-8">
           <header className="flex items-center justify-between">
