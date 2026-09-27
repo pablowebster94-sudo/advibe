@@ -12,6 +12,7 @@ import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
 import { StyleStep } from "@/components/wizard/steps/StyleStep";
 import { Stepper } from "@/components/wizard/Stepper";
 import { EMPTY_WIZARD_STATE, type WizardState } from "@/lib/wizard-types";
+import { readJson } from "@/lib/fetch-json";
 
 function canProceed(step: number, state: WizardState) {
   if (step === 0) return state.product.category.trim() !== "" && state.product.name.trim() !== "";
@@ -62,7 +63,7 @@ export default function NewProductPage() {
             website: state.brand.website || undefined,
           }),
         });
-        const data = await res.json();
+        const data = await readJson<{ error?: string; brand: { id: string } }>(res);
         if (!res.ok) throw new Error(data.error ?? "No se pudo crear la marca.");
         brandId = data.brand.id;
       }
@@ -93,7 +94,7 @@ export default function NewProductPage() {
           images,
         }),
       });
-      const productData = await productRes.json();
+      const productData = await readJson<{ error?: string; product: { id: string } }>(productRes);
       if (!productRes.ok) throw new Error(productData.error ?? "No se pudo crear el producto.");
 
       const campaignRes = await fetch("/api/campaigns", {
@@ -105,7 +106,7 @@ export default function NewProductPage() {
           style: state.style,
         }),
       });
-      const campaignData = await campaignRes.json();
+      const campaignData = await readJson<{ error?: string; campaign: { id: string } }>(campaignRes);
       if (!campaignRes.ok) throw new Error(campaignData.error ?? "No se pudieron generar las creatividades.");
 
       router.push(`/results/${campaignData.campaign.id}`);

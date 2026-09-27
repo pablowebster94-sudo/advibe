@@ -6,6 +6,7 @@ import { OBJECTIVES, type ObjectiveId } from "@/lib/catalog/objectives";
 import { STYLES, type StyleId } from "@/lib/catalog/styles";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
+import { readJson } from "@/lib/fetch-json";
 
 export function NewCampaignForm({ productId }: { productId: string }) {
   const router = useRouter();
@@ -23,7 +24,7 @@ export function NewCampaignForm({ productId }: { productId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, objective, style }),
       });
-      const data = await res.json();
+      const data = await readJson<{ error?: string; campaign: { id: string } }>(res);
       if (!res.ok) throw new Error(data.error ?? "No se pudo generar la campaña.");
       router.push(`/results/${data.campaign.id}`);
     } catch (err) {

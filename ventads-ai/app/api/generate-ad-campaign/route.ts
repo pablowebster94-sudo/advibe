@@ -6,8 +6,13 @@ import { prisma } from "@/lib/db";
 import { buildProductBrief } from "@/lib/product-brief";
 import { analyzeProduct } from "@/lib/services/analysis-engine";
 import { generateAICampaign } from "@/lib/services/ai-orchestrator";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
+// The AI strategy/copy chain runs inside this request (bounded to ~40s by
+// lib/services/ai-orchestrator.ts); without this, Vercel's default limit
+// can kill it first and answer with an HTML error page instead of JSON.
+export const maxDuration = 60;
 
 const inputSchema = z.object({
   productId: z.string().optional(),
@@ -20,7 +25,7 @@ const inputSchema = z.object({
   clientUrl: z.string().url().optional(),
 });
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const user = await getCurrentUser();
   const body = await request.json().catch(() => null);
   const parsed = inputSchema.safeParse(body);
@@ -60,3 +65,5 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true, data: result });
 }
+
+export const POST = jsonRoute("POST /api/generate-ad-campaign", handlePOST);

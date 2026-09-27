@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "../../../lib/auth";
 import { prisma } from "../../../lib/db";
 import { brandInputSchema } from "../../../lib/validation";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+async function handleGET() {
   const user = await getCurrentUser();
   const brands = await prisma.brand.findMany({
     where: { userId: user.id },
@@ -14,7 +15,7 @@ export async function GET() {
   return NextResponse.json({ brands });
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const user = await getCurrentUser();
   const body = await request.json().catch(() => null);
   const parsed = brandInputSchema.safeParse(body);
@@ -37,3 +38,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ brand }, { status: 201 });
 }
+
+export const GET = jsonRoute("GET /api/brands", handleGET);
+export const POST = jsonRoute("POST /api/brands", handlePOST);

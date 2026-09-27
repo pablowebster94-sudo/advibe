@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { withResolvedConcepts, withResolvedImageUrl } from "@/lib/serialize";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
-export async function GET(
+async function handleGET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -36,3 +37,5 @@ export async function GET(
     campaign: { ...campaign, concepts, product: { ...campaign.product, images: productImages } },
   });
 }
+
+export const GET = jsonRoute("GET /api/campaigns/:id", handleGET);

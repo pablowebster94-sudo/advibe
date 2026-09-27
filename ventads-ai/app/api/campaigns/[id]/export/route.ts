@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getConceptType } from "@/lib/catalog/concepts";
 import { getFormat } from "@/lib/catalog/formats";
 import { storage } from "@/lib/services/storage";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,7 @@ function latestReadyByConceptFormat(
 }
 
 /** Bundles every ready creative in a campaign into a single ZIP download. */
-export async function GET(
+async function handleGET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -70,3 +71,5 @@ export async function GET(
     },
   });
 }
+
+export const GET = jsonRoute("GET /api/campaigns/:id/export", handleGET);

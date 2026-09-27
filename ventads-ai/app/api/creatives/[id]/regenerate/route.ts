@@ -3,10 +3,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { withResolvedCreativeUrl } from "@/lib/serialize";
 import { regenerateCreative } from "@/lib/services/campaign-service";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
-export async function POST(
+async function handlePOST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -36,3 +37,5 @@ export async function POST(
     );
   }
 }
+
+export const POST = jsonRoute("POST /api/creatives/:id/regenerate", handlePOST);

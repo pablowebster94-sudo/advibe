@@ -49,7 +49,20 @@ function cleanJson(raw: string) {
   return JSON.parse(withoutFence.slice(start, end + 1)) as unknown;
 }
 
-async function requestText(url: string, init: RequestInit, timeoutMs = 30000): Promise<string> {
+// The whole multi-provider chain runs inside POST /api/campaigns, so it must
+// finish well inside that route's maxDuration (60s): each call gets at most
+// PER_CALL_TIMEOUT_MS and never more than what is left of the shared budget.
+// A provider that runs out of time falls back to the deterministic engine.
+const PER_CALL_TIMEOUT_MS = 20_000;
+const TOTAL_AI_BUDGET_MS = Number(process.env.AI_TOTAL_TIMEOUT_MS) || 40_000;
+const MIN_USEFUL_CALL_MS = 3_000;
+
+type Deadline = { at: number };
+
+async function requestText(url: string, init: RequestInit, deadline: Deadline): Promise<string> {
+  const remaining = deadline.at - Date.now();
+  if (remaining < MIN_USEFUL_CALL_MS) throw new Error("Sin tiempo para llamar al proveedor de IA.");
+  const timeoutMs = Math.min(PER_CALL_TIMEOUT_MS, remaining);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -76,7 +89,7 @@ function briefContext(brief: ProductBrief, extra: {
   }, null, 2);
 }
 
-async function geminiJson(prompt: string): Promise<unknown> {
+async function geminiJson(prompt: string, deadline: Deadline): Promise<unknown> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY no configurada.");
   const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
@@ -89,14 +102,15 @@ async function geminiJson(prompt: string): Promise<unknown> {
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: { responseMimeType: "application/json" },
       }),
-    }
+    },
+    deadline
   );
   const data = JSON.parse(raw) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
   const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
   return cleanJson(text);
 }
 
-async function claudeJson(prompt: string): Promise<unknown> {
+async function claudeJson(prompt: string, deadline: Deadline): Promise<unknown> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY no configurada.");
   const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
@@ -108,12 +122,12 @@ async function claudeJson(prompt: string): Promise<unknown> {
       system: "Eres un copywriter senior de respuesta directa especializado en Meta Ads. Devuelve únicamente JSON válido.",
       messages: [{ role: "user", content: prompt }],
     }),
-  });
+  }, deadline);
   const data = JSON.parse(raw) as { content?: Array<{ type?: string; text?: string }> };
   return cleanJson(data.content?.filter((x) => x.type === "text").map((x) => x.text || "").join("") || "");
 }
 
-async function openaiJson(prompt: string): Promise<unknown> {
+async function openaiJson(prompt: string, deadline: Deadline): Promise<unknown> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY no configurada.");
   const model = process.env.OPENAI_MODEL || "gpt-5.6";
@@ -121,7 +135,7 @@ async function openaiJson(prompt: string): Promise<unknown> {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
     body: JSON.stringify({ model, input: prompt, text: { format: { type: "json_object" } } }),
-  });
+  }, deadline);
   const data = JSON.parse(raw) as {
     output_text?: string;
     output?: Array<{ content?: Array<{ text?: string }> }>;
@@ -196,12 +210,14 @@ export async function generateAICampaign(
   input: { objective: string; budget?: number; location?: string; clientDescription?: string; clientUrl?: string }
 ): Promise<AICampaignResult> {
   const context = briefContext(brief, input);
+  const deadline: Deadline = { at: Date.now() + TOTAL_AI_BUDGET_MS };
   let strategic: AIAnalysis;
   let geminiStatus: AIProviderStatus = "not_configured";
 
   try {
     strategic = analysisSchema.parse(await geminiJson(
-      "Actúa como analista senior de mercado y estratega de performance para Meta Ads. Analiza únicamente los hechos entregados. No inventes precios, promociones, características, resultados ni garantías. Identifica categoría, público, 3 pain points, UVP, keywords, objetivo recomendado, orientación de presupuesto y 3 ángulos estratégicos. Devuelve JSON. Contexto:\n" + context
+      "Actúa como analista senior de mercado y estratega de performance para Meta Ads. Analiza únicamente los hechos entregados. No inventes precios, promociones, características, resultados ni garantías. Identifica categoría, público, 3 pain points, UVP, keywords, objetivo recomendado, orientación de presupuesto y 3 ángulos estratégicos. Devuelve JSON. Contexto:\n" + context,
+      deadline
     ));
     geminiStatus = "ai";
   } catch {
@@ -222,7 +238,8 @@ export async function generateAICampaign(
   let claudeStatus: AIProviderStatus = "not_configured";
   try {
     const result = copyResponseSchema.parse(await claudeJson(
-      "Crea exactamente 3 variantes de anuncio para Meta Ads en español de Ecuador. No inventes ningún dato. Usa estos ángulos: 1) problema/urgencia, 2) frustración/agitación, 3) alivio/UVP. Cada variante debe tener hook, primary_text, headline, description, CTA, mensaje de WhatsApp y angle. Evita clichés de IA, exceso de emojis, hashtags innecesarios, lenguaje corporativo y garantías no sustentadas. Devuelve JSON con la forma {variants:[...]}. Contexto:\n" + context + "\nEstrategia:\n" + JSON.stringify(strategic)
+      "Crea exactamente 3 variantes de anuncio para Meta Ads en español de Ecuador. No inventes ningún dato. Usa estos ángulos: 1) problema/urgencia, 2) frustración/agitación, 3) alivio/UVP. Cada variante debe tener hook, primary_text, headline, description, CTA, mensaje de WhatsApp y angle. Evita clichés de IA, exceso de emojis, hashtags innecesarios, lenguaje corporativo y garantías no sustentadas. Devuelve JSON con la forma {variants:[...]}. Contexto:\n" + context + "\nEstrategia:\n" + JSON.stringify(strategic),
+      deadline
     ));
     variants = result.variants;
     claudeStatus = "ai";
@@ -234,7 +251,8 @@ export async function generateAICampaign(
   let openaiStatus: AIProviderStatus = "not_configured";
   try {
     const result = visualResponseSchema.parse(await openaiJson(
-      "Eres director de arte y prompt engineer para Meta Ads. Crea exactamente 3 prompts visuales en inglés, uno por variante. Especifica subject/action/environment/composition/perspective/lighting/style/palette/depth of field/lens y 4:5. Usa únicamente atributos reales del producto; no inventes. No pongas texto, precios, logos ni tipografías dentro de la imagen. Devuelve JSON con la forma {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants)
+      "Eres director de arte y prompt engineer para Meta Ads. Crea exactamente 3 prompts visuales en inglés, uno por variante. Especifica subject/action/environment/composition/perspective/lighting/style/palette/depth of field/lens y 4:5. Usa únicamente atributos reales del producto; no inventes. No pongas texto, precios, logos ni tipografías dentro de la imagen. Devuelve JSON con la forma {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants),
+      deadline
     ));
     variants = normalizeVariants(variants.map((v, i) => ({ ...v, visual_prompt: result.prompts[i] || v.visual_prompt })), brief, analysis, input.objective);
     openaiStatus = "ai";

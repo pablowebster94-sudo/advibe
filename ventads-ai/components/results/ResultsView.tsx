@@ -5,6 +5,7 @@ import { ConceptPanel } from "@/components/results/ConceptPanel";
 import { ProgressBanner } from "@/components/results/ProgressBanner";
 import { computeCampaignProgress, isCampaignSettled } from "@/lib/results-helpers";
 import type { CampaignWithResults } from "@/lib/types/campaign";
+import { readJson } from "@/lib/fetch-json";
 
 const POLL_INTERVAL_MS = 2500;
 // Safety cutoff so a genuinely stuck campaign doesn't poll forever in an
@@ -27,7 +28,7 @@ export function ResultsView({ campaign: initialCampaign }: { campaign: CampaignW
       try {
         const res = await fetch(`/api/campaigns/${campaign.id}`, { cache: "no-store" });
         if (!res.ok) return;
-        const data = await res.json();
+        const data = await readJson<{ campaign?: typeof campaign }>(res);
         if (data.campaign) setCampaign(data.campaign);
       } catch {
         // Transient network hiccup — the next tick retries.

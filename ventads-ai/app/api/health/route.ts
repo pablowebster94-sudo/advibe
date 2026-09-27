@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { databaseSchema } from "@/lib/database-url";
+import { errorCode } from "@/lib/error-code";
 import { resolveStorageProvider } from "@/lib/services/storage";
 import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
 
@@ -35,23 +36,6 @@ function databaseUrlShape() {
   } catch {
     return { configured: true, parseable: false };
   }
-}
-
-function errorCode(error: unknown): string {
-  const e = error as {
-    code?: string;
-    name?: string;
-    meta?: { driverAdapterError?: { cause?: { kind?: string } } };
-    cause?: { kind?: string; code?: string };
-  };
-  return (
-    e.meta?.driverAdapterError?.cause?.kind ??
-    e.cause?.kind ??
-    e.code ??
-    e.cause?.code ??
-    e.name ??
-    "UnknownError"
-  );
 }
 
 export async function GET() {

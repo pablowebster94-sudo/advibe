@@ -3,10 +3,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { withResolvedImageUrl } from "@/lib/serialize";
 import { productInputSchema } from "@/lib/validation";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+async function handleGET() {
   const user = await getCurrentUser();
   const products = await prisma.product.findMany({
     where: { userId: user.id },
@@ -24,7 +25,7 @@ export async function GET() {
   return NextResponse.json({ products: resolved });
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const user = await getCurrentUser();
   const body = await request.json().catch(() => null);
   const parsed = productInputSchema.safeParse(body);
@@ -71,3 +72,6 @@ export async function POST(request: Request) {
     { status: 201 }
   );
 }
+
+export const GET = jsonRoute("GET /api/products", handleGET);
+export const POST = jsonRoute("POST /api/products", handlePOST);

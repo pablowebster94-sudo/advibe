@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { readJson } from "@/lib/fetch-json";
 
 export type UploadedImage = {
   key: string;
@@ -15,7 +16,7 @@ async function uploadFile(file: File, folder: string): Promise<UploadedImage> {
   formData.append("file", file);
   formData.append("folder", folder);
   const res = await fetch("/api/uploads", { method: "POST", body: formData });
-  const data = await res.json();
+  const data = await readJson<UploadedImage & { error?: string }>(res);
   if (!res.ok) throw new Error(data.error ?? "Error al subir la imagen.");
   return data;
 }

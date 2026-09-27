@@ -5,6 +5,7 @@ import { Field, Input } from "@/components/ui/Field";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { ImageUploader } from "@/components/wizard/ImageUploader";
 import type { BrandFormState } from "@/lib/wizard-types";
+import { readJson } from "@/lib/fetch-json";
 
 type SavedBrand = {
   id: string;
@@ -25,7 +26,7 @@ export function BrandStep({
 
   useEffect(() => {
     fetch("/api/brands")
-      .then((res) => res.json())
+      .then((res) => readJson<{ brands?: SavedBrand[] }>(res))
       .then((data) => setBrands(data.brands ?? []))
       .catch(() => setBrands([]))
       .finally(() => setLoading(false));

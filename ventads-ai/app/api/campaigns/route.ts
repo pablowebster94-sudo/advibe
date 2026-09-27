@@ -4,8 +4,13 @@ import { prisma } from "@/lib/db";
 import { withResolvedConcepts } from "@/lib/serialize";
 import { createCampaignJobs } from "@/lib/services/campaign-service";
 import { campaignInputSchema } from "@/lib/validation";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
+// The AI strategy/copy chain runs inside this request (bounded to ~40s by
+// lib/services/ai-orchestrator.ts); without this, Vercel's default limit
+// can kill it first and answer with an HTML error page instead of JSON.
+export const maxDuration = 60;
 
 const campaignInclude = {
   concepts: {
@@ -13,7 +18,7 @@ const campaignInclude = {
   },
 } as const;
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const user = await getCurrentUser();
   const body = await request.json().catch(() => null);
   const parsed = campaignInputSchema.safeParse(body);
@@ -66,3 +71,5 @@ export async function POST(request: Request) {
     { status: 201 }
   );
 }
+
+export const POST = jsonRoute("POST /api/campaigns", handlePOST);

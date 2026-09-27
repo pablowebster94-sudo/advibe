@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { storage } from "@/lib/services/storage";
 import { processUploadedImage, UploadValidationError } from "@/lib/uploads";
+import { jsonRoute } from "@/lib/api-route";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ export const runtime = "nodejs";
  * logo step. Returns a storage key/url only — callers decide what row (if
  * any) to attach it to.
  */
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file");
   const folder = String(formData.get("folder") ?? "uploads");
@@ -46,3 +47,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const POST = jsonRoute("POST /api/uploads", handlePOST);

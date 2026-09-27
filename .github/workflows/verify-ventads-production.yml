@@ -10,6 +10,10 @@ on:
         description: "Production URL to verify"
         required: false
         default: "https://advibe-ai-six.vercel.app"
+      e2e:
+        description: "Also run the full generation flow (creates a [QA] product and campaign)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -73,3 +77,53 @@ jobs:
             echo "GET $path (authenticated) -> HTTP $code"
             [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
           done
+
+      # Drives the same API calls as the "Generar creatividades" button:
+      # upload photo -> brand -> product -> POST /api/campaigns -> poll until
+      # every creative is rendered. Prints status, content type and timing.
+      - name: End-to-end generation
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.e2e == 'true'
+        shell: bash
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Repository secret CRON_SECRET is required for the end-to-end flow."
+            exit 1
+          fi
+          auth=(-u "advibe:$CRON_SECRET")
+          json=(-H "Content-Type: application/json")
+          call() { # method path [body] -> prints status/type/time, body in out.json
+            local extra=(); [ -n "${3:-}" ] && extra=(-d "$3")
+            curl -sS "${auth[@]}" "${json[@]}" -X "$1" "${extra[@]}" -o out.json \
+              -w "$1 $2 -> HTTP %{http_code} %{content_type} %{time_total}s\n" "$APP$2"
+            if ! head -c1 out.json | grep -q '[{[]'; then
+              echo "::error::$1 $2 did not return JSON:"; head -c 300 out.json; echo; exit 1
+            fi
+          }
+          python3 - <<'PY'
+          import struct, zlib
+          def png(w, h, rgb):
+              raw = b"".join(b"\x00" + bytes(rgb) * w for _ in range(h))
+              chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d))
+              return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+          open("photo.png", "wb").write(png(900, 900, (40, 90, 160)))
+          PY
+          photo=$(curl -sS "${auth[@]}" -F "file=@photo.png;type=image/png" -F folder=products "$APP/api/uploads" | python3 -c 'import sys,json;print(json.load(sys.stdin)["key"])')
+          echo "photo uploaded"
+          call POST /api/brands '{"name":"[QA] AdVibe","defaultCta":"Escríbenos"}'
+          brand=$(python3 -c 'import json;print(json.load(open("out.json"))["brand"]["id"])')
+          call POST /api/products "{\"category\":\"vehiculos\",\"name\":\"[QA] Hilux\",\"manufacturer\":\"Toyota\",\"model\":\"SRV 4x4\",\"price\":38900,\"features\":\"Motor 2.8 diésel\\nTracción 4x4\",\"brandId\":\"$brand\",\"images\":[{\"key\":\"$photo\",\"role\":\"PRODUCT\"}]}"
+          product=$(python3 -c 'import json;print(json.load(open("out.json"))["product"]["id"])')
+          call POST /api/campaigns "{\"productId\":\"$product\",\"objective\":\"MENSAJES\",\"style\":\"PREMIUM\"}"
+          python3 -c 'import json;d=json.load(open("out.json"));c=d.get("campaign");print("error:",d) if not c else print("providerStatus:",c["providerStatus"]);print("concepts:",[k["type"] for k in c["concepts"]]) if c else exit(1)'
+          campaign=$(python3 -c 'import json;print(json.load(open("out.json"))["campaign"]["id"])')
+          for i in $(seq 1 45); do
+            state=$(curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];cr=[x["status"] for k in c["concepts"] for x in k["creatives"]];print(c["status"],cr.count("COMPLETED"),len(cr),cr.count("FAILED"))')
+            echo "poll $i: $state"
+            case "$state" in READY*|FAILED*) break;; esac
+            sleep 4
+          done
+          set -- $state
+          [ "$1" = "READY" ] && [ "$2" = "$3" ] || { echo "::error::Campaign ended as: $state"; exit 1; }
+          code=$(curl -sS "${auth[@]}" -o /dev/null -w '%{http_code}' "$APP/results/$campaign")
+          echo "GET /results/$campaign -> HTTP $code"
+          [ "$code" = "200" ]
