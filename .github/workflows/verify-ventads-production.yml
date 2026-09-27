@@ -35,6 +35,11 @@ jobs:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Checkout (test fixtures)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: ventads-ai/tests/fixtures
+
       - name: Vercel deployments for main
         shell: bash
         run: |
@@ -99,16 +104,9 @@ jobs:
               echo "::error::$1 $2 did not return JSON:"; head -c 300 out.json; echo; exit 1
             fi
           }
-          python3 - <<'PY'
-          import struct, zlib
-          def png(w, h, rgb):
-              raw = b"".join(b"\x00" + bytes(rgb) * w for _ in range(h))
-              chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d))
-              return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
-          open("photo.png", "wb").write(png(900, 900, (40, 90, 160)))
-          PY
+          cp ventads-ai/tests/fixtures/vehicle.jpg photo.jpg
           failed=0
-          code=$(curl -sS "${auth[@]}" -F "file=@photo.png;type=image/png" -F folder=products \
+          code=$(curl -sS "${auth[@]}" -F "file=@photo.jpg;type=image/jpeg" -F folder=products \
             -o up.json -w '%{http_code} %{content_type} %{time_total}s' "$APP/api/uploads")
           echo "POST /api/uploads -> HTTP $code"
           if head -c1 up.json | grep -q '{'; then
@@ -121,24 +119,27 @@ jobs:
           images=""; [ -n "$photo" ] && images='{"key":"'"$photo"'","role":"PRODUCT"}'
           call POST /api/brands '{"name":"[QA] AdVibe","defaultCta":"Escríbenos"}'
           brand=$(python3 -c 'import json;print(json.load(open("out.json"))["brand"]["id"])')
-          call POST /api/products "{\"category\":\"vehiculos\",\"name\":\"[QA] Hilux\",\"manufacturer\":\"Toyota\",\"model\":\"SRV 4x4\",\"price\":38900,\"features\":\"Motor 2.8 diésel\\nTracción 4x4\",\"brandId\":\"$brand\",\"images\":[$images]}"
+          call POST /api/products "{\"category\":\"vehiculos\",\"name\":\"[QA] C3\",\"manufacturer\":\"Citroën\",\"model\":\"Shine 1.2\",\"price\":18000,\"features\":\"Motor 1.2 PureTech\\nCaja automática\\nAros de 17 pulgadas\",\"benefits\":\"Bajo consumo de combustible\\nÚnico dueño\",\"brandId\":\"$brand\",\"images\":[$images]}"
           product=$(python3 -c 'import json;print(json.load(open("out.json"))["product"]["id"])')
-          call POST /api/campaigns "{\"productId\":\"$product\",\"objective\":\"MENSAJES\",\"style\":\"PREMIUM\"}"
+          started=$(date +%s)
+          call POST /api/campaigns "{\"productId\":\"$product\",\"objective\":\"VENDER\",\"style\":\"COMERCIAL\"}"
           python3 -c 'import json;d=json.load(open("out.json"));c=d.get("campaign");print("error:",d) if not c else print("providerStatus:",c["providerStatus"]);print("concepts:",[k["type"] for k in c["concepts"]]) if c else exit(1)'
           campaign=$(python3 -c 'import json;print(json.load(open("out.json"))["campaign"]["id"])')
-          for i in $(seq 1 45); do
+          for i in $(seq 1 100); do
             state=$(curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];cr=[x["status"] for k in c["concepts"] for x in k["creatives"]];print(c["status"],cr.count("COMPLETED"),len(cr),cr.count("FAILED"))')
             echo "poll $i: $state"
             case "$state" in READY*|FAILED*) break;; esac
             sleep 4
           done
+          echo "campaign finished in $(( $(date +%s) - started ))s (from POST /api/campaigns to $state)"
+          curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json,collections;c=json.load(sys.stdin)["campaign"];print("image providers:",dict(collections.Counter(x["provider"] for k in c["concepts"] for x in k["creatives"])))'
           set -- $state
           [ "$1" = "READY" ] && [ "$2" = "$3" ] || { echo "::error::Campaign ended as: $state"; exit 1; }
           # Keep a few rendered creatives from production for visual review.
           mkdir -p creatives
           curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];[print(k["type"]+"-"+x["format"], x["imageUrl"]) for k in c["concepts"] for x in k["creatives"] if x["imageUrl"]]' > creatives/urls.txt
           while read -r name url; do
-            curl -sS "${auth[@]}" -o "creatives/$name.png" -w "GET creative $name -> HTTP %{http_code} %{content_type}\n" "$APP$url"
+            curl -sS "${auth[@]}" -o "creatives/$name.${url##*.}" -w "GET creative $name -> HTTP %{http_code} %{content_type}\n" "$APP$url"
           done < creatives/urls.txt
           code=$(curl -sS "${auth[@]}" -o /dev/null -w '%{http_code}' "$APP/results/$campaign")
           echo "GET /results/$campaign -> HTTP $code"
@@ -150,6 +151,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: production-creatives
-          path: creatives/*.png
+          path: |
+            creatives/*.png
+            creatives/*.jpg
           if-no-files-found: ignore
           retention-days: 7

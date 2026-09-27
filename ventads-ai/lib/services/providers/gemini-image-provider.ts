@@ -23,7 +23,9 @@ const DEFAULT_MODEL = "gemini-3.1-flash-image";
 // calls in one request (see campaign-service.ts). A hung request must fail
 // loudly instead of blocking the whole campaign indefinitely, and a failed
 // request must never silently become a second billable retry.
-const REQUEST_TIMEOUT_MS = 180_000;
+// Kept well inside the worker's maxDuration (240s) together with its 45s
+// claim window; a slower call falls back to the local compositor instead.
+const REQUEST_TIMEOUT_MS = 100_000;
 const RETRY_ATTEMPTS = 1;
 
 // Our largest target canvas is 1080x1920 (STORY_9_16). Requesting 2K headroom
@@ -56,14 +58,17 @@ export class GeminiImageProvider implements ImageGenerationService {
   private client: GoogleGenAI;
   private apiKey: string;
   private model: string;
+  /** Used for a creative whenever Gemini fails, so a campaign never breaks on the AI. */
+  private fallback: ImageGenerationService | null;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, fallback: ImageGenerationService | null = null) {
     if (!apiKey) {
       throw new Error(
         "IMAGE_PROVIDER=gemini requiere GEMINI_API_KEY. Configúrala en .env."
       );
     }
     this.apiKey = apiKey;
+    this.fallback = fallback;
     this.client = new GoogleGenAI({ apiKey });
     this.model = getImageModel();
   }
@@ -129,18 +134,31 @@ export class GeminiImageProvider implements ImageGenerationService {
     const prompt = buildScenePrompt({
       conceptType: input.conceptType,
       styleId: input.styleId,
-      headline: input.headline,
+      formatId: input.formatId,
       variantSeed: input.variantSeed,
       hasProduct: Boolean(input.productImageBuffer),
+      isVehicle: Boolean(input.isVehicle),
+      objective: input.objective,
+      hasPrice: Boolean(input.priceDisplay),
     });
 
-    const background = await this.callGemini({
-      prompt,
-      images: input.productImageBuffer ? [input.productImageBuffer] : [],
-      aspectRatio,
-    });
+    let scene: Buffer;
+    try {
+      scene = await this.callGemini({
+        prompt,
+        images: input.productImageBuffer ? [input.productImageBuffer] : [],
+        aspectRatio,
+      });
+    } catch (error) {
+      if (!this.fallback) throw error;
+      const detail = error instanceof Error ? error.message : String(error);
+      console.error(`[gemini-image] ${this.model} failed, using the local compositor: ${detail.slice(0, 300)}`);
+      const local = await this.fallback.generateCreative(input);
+      return { ...local, provider: "local-compositor:gemini-fallback" };
+    }
 
-    return applyScrimAndCopy(background, {
+    // Gemini draws the scene only; the exact copy goes on top here.
+    const composed = await applyScrimAndCopy(scene, {
       formatId: input.formatId,
       styleId: input.styleId,
       conceptType: input.conceptType,
@@ -149,8 +167,9 @@ export class GeminiImageProvider implements ImageGenerationService {
       priceDisplay: input.priceDisplay,
       ctaLabel: input.ctaLabel,
       logoBuffer: input.logoBuffer,
-      hasProductPhoto: Boolean(input.productImageBuffer),
+      highlights: input.highlights,
     });
+    return { ...composed, provider: `gemini:${this.model}`, extension: "jpg" };
   }
 
   async generateVariation(input: RenderCreativeInput): Promise<GeneratedImage> {
@@ -178,9 +197,10 @@ export class GeminiImageProvider implements ImageGenerationService {
     const prompt = buildScenePrompt({
       conceptType: "VENTA_DIRECTA",
       styleId,
-      headline: "",
+      formatId,
       variantSeed: 0,
       hasProduct: false,
+      isVehicle: false,
     });
     const buffer = await this.callGemini({ prompt, images: [], aspectRatio });
     const resized = await sharp(buffer)

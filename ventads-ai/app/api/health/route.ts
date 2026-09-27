@@ -5,6 +5,7 @@ import { databaseSchema } from "@/lib/database-url";
 import { errorCode } from "@/lib/error-code";
 import { ensureFontsConfigured } from "@/lib/fonts";
 import { resolveStorageProvider } from "@/lib/services/storage";
+import { activeImageProviderName } from "@/lib/services/image-generation";
 import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
 
 export const runtime = "nodejs";
@@ -53,7 +54,8 @@ export async function GET() {
     ANTHROPIC_API_KEY: has("ANTHROPIC_API_KEY"),
     OPENAI_API_KEY: has("OPENAI_API_KEY"),
     STORAGE_PROVIDER: resolveStorageProvider(),
-    IMAGE_PROVIDER: process.env.IMAGE_PROVIDER || "local-compositor",
+    IMAGE_PROVIDER: activeImageProviderName(),
+    GEMINI_IMAGE_MODEL: process.env.GEMINI_IMAGE_MODEL?.trim() || "gemini-3.1-flash-image (default)",
     bundledFonts: ensureFontsConfigured(),
   };
 

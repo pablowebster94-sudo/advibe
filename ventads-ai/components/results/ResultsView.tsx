@@ -11,7 +11,7 @@ const POLL_INTERVAL_MS = 2500;
 // Safety cutoff so a genuinely stuck campaign doesn't poll forever in an
 // abandoned tab — the cron sweep (or a fresh page load, which re-polls from
 // zero) is the recovery path past this point.
-const MAX_POLL_MS = 6 * 60 * 1000;
+const MAX_POLL_MS = 10 * 60 * 1000;
 
 export function ResultsView({ campaign: initialCampaign }: { campaign: CampaignWithResults }) {
   const [campaign, setCampaign] = useState(initialCampaign);

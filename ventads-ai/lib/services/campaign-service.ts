@@ -2,7 +2,7 @@ import { FORMATS } from "@/lib/catalog/formats";
 import type { ObjectiveId } from "@/lib/catalog/objectives";
 import type { Creative } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { buildProductBrief } from "@/lib/product-brief";
+import { buildProductBrief, isVehicleBrief } from "@/lib/product-brief";
 import { analyzeProduct } from "@/lib/services/analysis-engine";
 import { activeImageProviderName, imageGeneration } from "@/lib/services/image-generation";
 import { currentJobConcurrency, dispatchWorkers } from "@/lib/services/job-dispatch";
@@ -88,6 +88,33 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
 }
 
 /**
+ * Up to 3 short, real selling points for the creative, taken only from what
+ * the user entered (features for the feature angle, benefits first
+ * otherwise) — never invented. Skips the one already used as headline.
+ */
+function creativeHighlights(
+  conceptType: string,
+  brief: { features: string[]; benefits: string[] },
+  headline: string
+): string[] {
+  const pool =
+    conceptType === "CARACTERISTICA"
+      ? [...brief.features, ...brief.benefits]
+      : [...brief.benefits, ...brief.features];
+  const seen = new Set<string>([headline.trim().toLowerCase()]);
+  const out: string[] = [];
+  for (const item of pool) {
+    const text = item.trim();
+    const key = text.toLowerCase();
+    if (!text || seen.has(key) || text.length > 40) continue;
+    seen.add(key);
+    out.push(text);
+    if (out.length === 3) break;
+  }
+  return out;
+}
+
+/**
  * Processes exactly one already-claimed job (status PROCESSING, see
  * lib/services/job-queue.ts#claimNextJob). On success the Creative becomes
  * COMPLETED with its imageUrl. On failure it goes back to PENDING with a
@@ -143,12 +170,15 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       productImageBuffer,
       logoBuffer,
       variantSeed: creative.version - 1,
+      highlights: creativeHighlights(concept.type, brief, concept.copy.headline),
+      isVehicle: isVehicleBrief(brief),
+      objective: campaign.objective,
     });
 
     const saved = await storage.save({
       buffer: rendered.buffer,
       folder: `creatives/${campaign.id}`,
-      extension: "png",
+      extension: rendered.extension ?? "png",
     });
 
     await prisma.creative.update({
@@ -156,7 +186,7 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       data: {
         status: "COMPLETED",
         imageKey: saved.key,
-        provider: activeImageProviderName(),
+        provider: rendered.provider ?? activeImageProviderName(),
         completedAt: new Date(),
         error: null,
       },

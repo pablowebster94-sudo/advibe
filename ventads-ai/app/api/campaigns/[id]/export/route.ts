@@ -60,7 +60,7 @@ async function handleGET(
       .normalize("NFKD")
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
-    archive.append(buffer, { name: `${safeName}.png` });
+    archive.append(buffer, { name: `${safeName}.${item.imageKey.split(".").pop() || "png"}` });
   }
   archive.finalize();
 

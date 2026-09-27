@@ -4,7 +4,15 @@ import { getStyle } from "@/lib/catalog/styles";
 import { renderCreative, type RenderCreativeInput } from "@/lib/services/creative-renderer";
 import { GeminiImageProvider } from "@/lib/services/providers/gemini-image-provider";
 
-export type GeneratedImage = { buffer: Buffer; width: number; height: number };
+export type GeneratedImage = {
+  buffer: Buffer;
+  width: number;
+  height: number;
+  /** Provider that actually produced this image (may differ from the configured one on fallback). */
+  provider?: string;
+  /** File extension of `buffer` ("jpg" for finished creatives). */
+  extension?: string;
+};
 
 /**
  * Every image-producing operation in ventADS.ai goes through this
@@ -36,12 +44,12 @@ export interface ImageGenerationService {
 }
 
 class LocalCompositorProvider implements ImageGenerationService {
-  async generateCreative(input: RenderCreativeInput) {
-    return renderCreative(input);
+  async generateCreative(input: RenderCreativeInput): Promise<GeneratedImage> {
+    return { ...(await renderCreative(input)), provider: "local-compositor", extension: "jpg" };
   }
 
-  async generateVariation(input: RenderCreativeInput) {
-    return renderCreative({ ...input, variantSeed: input.variantSeed + 1 });
+  async generateVariation(input: RenderCreativeInput): Promise<GeneratedImage> {
+    return this.generateCreative({ ...input, variantSeed: input.variantSeed + 1 });
   }
 
   async editProductImage(buffer: Buffer, targetFormatId: string) {
@@ -104,9 +112,17 @@ class LocalCompositorProvider implements ImageGenerationService {
   }
 }
 
-/** The configured provider name, for tagging Creative rows (see campaign-service.ts). */
+/**
+ * The configured provider: IMAGE_PROVIDER when set, otherwise Gemini
+ * whenever GEMINI_API_KEY exists (real AI scenes in production by default),
+ * falling back to the local compositor when there is no key.
+ */
 export function activeImageProviderName(): string {
-  return process.env.IMAGE_PROVIDER ?? "local-compositor";
+  const configured = process.env.IMAGE_PROVIDER?.trim();
+  const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY?.trim());
+  if (configured === "gemini" && !hasGeminiKey) return "local-compositor";
+  if (configured) return configured;
+  return hasGeminiKey ? "gemini" : "local-compositor";
 }
 
 function createImageGenerationService(): ImageGenerationService {
@@ -115,7 +131,7 @@ function createImageGenerationService(): ImageGenerationService {
     case "local-compositor":
       return new LocalCompositorProvider();
     case "gemini":
-      return new GeminiImageProvider(process.env.GEMINI_API_KEY ?? "");
+      return new GeminiImageProvider(process.env.GEMINI_API_KEY ?? "", new LocalCompositorProvider());
     default:
       throw new Error(`Unknown IMAGE_PROVIDER: ${provider}`);
   }

@@ -68,3 +68,19 @@ export function productTitle(brief: ProductBrief) {
     .filter(Boolean)
     .join(" ");
 }
+
+/**
+ * Vehicles get stricter identity rules in art direction and their own angle
+ * mix. The wizard stores the catalog id "vehiculos" (no accent); free-text
+ * fields are matched too for products entered under another category.
+ */
+export function isVehicleBrief(
+  brief: Pick<ProductBrief, "category" | "productName" | "description">
+): boolean {
+  return (
+    brief.category === "vehiculos" ||
+    /auto|veh[ií]culo|camioneta|camión|moto|pickup|sedán|suv/i.test(
+      brief.category + " " + brief.productName + " " + (brief.description || "")
+    )
+  );
+}

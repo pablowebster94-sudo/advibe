@@ -6,7 +6,7 @@ import { buildConcepts, type ConceptPlan } from "@/lib/services/concept-engine";
 import { generateCopy } from "@/lib/services/copy-service";
 import { getConceptType } from "@/lib/catalog/concepts";
 import { OBJECTIVES, type ObjectiveId } from "@/lib/catalog/objectives";
-import { productTitle } from "@/lib/product-brief";
+import { isVehicleBrief, productTitle } from "@/lib/product-brief";
 
 const analysisSchema = z.object({
   category: z.string().default(""),
@@ -265,10 +265,7 @@ export async function generateAICampaign(
 }
 
 export function conceptTypeForVariant(index: number, brief: ProductBrief): ConceptPlan["type"] {
-  // The wizard stores the catalog id "vehiculos" (no accent), so match both.
-  const isVehicle = brief.category === "vehiculos" || /auto|veh[ií]culo|camioneta|camión|moto|pickup|sedán|suv/i.test(
-    brief.category + " " + brief.productName + " " + (brief.description || "")
-  );
+  const isVehicle = isVehicleBrief(brief);
   if (isVehicle && index === 0) return "VENTA_DIRECTA";
   if (isVehicle && index === 1) return "CARACTERISTICA";
   if (isVehicle && index === 2) return "ASPIRACIONAL";
