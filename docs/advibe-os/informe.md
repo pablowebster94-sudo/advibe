@@ -38,14 +38,14 @@ Dos flujos reales en modo lectura: el diagnóstico de campañas de AM Motorsport
 
 | # | Qué | Quién |
 |---|---|---|
-| 1 | Abrir una **sesión nueva** para que se registren los subagentes. Después, probar el enrutamiento automático y la restricción de `tools` | Pablo abre la sesión; Claude prueba |
+| 1 | ~~Sesión nueva y prueba con subagentes reales~~: hecho el 2026-09-27 | ✅ |
 | 2 | **Reconectar Gmail con permiso de lectura** (ahora devuelve "Insufficient scope") | Pablo |
 | 3 | Regularizar las cuentas de Meta en estado UNSETTLED, o confirmar cuáles se usan | Pablo |
 | 4 | Llenar SERVICIOS (precios) y CLIENTE_SERVICIOS en la hoja CONTROL | Pablo |
 | 5 | Decidir qué son Bocabel, Cardagali, Kueva, Panera, La Trinidad, Chemu, Latin Eagle y Enfoque Visual (cliente, prueba o antiguo) | Pablo |
 | 6 | Confirmar a qué cliente pertenecen Mini Cooper, Citroen C4, Hyundai Tucson y Trailblazer | Pablo |
 | 7 | Borrar o archivar las 3 copias sobrantes de la hoja CONTROL | Pablo (nivel 3) |
-| 8 | Crear carpetas `clientes/<slug>/` en Drive con el brand kit de cada cliente | Pablo, o Claude con aprobación |
-| 9 | Aprobar las rutinas programadas propuestas en `arquitectura.md` | Pablo |
+| 8 | Carpetas `AdVibe OS/Clientes/<slug>` creadas. Falta subir el brand kit de cada cliente | Pablo |
+| 9 | La rutina "Briefing semanal" (lunes 07:52) está creada, pero **sin conectores**. Hay que añadir Drive, Calendar y Meta Ads desde la página de Routines de claude.ai. Las demás rutinas de `arquitectura.md` siguen pendientes | Pablo |
 | 10 | Opcional: integrar un CRM o pipeline de ventas. Hoy no existe; la interfaz mínima sería una pestaña PROSPECTOS en la hoja CONTROL | Decisión de Pablo |
 | 11 | En modo de permisos "bypass", las reglas `ask` pueden no mostrar confirmación. Usa el modo por defecto o auto | Pablo |
