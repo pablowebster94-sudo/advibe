@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = "https://advibeagencia.com";
+export const SITE_URL = "https://www.advibeagencia.com";
 export const SITE_NAME = "AdVibe Agencia";
 export const DEFAULT_TITLE = "AdVibe Agencia | Marketing Digital y Producción Audiovisual en Ecuador";
 export const DEFAULT_DESCRIPTION =
