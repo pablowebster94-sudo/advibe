@@ -14,9 +14,15 @@ const nextConfig: NextConfig = {
   // without this every route that loads sharp (uploads, campaign creation,
   // the creative worker, export) crashed at module load with an HTML 500.
   outputFileTracingIncludes: {
-    "/**": ["./node_modules/@img/sharp-libvips-linux-x64/lib/**/*"],
+    // ./fonts: serverless hosts have no system fonts for the creative text.
+    "/**": ["./node_modules/@img/sharp-libvips-linux-x64/lib/**/*", "./fonts/**/*"],
   },
   images: {
+    // Served by our own /api/files behind the Basic Auth gate. Next's image
+    // optimizer fetches the source server-side *without* the viewer's
+    // credentials (401 -> "isn't a valid image"), so the browser loads these
+    // files directly instead.
+    unoptimized: true,
     // Product photos and generated creatives are served from our own
     // /api/files route (local disk in dev). No remote domains needed yet.
     localPatterns: [{ pathname: "/api/files/**" }],

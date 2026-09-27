@@ -134,7 +134,22 @@ jobs:
           done
           set -- $state
           [ "$1" = "READY" ] && [ "$2" = "$3" ] || { echo "::error::Campaign ended as: $state"; exit 1; }
+          # Keep a few rendered creatives from production for visual review.
+          mkdir -p creatives
+          curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];[print(k["type"]+"-"+x["format"], x["imageUrl"]) for k in c["concepts"] for x in k["creatives"] if x["imageUrl"]]' > creatives/urls.txt
+          while read -r name url; do
+            curl -sS "${auth[@]}" -o "creatives/$name.png" -w "GET creative $name -> HTTP %{http_code} %{content_type}\n" "$APP$url"
+          done < creatives/urls.txt
           code=$(curl -sS "${auth[@]}" -o /dev/null -w '%{http_code}' "$APP/results/$campaign")
           echo "GET /results/$campaign -> HTTP $code"
           [ "$code" = "200" ] || failed=1
           [ "$failed" = "0" ] || { echo "::error::End-to-end flow had failures (see above)."; exit 1; }
+
+      - name: Upload rendered creatives
+        if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.e2e == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-creatives
+          path: creatives/*.png
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,3 +1,5 @@
+// Must run before sharp renders any text (points fontconfig at ./fonts).
+import "@/lib/fonts";
 import sharp, { type OverlayOptions } from "sharp";
 import { getFormat } from "@/lib/catalog/formats";
 import { getStyle } from "@/lib/catalog/styles";

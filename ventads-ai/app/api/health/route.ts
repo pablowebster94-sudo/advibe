@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { databaseSchema } from "@/lib/database-url";
 import { errorCode } from "@/lib/error-code";
+import { ensureFontsConfigured } from "@/lib/fonts";
 import { resolveStorageProvider } from "@/lib/services/storage";
 import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
 
@@ -53,6 +54,7 @@ export async function GET() {
     OPENAI_API_KEY: has("OPENAI_API_KEY"),
     STORAGE_PROVIDER: resolveStorageProvider(),
     IMAGE_PROVIDER: process.env.IMAGE_PROVIDER || "local-compositor",
+    bundledFonts: ensureFontsConfigured(),
   };
 
   let database: Record<string, unknown>;
