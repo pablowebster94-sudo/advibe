@@ -1,0 +1,35 @@
+name: Prisma Migrations
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "ventads-ai/prisma/**"
+      - "ventads-ai/prisma.config.ts"
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ventads-ai
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ventads-ai/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy Prisma migrations
+        run: npx prisma migrate deploy
