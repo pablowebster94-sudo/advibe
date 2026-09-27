@@ -8,13 +8,56 @@ Preparado el 27-09-2026 por AdVibe AI. **No publicar todavía:** antes de mostra
 
 **Regla:** "conversación" = una persona que escribió por WhatsApp o Messenger desde el anuncio. Es un contacto, no una venta. Nunca presentarlo como "clientes" ni como "ventas".
 
-## 1. Cifras globales (verificadas en Meta)
+## 1. Trayectoria completa: las 4 cuentas publicitarias
+Fuente: exportaciones de Meta Ads Manager que Pablo entregó el 27-09-2026. Cuentas: Pablo Webster, Enfoque Visual ADS, AdVibe ADS y AdVibe Agencia. Las fechas de fin de campaña más antiguas son de abril de 2025.
+
+| Métrica | Valor |
+|---|---|
+| Campañas gestionadas | **250** |
+| Inversión publicitaria gestionada | **$2.518,59** |
+| Impresiones | **1.958.724** |
+| **Conversaciones por WhatsApp o Messenger** | **2.850**, a **$0,54** de promedio (140 campañas) |
+| Alcance en campañas de reconocimiento | 559.429 (suma de campañas; puede haber personas repetidas) |
+| Formularios o leads | 143 (87 de formulario de Meta y 56 de clientes potenciales) |
+
+**Frase principal propuesta:** *"Más de 2.800 conversaciones por WhatsApp generadas para negocios, a un promedio de $0,54 cada una."*
+
+**Por sector.** La clasificación es aproximada, a partir del nombre de la campaña, y 84 campañas con nombres genéricos quedaron sin clasificar.
+
+| Sector | Conversaciones | Costo por conversación |
+|---|---|---|
+| Inmobiliario | 552 | $0,54 |
+| Automotriz | 476 | $0,41 |
+| Joyería y moda | 311 | $0,45 |
+| Arquitectura y diseño | 217 | $0,75 |
+| EE. UU. (servicios, envíos) | 212 | $0,89 |
+| Educación y deporte | 142 | $0,71 |
+| Gastronomía | 103 | $0,56 |
+| Salud | 83 | $0,83 |
+| Sin clasificar | 672 | $0,45 |
+
+**Mejores campañas por volumen** (cuenta Pablo Webster):
+- Interacción AM: 85 conversaciones a **$0,12**.
+- AM VENTAS: 80 conversaciones a $0,23.
+- Joyería / Ventas: 87 conversaciones a $0,39.
+- Ventas Joyería: 66 conversaciones a $0,32.
+- Mensajes a WhatsApp ARQ. VL: 63 conversaciones a $0,37.
+- Ventas / Jeep: 60 conversaciones a $0,78.
+
+**Aprendizajes honestos, para uso interno:**
+- Las campañas de leads en EE. UU. (Seattle: landscaping, cercas, lavado a presión) fueron caras. Por ejemplo, $158,67 por un solo lead. Donde AdVibe rinde mejor es con negocios locales de Ecuador y campañas de WhatsApp.
+- En "AdVibe (propia)", 78 de las 82 conversaciones vienen de una campaña de **reclutamiento de creadores**, no de captación de clientes.
+- Hay una campaña "Pack $69 | WhatsApp | Mayo 2026": ¿ese es un precio vigente de AdVibe? [DATO DE PABLO]
+
+⚠️ En estas exportaciones las campañas se asignan a una marca **por su nombre**, no por la página que las publica. Antes de citar a un cliente por su nombre, confirmar la asignación y pedir su permiso.
+
+## 1b. Solo la cuenta Enfoque Visual ADS (verificada con la API por página)
 - **457 conversaciones** generadas con anuncios.
 - **$324,93 de inversión publicitaria** en total.
 - **$0,71 de costo promedio por conversación.**
 - **Más de 10 marcas** de sectores automotriz, inmobiliario, educación, salud, retail y servicios.
 
-Frase propuesta: "Más de 450 conversaciones por WhatsApp generadas para negocios de Azuay, a un promedio de $0,71 cada una."
+Frase de esta cuenta sola: "Más de 450 conversaciones por WhatsApp generadas para negocios de Azuay, a un promedio de $0,71 cada una."
 
 ## 2. Casos (ordenados por fuerza de la prueba)
 
