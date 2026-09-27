@@ -9,6 +9,11 @@ on:
       - "ventads-ai/prisma/**"
       - "ventads-ai/prisma.config.ts"
 
+# Never run two migrations against the same database at once.
+concurrency:
+  group: prisma-migrate-production
+  cancel-in-progress: false
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
@@ -28,8 +33,36 @@ jobs:
           cache: npm
           cache-dependency-path: ventads-ai/package-lock.json
 
+      # Checks the shape of DATABASE_URL without ever printing it.
+      - name: Check DATABASE_URL
+        shell: bash
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Repository secret DATABASE_URL is not set."
+            exit 1
+          fi
+          node -e '
+            const u = new URL(process.env.DATABASE_URL);
+            const host = u.hostname;
+            console.log("host:", host.replace(/^[^.]+/, "***"), "port:", u.port || "5432", "db:", u.pathname.slice(1));
+            if (/^db\..+\.supabase\.co$/.test(host)) {
+              console.log("::error::DATABASE_URL uses the direct connection (db.<ref>.supabase.co, IPv6 only). Use the Session pooler URL (aws-0-<region>.pooler.supabase.com:5432).");
+              process.exit(1);
+            }
+            if (host.endsWith("pooler.supabase.com") && !u.username.startsWith("postgres.")) {
+              console.log("::error::Supabase pooler URLs need the user postgres.<project-ref>, not \"" + u.username + "\".");
+              process.exit(1);
+            }
+            if (host.endsWith("pooler.supabase.com") && u.port === "6543") {
+              console.log("::warning::Port 6543 is the Transaction pooler; migrations should use the Session pooler (5432).");
+            }
+          '
+
       - name: Install dependencies
         run: npm ci
 
       - name: Deploy Prisma migrations
         run: npx prisma migrate deploy
+
+      - name: Verify migration status
+        run: npx prisma migrate status

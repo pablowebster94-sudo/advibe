@@ -10,8 +10,23 @@ function createClient() {
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+function getClient() {
+  const client = globalForPrisma.prisma ?? createClient();
+  // Cached in production too: one client per server instance.
+  globalForPrisma.prisma = client;
+  return client;
 }
+
+/**
+ * Created on first use rather than at import time, so `next build` (which
+ * imports every route while collecting page data) never needs DATABASE_URL
+ * or a reachable database. A missing/invalid DATABASE_URL surfaces at
+ * request time instead, where app/error.tsx renders it.
+ */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, property) {
+    const client = getClient();
+    const value = Reflect.get(client, property, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
