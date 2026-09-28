@@ -1,11 +1,12 @@
 import type {Metadata} from "next";
+import {evMetadata} from "@/lib/enfoque-seo";
 import {Header} from "@/components/enfoque/Header";
 import {VehicleCard,EmptyResults} from "@/components/enfoque/Cards";
 import {VehicleFiltersForm} from "@/components/enfoque/Filters";
 import {loadVehicles} from "@/lib/enfoque-catalog";
 import {activeFilterCount,filterVehicles,options,readVehicleFilters} from "@/lib/enfoque-filters";
 export const dynamic="force-dynamic";
-export const metadata:Metadata={title:"Vehículos en venta | Enfoque Visual",description:"Autos, SUVs y camionetas en venta en Ecuador con fotos, video y ficha técnica.",alternates:{canonical:"/vehiculos"}};
+export const metadata:Metadata=evMetadata({title:"Vehículos en venta",description:"Autos, SUVs y camionetas en venta en Ecuador con fotos, video y ficha técnica.",path:"/vehiculos"});
 const action="/enfoque-visual/vehiculos";
 export default async function Page({searchParams}:{searchParams:Promise<{[key:string]:string|string[]|undefined}>}){
   const all=await loadVehicles();

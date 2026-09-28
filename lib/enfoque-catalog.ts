@@ -1,3 +1,4 @@
+import {cache} from "react";
 import {properties as demoProperties,vehicles as demoVehicles,getProperty,getVehicle,type Property,type Vehicle} from "@/lib/enfoque-data";
 import {getPublishedProperties,getPublishedProperty,getPublishedVehicle,getPublishedVehicles,supabaseConfigured} from "@/lib/enfoque-supabase";
 
@@ -32,9 +33,8 @@ export function loadProperties():Promise<Property[]>{
 export function loadVehicles():Promise<Vehicle[]>{
   return load("vehículos",getPublishedVehicles,demoVehicles,[]);
 }
-export function loadProperty(slug:string):Promise<Property|undefined>{
-  return load("propiedad "+slug,()=>getPublishedProperty(slug),getProperty(slug),undefined);
-}
-export function loadVehicle(slug:string):Promise<Vehicle|undefined>{
-  return load("vehículo "+slug,()=>getPublishedVehicle(slug),getVehicle(slug),undefined);
-}
+// cache(): generateMetadata y la página comparten la misma consulta en una petición.
+export const loadProperty=cache((slug:string):Promise<Property|undefined>=>
+  load("propiedad "+slug,()=>getPublishedProperty(slug),getProperty(slug),undefined));
+export const loadVehicle=cache((slug:string):Promise<Vehicle|undefined>=>
+  load("vehículo "+slug,()=>getPublishedVehicle(slug),getVehicle(slug),undefined));

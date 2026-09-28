@@ -3,9 +3,11 @@ import {notFound} from "next/navigation";
 import {money} from "@/lib/enfoque-data";
 import {loadProperty} from "@/lib/enfoque-catalog";
 import {label} from "@/lib/enfoque-filters";
+import {EV_SITE,breadcrumbs,evMetadata,jsonLd} from "@/lib/enfoque-seo";
 import {Header} from "@/components/enfoque/Header";
 import {Tracking} from "@/components/enfoque/Tracking";
 import {ListingVideo} from "@/components/enfoque/Video";
+import {Gallery} from "@/components/enfoque/Gallery";
 import {ContactBox,MobileCta} from "@/components/enfoque/ContactBox";
 
 export const dynamic="force-dynamic";
@@ -13,10 +15,10 @@ type Props={params:Promise<{slug:string}>};
 
 export async function generateMetadata({params}:Props):Promise<Metadata>{
   const item=await loadProperty((await params).slug);
-  if(!item)return {title:"Propiedad no encontrada | Enfoque Visual",robots:{index:false}};
-  const title=`${item.title} · ${money(item.price)} | Enfoque Visual`;
-  const description=(item.description||`${label(item.type)} en ${label(item.operation).toLowerCase()} en ${item.city}.`).slice(0,160);
-  return {title,description,alternates:{canonical:"/propiedades/"+item.slug},openGraph:{title,description,type:"website",images:item.images.slice(0,1)}};
+  if(!item)return {title:"Propiedad no encontrada",robots:{index:false,follow:false}};
+  const title=`${item.title} · ${money(item.price)}${item.operation==="alquiler"?"/mes":""}`;
+  const description=(item.description||`${label(item.type)} en ${label(item.operation).toLowerCase()} en ${item.city}.`).replace(/\s+/g," ").slice(0,160);
+  return evMetadata({title,description,path:"/propiedades/"+item.slug,images:item.images});
 }
 
 export default async function Page({params}:Props){
@@ -24,13 +26,19 @@ export default async function Page({params}:Props){
   const item=await loadProperty(slug);
   if(!item)return notFound();
   const unavailable=item.availability&&item.availability!=="disponible"?label(item.availability):undefined;
-  const stats:[unknown,string][]=[[item.buildM2,"m² construcción"],[item.landM2,"m² terreno"],[item.rooms,"habitaciones"],[item.baths,"baños"],[item.parking,"parqueaderos"]];
-  const jsonLd={"@context":"https://schema.org","@type":"Product",name:item.title,description:item.description,image:item.images,category:label(item.type),
-    offers:{"@type":"Offer",price:item.price,priceCurrency:"USD",availability:unavailable?"https://schema.org/SoldOut":"https://schema.org/InStock"}};
+  const stats:[unknown,string][]=[[item.buildM2,"m² construcción"],[item.landM2,"m² terreno"],[item.rooms,"dormitorios"],[item.baths,"baños"],[item.parking,"parqueaderos"]];
+  const url=`${EV_SITE}/propiedades/${item.slug}`;
+  const listingLd={"@context":"https://schema.org","@type":"RealEstateListing",name:item.title,description:item.description,url,image:item.images,
+    about:{"@type":item.type==="departamento"?"Apartment":item.type==="casa"?"SingleFamilyResidence":"Place",name:item.title,
+      address:{"@type":"PostalAddress",addressLocality:item.city,addressRegion:"Azuay",addressCountry:"EC",streetAddress:item.sector||undefined},
+      ...(item.rooms?{numberOfRooms:item.rooms}:{}),...(item.buildM2||item.landM2?{floorSize:{"@type":"QuantitativeValue",value:item.buildM2||item.landM2,unitCode:"MTK"}}:{})},
+    offers:{"@type":"Offer",url,price:item.price,priceCurrency:"USD",businessFunction:item.operation==="alquiler"?"http://purl.org/goodrelations/v1#LeaseOut":"http://purl.org/goodrelations/v1#Sell",
+      availability:unavailable?"https://schema.org/SoldOut":"https://schema.org/InStock"}};
+  const crumbs=breadcrumbs([["Inicio","/"],[item.operation==="alquiler"?"Alquiler":"Propiedades",item.operation==="alquiler"?"/alquiler":"/propiedades"],[item.title,"/propiedades/"+item.slug]]);
   return <><Header/><Tracking id={item.id} type="property" value={item.price} name={item.title}/>
-  <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
+  <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd([listingLd,crumbs])}/>
   <main className="mx-auto max-w-7xl px-5 py-7 pb-24 lg:pb-7">
-    {item.images.length?<div className="grid gap-3 md:grid-cols-3">{item.images.map((src,i)=><div key={src} className={"relative overflow-hidden rounded-3xl "+(i===0?"aspect-[16/10] md:col-span-2 md:row-span-2":"aspect-[4/3]")+(i>4?" hidden md:block":"")}><img src={src} alt={`${item.title} — foto ${i+1}`} className="ev-img" loading={i===0?"eager":"lazy"} fetchPriority={i===0?"high":undefined}/></div>)}</div>:null}
+    <Gallery images={item.images} title={item.title}/>
     <div className="grid gap-10 py-10 lg:grid-cols-[1fr_380px]"><div>
       <p className="text-xs font-black uppercase tracking-[.2em] text-black/40">{[label(item.operation),label(item.type),item.city,item.sector].filter(Boolean).join(" · ")}</p>
       <h1 className="ev-display mt-2 text-5xl font-black leading-none md:text-7xl">{item.title}</h1>
@@ -42,7 +50,7 @@ export default async function Page({params}:Props){
     </div>
     <ContactBox id={item.id} type="property" value={item.price} city={item.city} title={item.title} unavailable={unavailable}
       interest={item.operation==="alquiler"?"alquilar_propiedad":"comprar_propiedad"}
-      message={"Hola, estoy interesado en "+item.title+" de "+money(item.price)+" que vi en Enfoque Visual."}/>
+      message={"Hola, estoy interesado en "+item.title+" de "+money(item.price)+(item.operation==="alquiler"?" al mes":"")+" que vi en Enfoque Visual: "+url}/>
     </div>
   </main><MobileCta/></>;
 }

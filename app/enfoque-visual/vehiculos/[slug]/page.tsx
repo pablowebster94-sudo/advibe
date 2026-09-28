@@ -3,9 +3,11 @@ import {notFound} from "next/navigation";
 import {money} from "@/lib/enfoque-data";
 import {loadVehicle} from "@/lib/enfoque-catalog";
 import {label} from "@/lib/enfoque-filters";
+import {EV_SITE,breadcrumbs,evMetadata,jsonLd} from "@/lib/enfoque-seo";
 import {Header} from "@/components/enfoque/Header";
 import {Tracking} from "@/components/enfoque/Tracking";
 import {ListingVideo} from "@/components/enfoque/Video";
+import {Gallery} from "@/components/enfoque/Gallery";
 import {ContactBox,MobileCta} from "@/components/enfoque/ContactBox";
 
 export const dynamic="force-dynamic";
@@ -13,11 +15,11 @@ type Props={params:Promise<{slug:string}>};
 
 export async function generateMetadata({params}:Props):Promise<Metadata>{
   const item=await loadVehicle((await params).slug);
-  if(!item)return {title:"Vehículo no encontrado | Enfoque Visual",robots:{index:false}};
+  if(!item)return {title:"Vehículo no encontrado",robots:{index:false,follow:false}};
   const name=`${item.brand} ${item.model} ${item.year}`;
-  const title=`${name} · ${money(item.price)} | Enfoque Visual`;
-  const description=(item.description||`${name} en venta, ${item.mileage.toLocaleString("es-EC")} km.`).slice(0,160);
-  return {title,description,alternates:{canonical:"/vehiculos/"+item.slug},openGraph:{title,description,type:"website",images:item.images.slice(0,1)}};
+  const title=`${name} · ${money(item.price)}`;
+  const description=(item.description||`${name} en venta, ${item.mileage.toLocaleString("es-EC")} km.`).replace(/\s+/g," ").slice(0,160);
+  return evMetadata({title,description,path:"/vehiculos/"+item.slug,images:item.images});
 }
 
 export default async function Page({params}:Props){
@@ -27,13 +29,17 @@ export default async function Page({params}:Props){
   const name=item.brand+" "+item.model;
   const unavailable=item.availability&&item.availability!=="disponible"?label(item.availability):undefined;
   const stats:[unknown,string][]=[[item.year,"Año"],[item.mileage.toLocaleString("es-EC")+" km","Kilometraje"],[label(item.fuel),"Combustible"],[label(item.transmission),"Transmisión"],[item.engine,"Motor"]];
-  const jsonLd={"@context":"https://schema.org","@type":"Car",name:`${name} ${item.year}`,brand:{"@type":"Brand",name:item.brand},model:item.model,vehicleModelDate:String(item.year),
-    mileageFromOdometer:{"@type":"QuantitativeValue",value:item.mileage,unitCode:"KMT"},fuelType:label(item.fuel)||undefined,description:item.description,image:item.images,
-    offers:{"@type":"Offer",price:item.price,priceCurrency:"USD",availability:unavailable?"https://schema.org/SoldOut":"https://schema.org/InStock"}};
+  const url=`${EV_SITE}/vehiculos/${item.slug}`;
+  const carLd={"@context":"https://schema.org","@type":"Car",name:`${name} ${item.year}`,url,brand:{"@type":"Brand",name:item.brand},model:item.model,vehicleModelDate:String(item.year),
+    itemCondition:"https://schema.org/UsedCondition",mileageFromOdometer:{"@type":"QuantitativeValue",value:item.mileage,unitCode:"KMT"},
+    ...(item.fuel?{fuelType:label(item.fuel)}:{}),...(item.transmission?{vehicleTransmission:label(item.transmission)}:{}),...(item.engine?{vehicleEngine:{"@type":"EngineSpecification",name:item.engine}}:{}),
+    description:item.description,image:item.images,
+    offers:{"@type":"Offer",url,price:item.price,priceCurrency:"USD",availability:unavailable?"https://schema.org/SoldOut":"https://schema.org/InStock"}};
+  const crumbs=breadcrumbs([["Inicio","/"],["Vehículos","/vehiculos"],[`${name} ${item.year}`,"/vehiculos/"+item.slug]]);
   return <><Header/><Tracking id={item.id} type="vehicle" value={item.price} name={name}/>
-  <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd).replace(/</g,"\\u003c")}}/>
+  <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd([carLd,crumbs])}/>
   <main className="mx-auto max-w-7xl px-5 py-7 pb-24 lg:pb-7">
-    {item.images.length?<div className="grid gap-3 md:grid-cols-2">{item.images.map((src,i)=><div key={src} className={"relative aspect-[4/3] overflow-hidden rounded-3xl"+(i>3?" hidden md:block":"")}><img src={src} alt={`${name} — foto ${i+1}`} className="ev-img" loading={i===0?"eager":"lazy"} fetchPriority={i===0?"high":undefined}/></div>)}</div>:null}
+    <Gallery images={item.images} title={`${name} ${item.year}`} layout="vehicle"/>
     <div className="grid gap-10 py-10 lg:grid-cols-[1fr_380px]"><div>
       <p className="text-xs font-black uppercase tracking-[.2em] text-black/40">{[item.brand,String(item.year),item.city].filter(Boolean).join(" · ")}</p>
       <h1 className="ev-display mt-2 text-5xl font-black md:text-7xl">{item.model}</h1>
@@ -44,7 +50,7 @@ export default async function Page({params}:Props){
       {item.features.length>0&&<><h2 className="mt-10 text-2xl font-black">Equipamiento</h2><ul className="mt-4 grid gap-2 sm:grid-cols-2">{item.features.map(f=><li key={f} className="rounded-xl bg-white px-4 py-3 text-sm ring-1 ring-black/5">✓ {f}</li>)}</ul></>}
     </div>
     <ContactBox id={item.id} type="vehicle" value={item.price} city={item.city} title={`${name} ${item.year}`} unavailable={unavailable} interest="comprar_vehiculo"
-      message={"Hola, estoy interesado en el "+name+" "+item.year+" de "+money(item.price)+" que vi en Enfoque Visual."}/>
+      message={"Hola, estoy interesado en el "+name+" "+item.year+" de "+money(item.price)+" que vi en Enfoque Visual: "+url}/>
     </div>
   </main><MobileCta/></>;
 }
