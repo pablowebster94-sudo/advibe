@@ -1,12 +1,12 @@
 "use client";
 import {useState} from "react";
-import {getMetaBrowserData,track} from "./Tracking";
+import {contentType,getMetaBrowserData,track} from "./Tracking";
 
 type Props={id:string;type:"property"|"vehicle";value:number;interest:"comprar_propiedad"|"alquilar_propiedad"|"comprar_vehiculo";title:string};
 
 // Formulario corto dentro de cada ficha → evento Lead (pixel + CAPI con el mismo event_id).
 export function LeadForm({id,type,value,interest,title}:Props){
-  const empty={name:"",phone:"",email:"",message:""};
+  const empty={name:"",phone:"",email:"",message:"",website:""};
   const [form,setForm]=useState(empty);
   const [state,setState]=useState<"idle"|"sending"|"ok"|"error">("idle");
   const [error,setError]=useState("");
@@ -21,13 +21,14 @@ export function LeadForm({id,type,value,interest,title}:Props){
       })});
       const d=await r.json().catch(()=>({}));
       if(!r.ok){setError(d.error||"");throw new Error();}
-      track("Lead",{event_id:eventId,content_ids:[id],content_type:type==="property"?"home_listing":"vehicle",value,currency:"USD"});
+      track("Lead",{event_id:eventId,content_ids:[id],content_type:contentType(type),value,currency:"USD"});
       setState("ok"); setForm(empty);
     }catch{setState("error");}
   }
   if(state==="ok")return <div className="rounded-2xl bg-[#d9ff3f] p-5 text-black"><p className="font-black">¡Solicitud recibida!</p><p className="mt-1 text-sm text-black/70">Te contactaremos pronto con la información.</p></div>;
   const input="mt-1 w-full rounded-xl bg-white/10 px-4 py-3 text-sm text-white outline-none ring-1 ring-white/10 focus:ring-[#d9ff3f]";
   return <form onSubmit={submit} className="space-y-3">
+    <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.website} onChange={e=>setForm({...form,website:e.target.value})} className="hidden"/>
     <label className="block text-xs font-bold text-white/70">Nombre<input required minLength={2} autoComplete="name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} className={input}/></label>
     <label className="block text-xs font-bold text-white/70">WhatsApp<input required type="tel" inputMode="tel" autoComplete="tel" placeholder="09XXXXXXXX" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})} className={input}/></label>
     <label className="block text-xs font-bold text-white/70">Correo <span className="font-normal text-white/40">(opcional)</span><input type="email" autoComplete="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} className={input}/></label>

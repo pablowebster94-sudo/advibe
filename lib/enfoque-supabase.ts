@@ -1,4 +1,5 @@
 import type { Property, Vehicle } from "@/lib/enfoque-data";
+import type { ImageRow, PropertyRow, VehicleRow } from "@/lib/enfoque-types";
 
 export function supabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -12,12 +13,28 @@ function baseUrl() {
   return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
 }
 
-async function rest(path:string, init:RequestInit = {}, token?:string) {
+type Mode="public"|"user"|"service";
+const isJwt=(key:string)=>key.startsWith("eyJ");
+
+/** Cabeceras según quién hace la petición. Las claves nuevas (sb_publishable_/sb_secret_) solo van en apikey. */
+export function supabaseHeaders(mode:Mode,token?:string,env:Record<string,string|undefined>=process.env){
+  const anon=env.NEXT_PUBLIC_SUPABASE_ANON_KEY||"";
+  const service=env.SUPABASE_SERVICE_ROLE_KEY||"";
+  const headers:Record<string,string>={};
+  if(mode==="user"){headers.apikey=anon||service;headers.Authorization=`Bearer ${token}`;}
+  else{
+    const key=mode==="service"?service:anon;
+    headers.apikey=key;
+    if(isJwt(key))headers.Authorization=`Bearer ${key}`;
+  }
+  return headers;
+}
+
+async function rest(path:string, init:RequestInit = {}, mode:Mode, token?:string) {
   const url = baseUrl();
   if (!url) throw new Error("Supabase URL is not configured");
   const headers = new Headers(init.headers);
-  headers.set("apikey", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "");
-  if (token || process.env.SUPABASE_SERVICE_ROLE_KEY) headers.set("Authorization", `Bearer ${token || process.env.SUPABASE_SERVICE_ROLE_KEY}`);
+  for (const [k,v] of Object.entries(supabaseHeaders(mode,token))) headers.set(k,v);
   headers.set("Content-Type","application/json");
   const response = await fetch(`${url}/rest/v1/${path}`, {...init, headers, cache:"no-store"});
   if (!response.ok) throw new Error(`Supabase ${response.status}: ${await response.text()}`);
@@ -26,11 +43,11 @@ async function rest(path:string, init:RequestInit = {}, token?:string) {
 }
 
 export async function supabasePublic<T>(path:string) {
-  return rest(path, {headers:{"Prefer":"return=representation"}}) as Promise<T>;
+  return rest(path, {}, "public") as Promise<T>;
 }
 
 export async function supabaseAdmin<T>(path:string, init:RequestInit = {}, token?:string) {
-  return rest(path, init, token) as Promise<T>;
+  return rest(path, init, token ? "user" : "service", token) as Promise<T>;
 }
 
 export async function supabaseAuthPassword(email:string,password:string) {
@@ -48,7 +65,7 @@ export async function supabaseAuthPassword(email:string,password:string) {
 }
 
 export async function supabaseUserProfile(accessToken:string) {
-  const rows = await rest("profiles?select=id,full_name,role&limit=1", {}, accessToken) as Array<{id:string;full_name:string|null;role:"admin"|"editor"}>;
+  const rows = await rest("profiles?select=id,full_name,role&limit=1", {}, "user", accessToken) as Array<{id:string;full_name:string|null;role:"admin"|"editor"}>;
   return rows[0] || null;
 }
 
@@ -62,7 +79,7 @@ export function orderImages<T extends {is_cover?:boolean;sort_order?:number}>(im
   return [...images].sort((a,b)=>Number(Boolean(b.is_cover))-Number(Boolean(a.is_cover))||(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
 }
 
-export function mapProperty(row:any, images:any[] = []):Property {
+export function mapProperty(row:PropertyRow, images:ImageRow[] = []):Property {
   return {
     id:row.id, slug:row.slug, title:row.title, price:Number(row.price), operation:row.operation_type,
     type:row.property_type, city:row.city, sector:row.sector || "", landM2:row.land_area_m2 ? Number(row.land_area_m2) : undefined,
@@ -73,7 +90,7 @@ export function mapProperty(row:any, images:any[] = []):Property {
   };
 }
 
-export function mapVehicle(row:any, images:any[] = []):Vehicle {
+export function mapVehicle(row:VehicleRow, images:ImageRow[] = []):Vehicle {
   return {
     id:row.id, slug:row.slug, brand:row.brand, model:row.model, year:Number(row.year), price:Number(row.price),
     mileage:Number(row.mileage_km || 0), fuel:row.fuel || "", transmission:row.transmission || "",
@@ -84,27 +101,27 @@ export function mapVehicle(row:any, images:any[] = []):Vehicle {
 }
 
 export async function getPublishedProperties() {
-  const rows = await supabasePublic<any[]>("properties?publication_status=eq.publicado&order=published_at.desc");
-  const images = await supabasePublic<any[]>("listing_images?select=id,property_id,storage_path,sort_order,is_cover&property_id=not.is.null&order=sort_order.asc");
+  const rows = await supabasePublic<PropertyRow[]>("properties?publication_status=eq.publicado&order=published_at.desc");
+  const images = await supabasePublic<ImageRow[]>("listing_images?select=id,property_id,storage_path,sort_order,is_cover&property_id=not.is.null&order=sort_order.asc");
   return rows.map(row=>mapProperty(row,images.filter(i=>i.property_id===row.id)));
 }
 
 export async function getPublishedVehicles() {
-  const rows = await supabasePublic<any[]>("vehicles?publication_status=eq.publicado&order=published_at.desc");
-  const images = await supabasePublic<any[]>("listing_images?select=id,vehicle_id,storage_path,sort_order,is_cover&vehicle_id=not.is.null&order=sort_order.asc");
+  const rows = await supabasePublic<VehicleRow[]>("vehicles?publication_status=eq.publicado&order=published_at.desc");
+  const images = await supabasePublic<ImageRow[]>("listing_images?select=id,vehicle_id,storage_path,sort_order,is_cover&vehicle_id=not.is.null&order=sort_order.asc");
   return rows.map(row=>mapVehicle(row,images.filter(i=>i.vehicle_id===row.id)));
 }
 
 export async function getPublishedProperty(slug:string) {
-  const rows = await supabasePublic<any[]>(`properties?slug=eq.${encodeURIComponent(slug)}&publication_status=eq.publicado&limit=1`);
+  const rows = await supabasePublic<PropertyRow[]>(`properties?slug=eq.${encodeURIComponent(slug)}&publication_status=eq.publicado&limit=1`);
   if (!rows[0]) return undefined;
-  const images = await supabasePublic<any[]>(`listing_images?property_id=eq.${rows[0].id}&order=sort_order.asc`);
+  const images = await supabasePublic<ImageRow[]>(`listing_images?property_id=eq.${rows[0].id}&order=sort_order.asc`);
   return mapProperty(rows[0],images);
 }
 
 export async function getPublishedVehicle(slug:string) {
-  const rows = await supabasePublic<any[]>(`vehicles?slug=eq.${encodeURIComponent(slug)}&publication_status=eq.publicado&limit=1`);
+  const rows = await supabasePublic<VehicleRow[]>(`vehicles?slug=eq.${encodeURIComponent(slug)}&publication_status=eq.publicado&limit=1`);
   if (!rows[0]) return undefined;
-  const images = await supabasePublic<any[]>(`listing_images?vehicle_id=eq.${rows[0].id}&order=sort_order.asc`);
+  const images = await supabasePublic<ImageRow[]>(`listing_images?vehicle_id=eq.${rows[0].id}&order=sort_order.asc`);
   return mapVehicle(rows[0],images);
 }

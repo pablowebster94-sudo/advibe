@@ -1,9 +1,9 @@
+import {supabaseHeaders} from "@/lib/enfoque-supabase";
 // Operaciones de Storage (bucket listing-media) con service role. Solo servidor.
 const BUCKET="listing-media";
 function base(){return (process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL||"").replace(/\/$/,"");}
 function headers(extra:Record<string,string>={}){
-  const key=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
-  return {"Authorization":"Bearer "+key,"apikey":key,...extra};
+  return {...supabaseHeaders("service"),...extra};
 }
 export function storageConfigured(){return Boolean(base()&&process.env.SUPABASE_SERVICE_ROLE_KEY);}
 

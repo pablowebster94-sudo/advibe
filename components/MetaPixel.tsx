@@ -8,7 +8,8 @@ export default function MetaPixel() {
   const isEnfoque =
     typeof window !== "undefined" &&
     (window.location.hostname === "enfoque.advibeagencia.com" ||
-      window.location.hostname === "enfoquevisual.advibeagencia.com");
+      window.location.hostname === "enfoquevisual.advibeagencia.com" ||
+      window.location.pathname.startsWith("/enfoque-visual"));
 
   const isAMMotorsport =
     typeof window !== "undefined" &&
