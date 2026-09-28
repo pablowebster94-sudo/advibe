@@ -1,5 +1,5 @@
 # Enfoque Visual — variables de entorno (nombres EXACTOS que lee el código).
-# Revisa el resultado en /enfoque-visual/admin/estado después de desplegar.
+# Revisa el resultado en /admin/estado después de desplegar. Guía: docs/enfoque-visual-produccion.md
 
 NEXT_PUBLIC_SITE_URL=https://enfoque.advibeagencia.com
 # Solo dígitos con código de país. Se incrusta en el build: redeploy tras cambiarla.

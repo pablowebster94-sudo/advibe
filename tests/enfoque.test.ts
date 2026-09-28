@@ -4,7 +4,11 @@ import {parseVideoUrl} from "../lib/enfoque-video";
 import {filterProperties,filterVehicles,options,readPropertyFilters,readVehicleFilters,activeFilterCount} from "../lib/enfoque-filters";
 import {features,propertyPayload,slugify,vehiclePayload} from "../lib/enfoque-listing";
 import {demoAllowed} from "../lib/enfoque-catalog";
-import {capiFields,isE164,normalizePhone} from "../lib/enfoque-meta";
+import {capiFields,isE164,isValidPhone,normalizePhone,resolveFbc,resolveFbp,sendMetaEvent} from "../lib/enfoque-meta";
+import {supabaseHeaders} from "../lib/enfoque-supabase";
+import {jwtSecondsLeft} from "../lib/enfoque-session";
+import {quickPatch} from "../lib/enfoque-listing";
+import {createHash} from "node:crypto";
 import {orderImages} from "../lib/enfoque-supabase";
 import {runHealthChecks} from "../lib/enfoque-health";
 import {properties,vehicles} from "../lib/enfoque-data";
@@ -106,13 +110,83 @@ test("orderImages pone la portada primero y respeta sort_order", () => {
 });
 
 test("health: detecta WhatsApp, CAPI y pixel mal configurados sin exponer secretos", async () => {
-  const checks=await runHealthChecks({NODE_ENV:"production",META_ENFOQUE_PIXEL_ID:"111",NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID:"222",META_ENFOQUE_ACCESS_TOKEN:"secreto-no-mostrar"});
+  const checks=await runHealthChecks({NODE_ENV:"production",META_ENFOQUE_PIXEL_ID:"111",NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID:"222",META_ENFOQUE_ACCESS_TOKEN:"secreto-no-mostrar"},{remote:false});
   const by=Object.fromEntries(checks.map(c=>[c.id,c]));
   assert.equal(by.whatsapp.status,"error");
   assert.equal(by.supabase_public.status,"error");
   assert.equal(by.demo.status,"ok");
   assert.equal(by.dedup.status,"error");
   assert.ok(!JSON.stringify(checks).includes("secreto-no-mostrar"));
-  const good=await runHealthChecks({NEXT_PUBLIC_WHATSAPP_NUMBER:"+593 98 496 6335"});
+  const good=await runHealthChecks({NEXT_PUBLIC_WHATSAPP_NUMBER:"+593 98 496 6335"},{remote:false});
   assert.equal(good.find(c=>c.id==="whatsapp")?.status,"ok");
+});
+
+test("teléfonos: valida longitud real en Ecuador", () => {
+  assert.equal(isValidPhone(normalizePhone("0991234567")),true);   // móvil
+  assert.equal(isValidPhone(normalizePhone("072123456")),true);    // fijo Cuenca
+  assert.equal(isValidPhone(normalizePhone("099123456")),false);   // móvil corto
+  assert.equal(isValidPhone(normalizePhone("09912345678")),false); // móvil largo
+  assert.equal(isValidPhone(normalizePhone("+34 612 345 678")),true);
+});
+
+test("_fbc/_fbp: cookie válida o fbclid del clic", () => {
+  assert.equal(resolveFbc("fb.1.1700000000000.AbC",null),"fb.1.1700000000000.AbC");
+  assert.equal(resolveFbc(null,{fbclid:"IwAR123",ts:1700000000123}),"fb.1.1700000000123.IwAR123");
+  assert.equal(resolveFbc("basura",null),null);
+  assert.equal(resolveFbp("fb.1.1700000000000.123456789"),"fb.1.1700000000000.123456789");
+  assert.equal(resolveFbp("x"),null);
+});
+
+test("supabaseHeaders: claves nuevas solo en apikey; JWT también en Authorization", () => {
+  assert.deepEqual(supabaseHeaders("service",undefined,{SUPABASE_SERVICE_ROLE_KEY:"sb_secret_x"}),{apikey:"sb_secret_x"});
+  assert.deepEqual(supabaseHeaders("public",undefined,{NEXT_PUBLIC_SUPABASE_ANON_KEY:"eyJabc"}),{apikey:"eyJabc",Authorization:"Bearer eyJabc"});
+  assert.deepEqual(supabaseHeaders("user","tok",{NEXT_PUBLIC_SUPABASE_ANON_KEY:"sb_publishable_y",SUPABASE_SERVICE_ROLE_KEY:"eyJsecret"}),{apikey:"sb_publishable_y",Authorization:"Bearer tok"});
+});
+
+test("jwtSecondsLeft lee exp sin verificar firma", () => {
+  const b64=(o:object)=>Buffer.from(JSON.stringify(o)).toString("base64url");
+  const token=`${b64({alg:"HS256"})}.${b64({exp:2000})}.firma`;
+  assert.equal(jwtSecondsLeft(token,1000*1000),1000);
+  assert.equal(jwtSecondsLeft("no-es-jwt"),-1);
+});
+
+test("quickPatch solo acepta estado, disponibilidad y destacado válidos", () => {
+  assert.deepEqual(quickPatch({publication_status:"publicado",title:"ignorado"}),{ok:true,data:{publication_status:"publicado"}});
+  assert.equal(quickPatch({publication_status:"hackeado"}).ok,false);
+  assert.equal(quickPatch({}).ok,false);
+  assert.deepEqual(quickPatch({is_featured:1}),{ok:true,data:{is_featured:true}});
+});
+
+test("sendMetaEvent: payload CAPI con hashes correctos, dedup y errores sin lanzar", async () => {
+  const sha=(v:string)=>createHash("sha256").update(v).digest("hex");
+  const env={...process.env};const realFetch=globalThis.fetch;
+  try{
+    delete process.env.META_ENFOQUE_PIXEL_ID;delete process.env.META_ENFOQUE_ACCESS_TOKEN;
+    assert.deepEqual(await sendMetaEvent({event_name:"Lead",event_id:"e1"}),{sent:false,reason:"not_configured"});
+    process.env.META_ENFOQUE_PIXEL_ID="999";process.env.META_ENFOQUE_ACCESS_TOKEN="tok";delete process.env.META_ENFOQUE_TEST_EVENT_CODE;
+    type Captured={test_event_code?:string;data:Array<{event_id:string;action_source:string;user_data:Record<string,unknown>;custom_data:Record<string,unknown>}>};
+    let captured:Captured={data:[]};let url="";
+    globalThis.fetch=(async(u:string,init:RequestInit)=>{url=u;captured=JSON.parse(String(init.body));return new Response('{"events_received":1}',{status:200});}) as typeof fetch;
+    const r=await sendMetaEvent({event_name:"Lead",event_id:"evt-1",email:" Ana@Mail.com ",phone:"099 123 4567",fbp:"fb.1.1.2",fbc:"fb.1.1.abc",
+      client_ip:"1.2.3.4",user_agent:"UA",external_id:"visitor",value:190000,content_id:"prop-1",content_type:"home_listing",url:"https://enfoque.advibeagencia.com/x"});
+    assert.equal(r.sent,true);
+    assert.match(url,/\/999\/events$/);
+    const ev=captured.data[0];
+    assert.equal(ev.event_id,"evt-1");
+    assert.equal(ev.action_source,"website");
+    assert.deepEqual(ev.user_data.em,[sha("ana@mail.com")]);
+    assert.deepEqual(ev.user_data.ph,[sha("593991234567")]);
+    assert.deepEqual(ev.user_data.external_id,[sha("visitor")]);
+    assert.equal(ev.user_data.client_ip_address,"1.2.3.4");
+    assert.equal(ev.user_data.fbc,"fb.1.1.abc");
+    assert.deepEqual(ev.custom_data.content_ids,["prop-1"]);
+    assert.equal(ev.custom_data.currency,"USD");
+    assert.equal(captured.test_event_code,undefined);
+    globalThis.fetch=(async()=>new Response('{"error":{"message":"Invalid token"}}',{status:400})) as typeof fetch;
+    const bad=await sendMetaEvent({event_name:"Contact",event_id:"e2"});
+    assert.equal(bad.sent,false);assert.equal(capiFields(bad).capi_status,"fallido");
+    globalThis.fetch=(async()=>{throw new Error("red caída");}) as typeof fetch;
+    const down=await sendMetaEvent({event_name:"Contact",event_id:"e3"});
+    assert.deepEqual(down,{sent:false,reason:"network_error"});
+  }finally{globalThis.fetch=realFetch;process.env=env;}
 });
