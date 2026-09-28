@@ -51,6 +51,7 @@ Mientras Pablo no las clasifique, no se mezclan con ningún cliente de la hoja.
 | Enfoque Visual | Página 531199800087373. Publica Chemu, terrenos, casa, bus y venta local. Según `docs/enfoque-visual.md` es la plataforma de propiedades y vehículos de AdVibe (hipótesis: la pauta la paga el anunciante de cada propiedad) |
 | Bocabel(l), Cardagali/Cardagal, Kueva, Panera, La Trinidad Restaurant | Publicaciones recurrentes mar/jue 09:00 en Calendar. Bocabell, Cardagal y La Trinidad también están en la web de AdVibe |
 | G3L, Verónica López (Arquitectura), Carla Molina | El CRM de portafolio los marca como clientes activos |
+| Medivisión Centro Óptico | AdVibe editó su reel de presentación (v3, 2026-09-28; cambios pedidos por WhatsApp el 26-09). WhatsApp 099 384 6044, 099 242 0511 y 096 298 2121. Sucursal Paute: Abdón Calderón 7-02 y Simón Bolívar, sacada de una foto de su funda y sin confirmar. Página de Facebook y carpeta de Drive: INFORMACIÓN FALTANTE |
 
 ## Carpetas de Drive
 
