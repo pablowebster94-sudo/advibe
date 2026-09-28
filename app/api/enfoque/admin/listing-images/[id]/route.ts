@@ -1,3 +1,4 @@
+import type {ImageRow} from "@/lib/enfoque-types";
 import {NextResponse} from "next/server";
 import {getAdminSession} from "@/lib/enfoque-admin";
 import {supabaseAdmin} from "@/lib/enfoque-supabase";
@@ -7,12 +8,12 @@ export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
   const s=await getAdminSession();if(!s)return NextResponse.json({error:"No autorizado"},{status:401});
   try{
     const {id}=await params;const b=await req.json();
-    const rows=await supabaseAdmin<any[]>(`listing_images?id=eq.${encodeURIComponent(id)}&select=*`,{},s.token);
+    const rows=await supabaseAdmin<ImageRow[]>(`listing_images?id=eq.${encodeURIComponent(id)}&select=*`,{},s.token);
     const item=rows[0];if(!item)return NextResponse.json({error:"Imagen no encontrada."},{status:404});
     const patch:Record<string,unknown>={};
     if(b.is_cover===true){
       const field=item.property_id?"property_id":"vehicle_id";const parent=item.property_id||item.vehicle_id;
-      await supabaseAdmin(`listing_images?${field}=eq.${encodeURIComponent(parent)}&is_cover=eq.true&id=neq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({is_cover:false})},s.token);
+      await supabaseAdmin(`listing_images?${field}=eq.${encodeURIComponent(String(parent))}&is_cover=eq.true&id=neq.${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Prefer":"return=minimal"},body:JSON.stringify({is_cover:false})},s.token);
       patch.is_cover=true;
     }
     if(typeof b.alt_text==="string")patch.alt_text=b.alt_text.trim().slice(0,200)||null;

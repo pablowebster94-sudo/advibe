@@ -1,5 +1,6 @@
 "use client";
 import {useState} from "react";
+import type {VehicleRow} from "@/lib/enfoque-types";
 import Link from "next/link";
 import {slugify} from "@/lib/enfoque-listing";
 import {parseVideoUrl} from "@/lib/enfoque-video";
@@ -10,12 +11,12 @@ import {useListingSave} from "./useListingSave";
 
 const s=(v:unknown)=>v===null||v===undefined?"":String(v);
 
-export function VehicleForm({item,images=[],notice}:{item?:any;images?:ImageItem[];notice?:string}){
+export function VehicleForm({item,images=[],notice}:{item?:Partial<VehicleRow>&{id:string};images?:ImageItem[];notice?:string}){
   const editing=Boolean(item?.id);
   const [f,setF]=useState({brand:s(item?.brand),model:s(item?.model),slug:s(item?.slug),year:s(item?.year),price:s(item?.price),mileage_km:s(item?.mileage_km),
-    fuel:item?.fuel||"gasolina",transmission:item?.transmission||"automatica",engine:s(item?.engine),condition:item?.condition||"usado",
+    fuel:String(item?.fuel||"gasolina"),transmission:String(item?.transmission||"automatica"),engine:s(item?.engine),condition:String(item?.condition||"usado"),
     city:s(item?.city)||"Cuenca",province:s(item?.province)||"Azuay",description:s(item?.description),
-    publication_status:item?.publication_status||"borrador",availability:item?.availability||"disponible",is_featured:Boolean(item?.is_featured),
+    publication_status:String(item?.publication_status||"borrador"),availability:String(item?.availability||"disponible"),is_featured:Boolean(item?.is_featured),
     features:((item?.features||[]) as string[]).join("\n"),video_url:s(item?.video_url)});
   const [slugTouched,setSlugTouched]=useState(editing);
   const [files,setFiles]=useState<File[]>([]);
@@ -43,7 +44,7 @@ export function VehicleForm({item,images=[],notice}:{item?:any;images?:ImageItem
   return <main className="min-h-screen bg-[#f5f3ee] px-5 py-10"><div className="mx-auto max-w-6xl">
     <Link href="/enfoque-visual/admin/vehiculos" className="text-sm font-bold underline">← Vehículos</Link>
     <div className="mt-5 flex flex-wrap items-end justify-between gap-4"><h1 className="ev-display text-5xl font-black">{editing?"Editar vehículo":"Nuevo vehículo"}</h1>
-      {editing&&item.publication_status==="publicado"&&<a href={"/enfoque-visual/vehiculos/"+item.slug} target="_blank" className="rounded-full bg-white px-5 py-3 text-sm font-bold ring-1 ring-black/10">Ver ficha publicada ↗</a>}</div>
+      {item?.publication_status==="publicado"&&<a href={"/enfoque-visual/vehiculos/"+item?.slug} target="_blank" className="rounded-full bg-white px-5 py-3 text-sm font-bold ring-1 ring-black/10">Ver ficha publicada ↗</a>}</div>
     {notice&&<p className="mt-6 rounded-2xl bg-[#d9ff3f] px-5 py-4 text-sm font-bold" role="status">{notice}</p>}
     <form onSubmit={e=>submit(e)} className="mt-8 grid gap-6 lg:grid-cols-[1fr_300px] lg:items-start">
       <div className="space-y-6">
@@ -85,6 +86,6 @@ export function VehicleForm({item,images=[],notice}:{item?:any;images?:ImageItem
         <Checklist items={checks}/>
       </div>
     </form>
-    {editing&&<AdminImages listingId={item.id} type="vehicle" initial={images} alt={title}/>}
+    {item?.id&&<AdminImages listingId={item.id} type="vehicle" initial={images} alt={title}/>}
   </div></main>;
 }

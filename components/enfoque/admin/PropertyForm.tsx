@@ -1,5 +1,6 @@
 "use client";
 import {useState} from "react";
+import type {PropertyRow} from "@/lib/enfoque-types";
 import Link from "next/link";
 import {slugify} from "@/lib/enfoque-listing";
 import {parseVideoUrl} from "@/lib/enfoque-video";
@@ -11,11 +12,11 @@ import {useListingSave} from "./useListingSave";
 const TYPES:[string,string][]=[["casa","Casa"],["departamento","Departamento"],["terreno","Terreno"],["oficina","Oficina"],["local","Local comercial"],["bodega","Bodega"],["quinta","Quinta"],["otro","Otro"]];
 const s=(v:unknown)=>v===null||v===undefined?"":String(v);
 
-export function PropertyForm({item,images=[],notice}:{item?:any;images?:ImageItem[];notice?:string}){
+export function PropertyForm({item,images=[],notice}:{item?:Partial<PropertyRow>&{id:string};images?:ImageItem[];notice?:string}){
   const editing=Boolean(item?.id);
   const [f,setF]=useState({title:s(item?.title),slug:s(item?.slug),price:s(item?.price),city:s(item?.city)||"Cuenca",province:s(item?.province)||"Azuay",sector:s(item?.sector),
-    description:s(item?.description),property_type:item?.property_type||"casa",operation_type:item?.operation_type||"venta",
-    publication_status:item?.publication_status||"borrador",availability:item?.availability||"disponible",is_featured:Boolean(item?.is_featured),
+    description:s(item?.description),property_type:String(item?.property_type||"casa"),operation_type:String(item?.operation_type||"venta"),
+    publication_status:String(item?.publication_status||"borrador"),availability:String(item?.availability||"disponible"),is_featured:Boolean(item?.is_featured),
     land_area_m2:s(item?.land_area_m2),built_area_m2:s(item?.built_area_m2),bedrooms:s(item?.bedrooms),bathrooms:s(item?.bathrooms),parking_spots:s(item?.parking_spots),
     features:((item?.features||[]) as string[]).join("\n"),video_url:s(item?.video_url)});
   const [slugTouched,setSlugTouched]=useState(editing);
@@ -44,7 +45,7 @@ export function PropertyForm({item,images=[],notice}:{item?:any;images?:ImageIte
   return <main className="min-h-screen bg-[#f5f3ee] px-5 py-10"><div className="mx-auto max-w-6xl">
     <Link href="/enfoque-visual/admin/propiedades" className="text-sm font-bold underline">← Propiedades</Link>
     <div className="mt-5 flex flex-wrap items-end justify-between gap-4"><h1 className="ev-display text-5xl font-black">{editing?"Editar propiedad":"Nueva propiedad"}</h1>
-      {editing&&item.publication_status==="publicado"&&<a href={"/enfoque-visual/propiedades/"+item.slug} target="_blank" className="rounded-full bg-white px-5 py-3 text-sm font-bold ring-1 ring-black/10">Ver ficha publicada ↗</a>}</div>
+      {item?.publication_status==="publicado"&&<a href={"/enfoque-visual/propiedades/"+item?.slug} target="_blank" className="rounded-full bg-white px-5 py-3 text-sm font-bold ring-1 ring-black/10">Ver ficha publicada ↗</a>}</div>
     {notice&&<p className="mt-6 rounded-2xl bg-[#d9ff3f] px-5 py-4 text-sm font-bold" role="status">{notice}</p>}
     <form onSubmit={e=>submit(e)} className="mt-8 grid gap-6 lg:grid-cols-[1fr_300px] lg:items-start">
       <div className="space-y-6">
@@ -87,6 +88,6 @@ export function PropertyForm({item,images=[],notice}:{item?:any;images?:ImageIte
         <Checklist items={checks}/>
       </div>
     </form>
-    {editing&&<AdminImages listingId={item.id} type="property" initial={images} alt={f.title}/>}
+    {item?.id&&<AdminImages listingId={item.id} type="property" initial={images} alt={f.title}/>}
   </div></main>;
 }

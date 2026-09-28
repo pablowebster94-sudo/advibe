@@ -80,6 +80,15 @@ export function vehiclePayload(b:Body):Result<Record<string,unknown>>{
   }};
 }
 
+/** Cambios rápidos desde el listado del panel (publicar/despublicar, destacar, disponibilidad). */
+export function quickPatch(b:Body):Result<Record<string,unknown>>{
+  const data:Record<string,unknown>={};
+  if(b.publication_status!==undefined){if(!PUBLICATION.includes(str(b.publication_status)))return {ok:false,error:"Estado inválido."};data.publication_status=str(b.publication_status);}
+  if(b.availability!==undefined){if(!AVAILABILITY.includes(str(b.availability)))return {ok:false,error:"Disponibilidad inválida."};data.availability=str(b.availability);}
+  if(b.is_featured!==undefined)data.is_featured=Boolean(b.is_featured);
+  return Object.keys(data).length?{ok:true,data}:{ok:false,error:"Nada que actualizar."};
+}
+
 /** Traduce errores de Supabase/PostgREST a mensajes útiles para el panel. */
 export function dbError(error:unknown,fallback:string){
   const text=String((error as Error)?.message||error);

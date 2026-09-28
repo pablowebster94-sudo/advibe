@@ -50,6 +50,8 @@ export function PendingImages({files,onChange}:{files:File[];onChange:(f:File[])
   const move=(from:number,to:number)=>{if(to<0||to>=files.length)return;const next=[...files];const [it]=next.splice(from,1);next.splice(to,0,it);onChange(next);};
   return <div className="md:col-span-2" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();add(e.dataTransfer.files);}}>
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{files.map((f,i)=><div key={f.name+i} className={"overflow-hidden rounded-2xl bg-black/5 ring-2 "+(i===0?"ring-[#d9ff3f]":"ring-transparent")}>
+      {/* Vista previa local (blob:) antes de subir: next/image no aplica. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       {previews[i]&&<img src={previews[i]} alt="" className="aspect-square w-full object-cover"/>}
       <div className="flex gap-1 p-2 text-xs font-bold">
         <button type="button" onClick={()=>move(i,i-1)} disabled={i===0} className="rounded-lg bg-black/5 px-2 py-2 disabled:opacity-30" aria-label="Mover antes">←</button>

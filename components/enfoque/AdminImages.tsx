@@ -1,6 +1,7 @@
 "use client";
 import {useState} from "react";
 import {ACCEPT,checkFile,publicUrl,uploadImage,type ImageItem} from "./admin/upload";
+import {ListingImage} from "./ListingImage";
 
 // Fotos de una publicación ya creada: subida múltiple, portada, orden (arrastrar o flechas) y borrado.
 export function AdminImages({listingId,type,initial,alt}:{listingId:string;type:"property"|"vehicle";initial:ImageItem[];alt:string}){
@@ -57,7 +58,7 @@ export function AdminImages({listingId,type,initial,alt}:{listingId:string;type:
     <div className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4">{images.map((i,n)=><div key={i.id} draggable onDragStart={()=>setDragging(i.id)} onDragEnd={()=>setDragging(null)}
       onDragOver={e=>{if(dragging)e.preventDefault();}} onDrop={e=>{if(!dragging)return;e.preventDefault();move(images.findIndex(x=>x.id===dragging),n);setDragging(null);}}
       className={"overflow-hidden rounded-2xl bg-black/5 ring-2 "+(i.is_cover?"ring-[#d9ff3f]":"ring-transparent")+(dragging===i.id?" opacity-40":"")}>
-      <div className="relative"><img src={publicUrl(i.storage_path)} alt={i.alt_text||""} className="aspect-square w-full cursor-grab object-cover"/><span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs font-bold text-white">{n+1}</span></div>
+      <div className="relative aspect-square w-full cursor-grab"><ListingImage src={publicUrl(i.storage_path)} alt={i.alt_text||""} sizes="(min-width:768px) 25vw, 50vw"/><span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-xs font-bold text-white">{n+1}</span></div>
       <div className="flex gap-1 p-2">
         <button type="button" aria-label="Mover antes" onClick={()=>move(n,n-1)} disabled={n===0} className="rounded-lg bg-black/5 px-2 py-2 text-xs font-bold disabled:opacity-30">←</button>
         <button type="button" onClick={()=>cover(i.id)} className={"flex-1 rounded-lg px-2 py-2 text-xs font-bold "+(i.is_cover?"bg-[#d9ff3f]":"bg-black/5")}>{i.is_cover?"Portada":"Hacer portada"}</button>
