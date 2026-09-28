@@ -1,5 +1,7 @@
-export type Property={id:string;slug:string;title:string;price:number;operation:"venta"|"alquiler";type:string;city:string;sector:string;landM2?:number;buildM2?:number;rooms?:number;baths?:number;parking?:number;description:string;features:string[];images:string[];featured?:boolean};
-export type Vehicle={id:string;slug:string;brand:string;model:string;year:number;price:number;mileage:number;fuel:string;transmission:string;engine:string;description:string;features:string[];images:string[];featured?:boolean};
+export type Property={id:string;slug:string;title:string;price:number;operation:"venta"|"alquiler";type:string;city:string;sector:string;landM2?:number;buildM2?:number;rooms?:number;baths?:number;parking?:number;description:string;features:string[];images:string[];video?:string;featured?:boolean;availability?:string};
+export type Vehicle={id:string;slug:string;brand:string;model:string;year:number;price:number;mileage:number;fuel:string;transmission:string;engine:string;description:string;features:string[];images:string[];video?:string;featured?:boolean;availability?:string;city?:string};
+// SOLO DESARROLLO: datos de demostración. Nunca se muestran en producción
+// salvo que ENFOQUE_ALLOW_DEMO=true (ver lib/enfoque-catalog.ts).
 const U=(id:string)=>"https://images.unsplash.com/"+id+"?auto=format&fit=crop&w=1400&q=85";
 export const properties:Property[]=[
 {id:"p1",slug:"casa-gualaceo-divina-misericordia",title:"Casa contemporánea en Gualaceo",price:190000,operation:"venta",type:"Casa",city:"Gualaceo",sector:"Divina Misericordia",landM2:240,buildM2:210,rooms:4,baths:3,parking:2,description:"Residencia amplia y luminosa, pensada para una familia que busca espacio y tranquilidad.",features:["2 plantas","Patio","Cocina amplia","Área social","2 parqueaderos"],images:[U("photo-1600585154340-be6161a56a0c"),U("photo-1600607687939-ce8a6c25118c"),U("photo-1600566753190-17f0baa2a6c3")],featured:true},

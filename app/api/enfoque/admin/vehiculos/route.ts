@@ -1,3 +1,19 @@
-import {NextResponse} from "next/server";import {getAdminSession} from "@/lib/enfoque-admin";import {supabaseAdmin} from "@/lib/enfoque-supabase";
-async function owner(token:string){const found=await supabaseAdmin<any[]>("owners?name=eq.AdVibe%20Agencia&kind=eq.propio&limit=1",{},token);if(found[0])return found[0].id;const rows=await supabaseAdmin<any[]>("owners",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify({name:"AdVibe Agencia",kind:"propio"})},token);return rows[0].id;}
-export async function POST(req:Request){const s=await getAdminSession();if(!s)return NextResponse.json({error:"No autorizado"},{status:401});try{const b=await req.json();if(!b.brand||!b.model||!b.slug||!b.year||!b.price)return NextResponse.json({error:"Marca, modelo, slug, año y precio son obligatorios."},{status:400});const rows=await supabaseAdmin<any[]>("vehicles",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify({slug:b.slug,brand:b.brand,model:b.model,year:Number(b.year),price:Number(b.price),condition:b.condition||"usado",mileage_km:Number(b.mileage_km||0),fuel:b.fuel||null,transmission:b.transmission||null,engine:b.engine||null,description:b.description||"",features:Array.isArray(b.features)?b.features:[],owner_id:await owner(s.token),publication_status:b.publication_status||"borrador",availability:"disponible",is_featured:Boolean(b.is_featured)})},s.token);return NextResponse.json({ok:true,item:rows[0]});}catch{return NextResponse.json({error:"No se pudo crear el vehículo."},{status:500})}}
+import type {VehicleRow} from "@/lib/enfoque-types";
+import {NextResponse} from "next/server";
+import {getAdminSession} from "@/lib/enfoque-admin";
+import {supabaseAdmin} from "@/lib/enfoque-supabase";
+import {dbError,vehiclePayload} from "@/lib/enfoque-listing";
+import {defaultOwner} from "@/lib/enfoque-owner";
+
+export async function POST(req:Request){
+  const s=await getAdminSession(); if(!s)return NextResponse.json({error:"No autorizado"},{status:401});
+  try{
+    const p=vehiclePayload(await req.json());
+    if(!p.ok)return NextResponse.json({error:p.error},{status:400});
+    const rows=await supabaseAdmin<VehicleRow[]>("vehicles",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify({...p.data,currency:"USD",owner_id:await defaultOwner(s.token)})},s.token);
+    return NextResponse.json({ok:true,item:rows[0]});
+  }catch(e){
+    console.error("[enfoque] Error creando vehículo:",e);
+    return NextResponse.json({error:dbError(e,"No se pudo crear el vehículo.")},{status:500});
+  }
+}
