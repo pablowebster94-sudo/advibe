@@ -1,4 +1,4 @@
-import { Property, Vehicle } from "@/lib/enfoque-data";
+import type { Property, Vehicle } from "@/lib/enfoque-data";
 
 export function supabaseConfigured() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -57,14 +57,19 @@ function storageUrl(path:string) {
   return `${url}/storage/v1/object/public/listing-media/${path}`;
 }
 
+/** Portada primero; el resto según sort_order. */
+export function orderImages<T extends {is_cover?:boolean;sort_order?:number}>(images:T[]) {
+  return [...images].sort((a,b)=>Number(Boolean(b.is_cover))-Number(Boolean(a.is_cover))||(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
+}
+
 export function mapProperty(row:any, images:any[] = []):Property {
   return {
     id:row.id, slug:row.slug, title:row.title, price:Number(row.price), operation:row.operation_type,
     type:row.property_type, city:row.city, sector:row.sector || "", landM2:row.land_area_m2 ? Number(row.land_area_m2) : undefined,
     buildM2:row.built_area_m2 ? Number(row.built_area_m2) : undefined, rooms:row.bedrooms ?? undefined,
     baths:row.bathrooms ? Number(row.bathrooms) : undefined, parking:row.parking_spots ?? undefined,
-    description:row.description || "", features:row.features || [], images:images.map(x=>storageUrl(x.storage_path)),
-    featured:Boolean(row.is_featured)
+    description:row.description || "", features:row.features || [], images:orderImages(images).map(x=>storageUrl(x.storage_path)),
+    video:row.video_url || undefined, featured:Boolean(row.is_featured), availability:row.availability || undefined
   };
 }
 
@@ -73,7 +78,8 @@ export function mapVehicle(row:any, images:any[] = []):Vehicle {
     id:row.id, slug:row.slug, brand:row.brand, model:row.model, year:Number(row.year), price:Number(row.price),
     mileage:Number(row.mileage_km || 0), fuel:row.fuel || "", transmission:row.transmission || "",
     engine:row.engine || "", description:row.description || "", features:row.features || [],
-    images:images.map(x=>storageUrl(x.storage_path)), featured:Boolean(row.is_featured)
+    images:orderImages(images).map(x=>storageUrl(x.storage_path)), video:row.video_url || undefined,
+    featured:Boolean(row.is_featured), availability:row.availability || undefined, city:row.city || undefined
   };
 }
 

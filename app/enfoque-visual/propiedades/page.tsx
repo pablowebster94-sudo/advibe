@@ -1,3 +1,7 @@
-import {properties as demo} from "@/lib/enfoque-data";import {getPublishedProperties,supabaseConfigured} from "@/lib/enfoque-supabase";import {Header} from "@/components/enfoque/Header";import {PropertyCard} from "@/components/enfoque/Cards";
+import type {Metadata} from "next";
+import {PropertyCatalog} from "@/components/enfoque/PropertyCatalog";
 export const dynamic="force-dynamic";
-export default async function Page(){const properties=supabaseConfigured()?await getPublishedProperties().catch(()=>demo):demo;return <><Header/><main className="mx-auto max-w-7xl px-5 py-14"><p className="text-xs font-black uppercase tracking-[.2em] text-black/40">Enfoque Visual</p><h1 className="ev-display mt-2 text-6xl font-black">Propiedades</h1><div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{properties.map(x=><PropertyCard key={x.id} x={x}/>)}</div></main></>}
+export const metadata:Metadata={title:"Propiedades en venta y alquiler | Enfoque Visual",description:"Casas, departamentos y terrenos en Cuenca, Gualaceo y Azuay con fotos, video e información clara.",alternates:{canonical:"/propiedades"}};
+export default async function Page({searchParams}:{searchParams:Promise<{[key:string]:string|string[]|undefined}>}){
+  return <PropertyCatalog searchParams={await searchParams} action="/enfoque-visual/propiedades" title="Propiedades" intro="Casas, departamentos, terrenos y locales con fotografía, video e información clara."/>;
+}

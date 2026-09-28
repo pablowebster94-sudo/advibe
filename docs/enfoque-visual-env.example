@@ -1,11 +1,26 @@
+# Enfoque Visual — variables de entorno (nombres EXACTOS que lee el código).
+# Revisa el resultado en /enfoque-visual/admin/estado después de desplegar.
+
 NEXT_PUBLIC_SITE_URL=https://enfoque.advibeagencia.com
+# Solo dígitos con código de país. Se incrusta en el build: redeploy tras cambiarla.
 NEXT_PUBLIC_WHATSAPP_NUMBER=593XXXXXXXXX
+
+# Catálogo público (lectura)
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# Servidor: leads, eventos de conversión y subida de fotos
 SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_META_PIXEL_ID=
-META_PIXEL_ID=
-META_ACCESS_TOKEN=
-META_GRAPH_API_VERSION=v23.0
-NEXT_PUBLIC_GA_ID=
+
+# Meta: el pixel del navegador y el de CAPI deben ser el MISMO (deduplicación por event_id)
+NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID=
+META_ENFOQUE_PIXEL_ID=
+META_ENFOQUE_ACCESS_TOKEN=
+META_ENFOQUE_GRAPH_API_VERSION=v26.0
+# Solo durante la verificación en "Probar eventos"; bórrala después.
+# META_ENFOQUE_TEST_EVENT_CODE=TEST12345
+
+NEXT_PUBLIC_ENFOQUE_GA_ID=
+
+# Datos demo de lib/enfoque-data.ts. Por defecto: activos en desarrollo, NUNCA en producción.
+# ENFOQUE_ALLOW_DEMO=false

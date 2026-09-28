@@ -1,3 +1,22 @@
-import {vehicles as demo} from "@/lib/enfoque-data";import {getPublishedVehicles,supabaseConfigured} from "@/lib/enfoque-supabase";import {Header} from "@/components/enfoque/Header";import {VehicleCard} from "@/components/enfoque/Cards";
+import type {Metadata} from "next";
+import {Header} from "@/components/enfoque/Header";
+import {VehicleCard,EmptyResults} from "@/components/enfoque/Cards";
+import {VehicleFiltersForm} from "@/components/enfoque/Filters";
+import {loadVehicles} from "@/lib/enfoque-catalog";
+import {activeFilterCount,filterVehicles,options,readVehicleFilters} from "@/lib/enfoque-filters";
 export const dynamic="force-dynamic";
-export default async function Page(){const vehicles=supabaseConfigured()?await getPublishedVehicles().catch(()=>demo):demo;return <><Header/><main className="mx-auto max-w-7xl px-5 py-14"><p className="text-xs font-black uppercase tracking-[.2em] text-black/40">Enfoque Visual</p><h1 className="ev-display mt-2 text-6xl font-black">Vehículos</h1><div className="mt-10 grid gap-5 md:grid-cols-2">{vehicles.map(x=><VehicleCard key={x.id} x={x}/>)}</div></main></>}
+export const metadata:Metadata={title:"Vehículos en venta | Enfoque Visual",description:"Autos, SUVs y camionetas en venta en Ecuador con fotos, video y ficha técnica.",alternates:{canonical:"/vehiculos"}};
+const action="/enfoque-visual/vehiculos";
+export default async function Page({searchParams}:{searchParams:Promise<{[key:string]:string|string[]|undefined}>}){
+  const all=await loadVehicles();
+  const f=readVehicleFilters(await searchParams);
+  const items=filterVehicles(all,f);
+  const active=activeFilterCount(f);
+  return <><Header/><main className="mx-auto max-w-7xl px-5 py-14">
+    <p className="text-xs font-black uppercase tracking-[.2em] text-black/40">Enfoque Visual</p>
+    <h1 className="ev-display mt-2 text-6xl font-black">Vehículos</h1>
+    <p className="mt-3 max-w-2xl text-black/55">Autos, SUVs y camionetas con fotografía, video y ficha técnica.</p>
+    <VehicleFiltersForm action={action} f={f} brands={options(all.map(x=>x.brand))} years={options(all.map(x=>x.year)).reverse()} fuels={options(all.map(x=>x.fuel))} transmissions={options(all.map(x=>x.transmission))} count={items.length} total={all.length} active={active}/>
+    {items.length?<div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{items.map(x=><VehicleCard key={x.id} x={x}/>)}</div>:<EmptyResults href={action} filtered={active>0}/>}
+  </main></>;
+}

@@ -2,20 +2,20 @@ import {NextResponse} from "next/server";
 import {getAdminSession} from "@/lib/enfoque-admin";
 import {supabaseAdmin} from "@/lib/enfoque-supabase";
 import {removeObjects,storageConfigured} from "@/lib/enfoque-storage";
-import {dbError,propertyPayload} from "@/lib/enfoque-listing";
+import {dbError,vehiclePayload} from "@/lib/enfoque-listing";
 
 export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
   const s=await getAdminSession(); if(!s)return NextResponse.json({error:"No autorizado"},{status:401});
   try{
     const {id}=await params;
-    const p=propertyPayload(await req.json());
+    const p=vehiclePayload(await req.json());
     if(!p.ok)return NextResponse.json({error:p.error},{status:400});
-    const rows=await supabaseAdmin<any[]>(`properties?id=eq.${encodeURIComponent(id)}&select=*`,{method:"PATCH",headers:{"Prefer":"return=representation"},body:JSON.stringify(p.data)},s.token);
-    if(!rows[0])return NextResponse.json({error:"Propiedad no encontrada."},{status:404});
+    const rows=await supabaseAdmin<any[]>(`vehicles?id=eq.${encodeURIComponent(id)}&select=*`,{method:"PATCH",headers:{"Prefer":"return=representation"},body:JSON.stringify(p.data)},s.token);
+    if(!rows[0])return NextResponse.json({error:"Vehículo no encontrado."},{status:404});
     return NextResponse.json({ok:true,item:rows[0]});
   }catch(e){
-    console.error("[enfoque] Error actualizando propiedad:",e);
-    return NextResponse.json({error:dbError(e,"No se pudo actualizar la propiedad.")},{status:500});
+    console.error("[enfoque] Error actualizando vehículo:",e);
+    return NextResponse.json({error:dbError(e,"No se pudo actualizar el vehículo.")},{status:500});
   }
 }
 export async function DELETE(req:Request,{params}:{params:Promise<{id:string}>}){
@@ -23,8 +23,8 @@ export async function DELETE(req:Request,{params}:{params:Promise<{id:string}>})
   try{
     const {id}=await params;
     // Las filas de listing_images caen en cascada; los archivos de Storage hay que borrarlos aparte.
-    const images=await supabaseAdmin<any[]>(`listing_images?property_id=eq.${encodeURIComponent(id)}&select=storage_path`,{},s.token);
-    await supabaseAdmin(`properties?id=eq.${encodeURIComponent(id)}`,{method:"DELETE"},s.token);
+    const images=await supabaseAdmin<any[]>(`listing_images?vehicle_id=eq.${encodeURIComponent(id)}&select=storage_path`,{},s.token);
+    await supabaseAdmin(`vehicles?id=eq.${encodeURIComponent(id)}`,{method:"DELETE"},s.token);
     if(storageConfigured())await removeObjects(images.map(x=>x.storage_path));
     return NextResponse.json({ok:true});
   }
