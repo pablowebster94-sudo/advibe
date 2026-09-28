@@ -15,7 +15,7 @@ function Num({name,title,value,placeholder}:{name:string;title:string;value?:num
 }
 function SortSelect({value}:{value:string}){
   return <label className={lbl}>Ordenar<select name="orden" defaultValue={value} className={field+" mt-1 font-bold normal-case tracking-normal text-black"}>
-    <option value="recientes">Más recientes</option><option value="precio_asc">Precio: menor a mayor</option><option value="precio_desc">Precio: mayor a menor</option>
+    <option value="recientes">Recientes</option><option value="precio_asc">Menor precio</option><option value="precio_desc">Mayor precio</option>
   </select></label>;
 }
 function Shell({action,count,total,active,children}:{action:string;count:number;total:number;active:number;children:React.ReactNode}){
@@ -31,7 +31,7 @@ function Shell({action,count,total,active,children}:{action:string;count:number;
 export function PropertyFiltersForm({action,f,cities,types,count,total,active,fixedOperation}:{action:string;f:PropertyFilters;cities:string[];types:string[];count:number;total:number;active:number;fixedOperation?:boolean}){
   return <Shell action={action} count={count} total={total} active={active}>
     <label className={lbl+" col-span-2"}>Buscar<input name="q" defaultValue={f.q} placeholder="Sector, palabra clave…" className={field+" mt-1 font-bold normal-case tracking-normal text-black"}/></label>
-    {!fixedOperation&&<Select name="operacion" title="Operación" value={f.operacion} values={["venta","alquiler"]} any="Venta y alquiler"/>}
+    {!fixedOperation&&<Select name="operacion" title="Operación" value={f.operacion} values={["venta","alquiler"]} any="Todas"/>}
     <Select name="ciudad" title="Ciudad" value={f.ciudad} values={cities} any="Todas"/>
     <Select name="tipo" title="Tipo" value={f.tipo} values={types}/>
     <Num name="min" title="Precio mín." value={f.min} placeholder="$"/>

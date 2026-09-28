@@ -19,8 +19,9 @@ export function Gallery({images,title,layout="property"}:{images:string[];title:
     <div className={"grid gap-3 "+(layout==="property"?"md:grid-cols-3":"md:grid-cols-2")}>
       {shown.map((src,i)=>{
         const big=layout==="property"&&i===0;
+        const solo=shown.length===1;
         return <button type="button" key={src} onClick={()=>setOpen(i)} aria-label={`Ver foto ${i+1} de ${images.length}`}
-          className={"group relative overflow-hidden rounded-3xl bg-black/5 "+(big?"aspect-[16/10] md:col-span-2 md:row-span-2":"aspect-[4/3]")+(i>0?" hidden md:block":"")}>
+          className={"group relative overflow-hidden rounded-3xl bg-black/5 "+(solo?"aspect-[16/9] md:col-span-full":big?"aspect-[16/10] md:col-span-2 md:row-span-2 md:aspect-auto":"aspect-[4/3]")+(i>0?" hidden md:block":"")}>
           <ListingImage src={src} alt={`${title} — foto ${i+1}`} priority={i===0} sizes={big?"(min-width:768px) 66vw, 100vw":"(min-width:768px) 33vw, 100vw"} className="object-cover transition duration-500 group-hover:scale-[1.03]"/>
           {i===0&&images.length>1&&<span className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1.5 text-xs font-bold text-white md:hidden">1 / {images.length} · Ver fotos</span>}
           {i===shown.length-1&&images.length>shown.length&&<span className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-black text-white">+{images.length-shown.length} fotos</span>}
