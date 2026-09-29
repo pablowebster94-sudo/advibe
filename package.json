@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "preview:cloudflare": "opennextjs-cloudflare build && wrangler dev",
+    "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "test": "node --import ./tests/register.mjs --test --test-reporter=spec \"tests/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "test:e2e": "node tests/e2e/e2e.mjs",
@@ -19,6 +22,7 @@
     "test:fullres": "node tests/e2e/fullres.mjs"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.6",
     "framer-motion": "^12.42.2",
     "next": "16.2.10",
     "react": "19.2.4",
@@ -32,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.142.0"
   }
 }
