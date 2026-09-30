@@ -12,6 +12,8 @@ export type RenderCreativeInput = {
   headline: string;
   supportingLine: string | null;
   priceDisplay: string | null;
+  /** Real promotion/offer, shown with higher visual priority than price when present. */
+  offerDisplay?: string | null;
   ctaLabel: string;
   productImageBuffer: Buffer | null;
   logoBuffer: Buffer | null;
@@ -172,6 +174,7 @@ function copyLayer(params: {
   headline: string;
   supportingLine: string | null;
   priceDisplay: string | null;
+  offerDisplay?: string | null;
   ctaLabel: string;
   highlights: string[];
   hasLogo: boolean;
@@ -203,16 +206,18 @@ function copyLayer(params: {
   const ctaSize = Math.round(L.ctaHeight * 0.36);
   const ctaY = y - L.ctaHeight;
   const price = params.priceDisplay;
+  const offer = params.offerDisplay?.trim() || null;
+  const commercialHighlight = offer || price;
   let priceDrawnInCtaRow = false;
   let ctaW = content;
   let ctaX = L.margin;
   if (L.priceBesideCta) {
     ctaW = Math.min(content * 0.52, Math.round(textWidth(params.ctaLabel, ctaSize, BOLD_EM) + ctaSize * 3));
     ctaX = width - L.margin - ctaW;
-    if (price) {
-      const pSize = Math.min(Math.round(L.headlineSize * 1.05 * Math.max(T.priceScale, 0.75)), Math.floor((content - ctaW - 24) / (price.length * BOLD_EM)));
+    if (commercialHighlight) {
+      const pSize = Math.min(Math.round(L.headlineSize * (offer ? 0.72 : 1.05) * Math.max(T.priceScale, 0.75)), Math.floor((content - ctaW - 24) / (commercialHighlight.length * BOLD_EM)));
       parts.push(`<text x="${L.margin}" y="${ctaY + L.ctaHeight / 2 + pSize * 0.36}" font-family="${FONT}" font-weight="700"
-        font-size="${pSize}" fill="${palette.accent}">${escapeXml(price)}</text>`);
+        font-size="${pSize}" fill="${palette.accent}">${escapeXml(commercialHighlight)}</text>`);
       priceDrawnInCtaRow = true;
     }
   }
@@ -306,15 +311,15 @@ function copyLayer(params: {
   }
 
   // Price above the headline (portrait formats)
-  if (price && !priceDrawnInCtaRow) {
-    const pSize = Math.min(Math.round(L.headlineSize * T.priceScale), Math.floor(content / (price.length * BOLD_EM)));
+  if (commercialHighlight && !priceDrawnInCtaRow) {
+    const pSize = Math.min(Math.round(L.headlineSize * (offer ? 0.78 : T.priceScale)), Math.floor(content / (commercialHighlight.length * BOLD_EM)));
     if (T.ctaStyle === "light") {
       // Aspirational: understated price pill
       const w = Math.round(textWidth(price, pSize, BOLD_EM) + pSize * 1.4);
       const h = Math.round(pSize * 1.6);
       parts.push(`
         <rect x="${L.margin}" y="${y - h}" width="${w}" height="${h}" rx="${h / 2}" fill="none" stroke="${palette.accent}" stroke-width="3" />
-        <text x="${L.margin + pSize * 0.7}" y="${y - h / 2 + pSize * 0.36}" font-family="${FONT}" font-weight="700" font-size="${pSize}" fill="${palette.accent}">${escapeXml(price)}</text>`);
+        <text x="${L.margin + pSize * 0.7}" y="${y - h / 2 + pSize * 0.36}" font-family="${FONT}" font-weight="700" font-size="${pSize}" fill="${palette.accent}">${escapeXml(commercialHighlight)}</text>`);
       y -= h + Math.round(pSize * 0.4);
     } else {
       parts.push(`<text x="${L.margin}" y="${y}" font-family="${FONT}" font-weight="700" font-size="${pSize}" fill="${palette.accent}">${escapeXml(price)}</text>`);
@@ -454,6 +459,7 @@ export async function applyScrimAndCopy(
     headline: input.headline,
     supportingLine: input.supportingLine,
     priceDisplay: input.priceDisplay,
+    offerDisplay: input.offerDisplay,
     ctaLabel: input.ctaLabel,
     highlights: input.highlights ?? [],
     hasLogo: Boolean(input.logoBuffer),
