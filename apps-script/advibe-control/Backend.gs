@@ -366,7 +366,7 @@ function buildAgendaText_(offsetDays,days){
 }
 
 // Parser local: convierte el texto en una intención estructurada ({intent, data}). No escribe nada.
-// Es el mismo formato que debe producir Claude; ambos pasan por prepareAction.
+// Es el mismo formato que produce Claude (planWithClaude_); ambos pasan por prepareAction.
 function planFromText_(prompt){
   const t=norm_(prompt);
   const client=findClient_(prompt);
@@ -402,12 +402,82 @@ function planFromText_(prompt){
   return {error:'No identifiqué con suficiente seguridad la acción. Dime cliente + acción + fecha/cantidad y lo preparo.'};
 }
 
+// ---------- Claude (opcional) ----------
+// Si la propiedad del script ANTHROPIC_API_KEY existe, Claude convierte el texto en {intent, data}.
+// Sin clave, o si Claude falla o se niega, se usa el parser local. En ambos casos el resultado pasa por prepareAction:
+// Claude solo propone; nunca decide el riesgo ni escribe.
+const CLAUDE_ = {MODEL:'claude-opus-5-5', URL:'https://api.anthropic.com/v1/messages', MAX_TOKENS:2048};
+const NULLABLE_=t=>({anyOf:[{type:t},{type:'null'}]});
+const INTENT_SCHEMA_={
+  type:'object', additionalProperties:false, required:['intent','question','data'],
+  properties:{
+    intent:{type:'string',enum:Object.keys(ACTIONS_).concat(['NONE'])},
+    question:NULLABLE_('string'),
+    data:{type:'object', additionalProperties:false,
+      required:['client','date','time','duration_min','description','platform','title','quantity','mode','type','amount','method','reference','notes','cobro_id','offset','days'],
+      properties:{client:NULLABLE_('string'),date:NULLABLE_('string'),time:NULLABLE_('string'),duration_min:NULLABLE_('integer'),description:NULLABLE_('string'),
+        platform:NULLABLE_('string'),title:NULLABLE_('string'),quantity:NULLABLE_('integer'),mode:{anyOf:[{type:'string',enum:['ADD','SET']},{type:'null'}]},
+        type:NULLABLE_('string'),amount:NULLABLE_('number'),method:NULLABLE_('string'),reference:NULLABLE_('string'),notes:NULLABLE_('string'),
+        cobro_id:NULLABLE_('string'),offset:NULLABLE_('integer'),days:NULLABLE_('integer')}}
+  }
+};
+const CLAUDE_SYSTEM_=`Eres el parser de ADvibe CONTROL, el registro operativo de la agencia AdVibe (Ecuador, USD, America/Guayaquil).
+Convierte el mensaje de Pablo en UNA intención. No ejecutas nada: el sistema valida y Pablo aprueba antes de escribir.
+
+Intenciones y campos de data (el resto en null):
+- GET_AGENDA: offset (días desde hoy; mañana = 1), days (1 = un día, 7 = semana).
+- GET_CLIENT_SUMMARY: client. Preguntas sobre cuántas piezas o videos lleva un cliente.
+- CREATE_RECORDING: client, date, time, duration_min (si no la dice: null), description.
+- CREATE_PUBLICATION: client, date, time (si no la dice: null), platform (si no la dice: null), description.
+- CREATE_TASK: client (o null si es general), title (corto), date, time, description.
+- RECORD_PRODUCTION: client, quantity, mode (ADD = "hice N"; SET = "ya tiene N en total"), type (VIDEO, REEL, POST…), description.
+- RECORD_PAYMENT: client, amount (número en USD), date (del pago; hoy si no dice), method (Transferencia, Efectivo, Depósito o null), reference, notes, cobro_id (solo si lo menciona).
+- NONE: no está claro o falta un dato imprescindible. Escribe en question una sola pregunta corta en español.
+
+Reglas:
+- date en AAAA-MM-DD y time en HH:mm (24 h), calculadas desde la fecha de hoy que viene con el mensaje. Si no hay hora, time = null.
+- client: copia el nombre exacto de la lista de clientes. Si el cliente no está en la lista, usa NONE.
+- Nunca inventes cantidades ni montos. Si faltan, NONE con la pregunta.
+- Una pregunta ("¿cuántos…?") nunca es una escritura.`;
+
+function clientNames_(){ const d=sh_('CLIENTES').getDataRange().getValues(); const out=[]; for(let i=1;i<d.length;i++) if(d[i][1]) out.push(String(d[i][1])); return out; }
+
+// Devuelve {intent,data} | {error} | null (null = usar el parser local).
+function planWithClaude_(prompt){
+  const key=PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if(!key) return null;
+  const today=now_();
+  const body={
+    model:CLAUDE_.MODEL, max_tokens:CLAUDE_.MAX_TOKENS,
+    output_config:{effort:'low',format:{type:'json_schema',schema:INTENT_SCHEMA_}},
+    fallbacks:'default',
+    system:CLAUDE_SYSTEM_,
+    messages:[{role:'user',content:`Hoy: ${fmt_(today,'yyyy-MM-dd')} (${fmt_(today,'EEEE')}), ${fmt_(today,'HH:mm')}.\nClientes: ${clientNames_().join(' | ')}\n\nMensaje: ${String(prompt).slice(0,2000)}`}]
+  };
+  let res;
+  try{
+    res=UrlFetchApp.fetch(CLAUDE_.URL,{method:'post',contentType:'application/json',muteHttpExceptions:true,payload:JSON.stringify(body),
+      headers:{'x-api-key':key,'anthropic-version':'2023-06-01','anthropic-beta':'server-side-fallback-2026-07-01'}});
+  }catch(e){ console.warn('Claude no disponible: '+e); return null; }
+  const code=res.getResponseCode();
+  if(code!==200){ console.warn('Claude HTTP '+code+': '+res.getContentText().slice(0,500)); return null; }
+  const msg=JSON.parse(res.getContentText());
+  if(msg.stop_reason!=='end_turn'){ console.warn('Claude stop_reason: '+msg.stop_reason); return null; }
+  const text=(msg.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  let out; try{ out=JSON.parse(text); }catch(e){ console.warn('Claude JSON inválido: '+text.slice(0,300)); return null; }
+  if(out.intent==='NONE') return {error:out.question||'No entendí la acción. Dime cliente + acción + fecha o cantidad.'};
+  const data={}; Object.keys(out.data||{}).forEach(k=>{ if(out.data[k]!==null && out.data[k]!=='') data[k]=out.data[k]; });
+  return {intent:out.intent,data};
+}
+
 // Texto → intención validada, lista para mostrar (y aprobar, si escribe). No ejecuta nada.
 function processNaturalLanguage(prompt){
   try{
-    const plan=planFromText_(String(prompt||''));
-    if(plan.error) return {success:false,error:plan.error};
-    return prepareAction(plan);
+    const text=String(prompt||'');
+    let plan=planWithClaude_(text), source='claude';
+    if(!plan){ plan=planFromText_(text); source='local'; }
+    if(plan.error) return {success:false,error:plan.error,source};
+    return Object.assign(prepareAction(plan),{source});
   }catch(e){
     return {success:false,error:String(e.message||e)};
   }

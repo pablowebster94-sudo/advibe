@@ -53,6 +53,22 @@ El texto nunca escribe directamente. Pasa por dos puertas:
 - **Solo son llamables** desde el navegador las funciones sin `_` final: `doGet`, `processNaturalLanguage`, `prepareAction`, `executeAction`, `getDashboardData`, `setupSystem` y los triggers. Todo lo que escribe es privado.
 - Un payload generado por Claude usa el mismo formato: `{intent, data}` → `prepareAction` → tarjeta → `executeAction({intent, token, confirmation})`.
 
+## Claude como intérprete (opcional)
+
+Sin configurar nada, el texto lo interpreta el parser local (reglas fijas). Con Claude entiende frases libres ("el martes rodamos exteriores con Muebles, unas 3 horas").
+
+1. Crea una API key en <https://platform.claude.com> (Settings → API keys).
+2. En Apps Script: ⚙️ Configuración del proyecto → **Propiedades del script** → añade `ANTHROPIC_API_KEY` con la clave. No la pongas en la hoja ni en el código.
+3. Ejecuta `setupSystem` una vez para autorizar el permiso nuevo de conexión a servicios externos.
+
+Cómo funciona:
+- Modelo `claude-opus-5-5`, esfuerzo `low`, con salida JSON restringida a un esquema (`output_config.format`). Recibe la fecha de hoy y la lista de clientes de CLIENTES; nada más de la hoja.
+- **Claude solo propone.** Su respuesta pasa por `prepareAction` igual que la del parser local: el riesgo, la validación, el token y la tarjeta no cambian. Un `risk_level` que devuelva Claude se ignora.
+- Si falta un dato (cantidad, monto, cliente), Claude responde con una pregunta en vez de inventarlo.
+- Si no hay clave, la API falla, Claude se niega o la respuesta no es JSON válido, se usa el parser local sin cortar el chat. El motivo queda en *Ejecuciones* de Apps Script.
+- Activa `fallbacks: "default"`: si el filtro de seguridad de Opus rechaza un mensaje, la API lo reintenta con otro modelo.
+- Coste orientativo: unos 1.000–1.500 tokens por mensaje, es decir, alrededor de un centavo de dólar. Revisa el consumo real en la consola de Anthropic.
+
 ## Correcciones frente a la versión original (probadas en `node`)
 
 | Problema en el original | Efecto | Corrección |
