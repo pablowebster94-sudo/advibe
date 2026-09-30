@@ -15,6 +15,9 @@ export function ProductStep({
     onChange({ ...value, [key]: v });
   }
 
+  const categoryText = value.category.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+  const isVehicle = /vehiculo|auto|camioneta|camion|moto|pickup|sedan|suv/.test(categoryText);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -31,7 +34,7 @@ export function ProductStep({
             list="category-options"
             value={value.category}
             onChange={(e) => set("category", e.target.value)}
-            placeholder="Vehículos, muebles, servicios..."
+            placeholder="Muebles, restaurante, servicios..."
           />
           <datalist id="category-options">
             {CATEGORIES.map((c) => (
@@ -44,20 +47,23 @@ export function ProductStep({
           <Input
             value={value.name}
             onChange={(e) => set("name", e.target.value)}
-            placeholder="Trailblazer Premier"
+            placeholder="Ej: Sala Ideal, Menú Ejecutivo, Curso de Inglés..."
           />
         </Field>
 
-        <Field label="Marca / fabricante" hint="Ej: Chevrolet (no la agencia)">
+        <Field label={isVehicle ? "Marca / fabricante" : "Marca"} hint={isVehicle ? "Ej: Chevrolet" : "Opcional"}>
           <Input
             value={value.manufacturer}
             onChange={(e) => set("manufacturer", e.target.value)}
+            placeholder={isVehicle ? "Ej: Chevrolet" : "Ej: Muebles Ideal"}
           />
         </Field>
 
-        <Field label="Modelo / año">
-          <Input value={value.model} onChange={(e) => set("model", e.target.value)} />
-        </Field>
+        {isVehicle && (
+          <Field label="Modelo / año" hint="Solo aplica a vehículos">
+            <Input value={value.model} onChange={(e) => set("model", e.target.value)} placeholder="Ej: Tracker 2026" />
+          </Field>
+        )}
 
         <Field label="Precio">
           <Input
@@ -106,7 +112,7 @@ export function ProductStep({
             value={value.features}
             onChange={(e) => set("features", e.target.value)}
             rows={5}
-            placeholder={"Motor 2.8 Turbo Diesel\nAutomática\n4x4"}
+            placeholder={"Material de madera maciza\nTapizado lavable\nEntrega inmediata"}
           />
         </Field>
         <Field label="Beneficios" hint="Una por línea">
@@ -114,13 +120,13 @@ export function ProductStep({
             value={value.benefits}
             onChange={(e) => set("benefits", e.target.value)}
             rows={5}
-            placeholder={"Máxima seguridad para la familia"}
+            placeholder={"Comodidad para tu hogar\nListo para entrega"}
           />
         </Field>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Oferta / promoción vigente">
+        <Field label="Oferta / promoción vigente" hint='Ej: "15% de descuento" o "2x1"'>
           <Input value={value.offer} onChange={(e) => set("offer", e.target.value)} />
         </Field>
         <Field label="Público objetivo">
