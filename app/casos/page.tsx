@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { caseStudies } from "@/lib/cases";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Casos | AdVibe Agencia",
-  description: "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.",
-};
-
-const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];
+export const metadata = pageMetadata({
+  title: "Casos de éxito | AdVibe Agencia",
+  description: "Proyectos reales de AdVibe en automotriz, educación, salud y retail: producción audiovisual, Meta Ads, contenido y branding en Ecuador.",
+  path: "/casos",
+});
 
 export default function CasosPage() {
   return (
@@ -17,7 +17,7 @@ export default function CasosPage() {
           <nav className="flex items-center gap-6 text-sm text-slate-400">
             <Link href="/" className="transition hover:text-white">Inicio</Link>
             <a href="#trabajos" className="text-white">Casos</a>
-            <Link href="/#contacto" className="rounded-full bg-lime-300 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-lime-200">Hablemos</Link>
+            <Link href="/diagnostico" className="rounded-full bg-lime-300 px-5 py-2.5 font-semibold text-slate-950 transition hover:bg-lime-200">Hablemos</Link>
           </nav>
         </div>
       </header>
@@ -35,10 +35,6 @@ export default function CasosPage() {
       </section>
 
       <section id="trabajos" className="mx-auto max-w-7xl px-6 pb-28 sm:px-8">
-        <div className="mb-10 flex flex-wrap gap-2 border-b border-white/10 pb-6">
-          {filters.map((filter, i) => <span key={filter} className={`rounded-full border px-4 py-2 text-xs font-semibold ${i === 0 ? "border-lime-300/40 bg-lime-300/10 text-lime-300" : "border-white/10 text-slate-500"}`}>{filter}</span>)}
-        </div>
-
         <div className="grid gap-5 md:grid-cols-2">
           {caseStudies.map((project, index) => (
             <Link key={project.slug} href={`/casos/${project.slug}`} className={`group block overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.025] ${index === 0 ? "md:col-span-2" : ""}`}>
@@ -66,7 +62,7 @@ export default function CasosPage() {
         <div className="mx-auto max-w-7xl">
           <p className="font-mono text-xs uppercase tracking-[0.35em] text-lime-300">¿Tienes un proyecto?</p>
           <h2 className="mt-6 max-w-4xl text-5xl font-semibold tracking-[-0.06em] sm:text-7xl">No necesitas otra agencia.<br /><span className="text-slate-500">Necesitas una que entienda el negocio.</span></h2>
-          <Link href="/#contacto" className="mt-10 inline-flex rounded-full bg-white px-7 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-300">Hablar con AdVibe <span className="ml-3">↗</span></Link>
+          <Link href="/diagnostico" className="mt-10 inline-flex rounded-full bg-white px-7 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-300">Solicitar diagnóstico gratis <span className="ml-3">↗</span></Link>
         </div>
       </section>
     </main>

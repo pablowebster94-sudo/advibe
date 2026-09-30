@@ -9,10 +9,33 @@ function isEnfoqueAdmin(path:string, isEV:boolean) {
   return path.startsWith("/enfoque-visual/admin") || path.startsWith("/api/enfoque/admin") || (isEV && path.startsWith("/admin"));
 }
 
+// /control es el tablero interno (clientes, cobros): nunca debe ser público.
+// Se protege con usuario y contraseña (Basic Auth) definidos en CONTROL_USER y CONTROL_PASSWORD.
+// Si CONTROL_PASSWORD no está configurada, la página queda bloqueada para todos.
+function controlAccessDenied(request: NextRequest) {
+  const expected = process.env.CONTROL_PASSWORD;
+  const user = process.env.CONTROL_USER || "advibe";
+  const header = request.headers.get("authorization") || "";
+  if (expected && header.startsWith("Basic ")) {
+    try {
+      const [givenUser, ...rest] = atob(header.slice(6)).split(":");
+      if (givenUser === user && rest.join(":") === expected) return null;
+    } catch {}
+  }
+  return new NextResponse("Acceso restringido", {
+    status: 401,
+    headers: { "WWW-Authenticate": 'Basic realm="AdVibe Control", charset="UTF-8"', "X-Robots-Tag": "noindex, nofollow" },
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const host = request.headers.get("host")?.split(":")[0] ?? "";
   const isEV = host === "enfoque.advibeagencia.com" || host === "enfoquevisual.advibeagencia.com";
   const path = request.nextUrl.pathname;
+  if (path === "/control" || path.startsWith("/control/")) {
+    const denied = controlAccessDenied(request);
+    if (denied) return denied;
+  }
   const cookies: Array<[string,string,number]> = [];
 
   const keys=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","fbclid","gclid"];

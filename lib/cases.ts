@@ -11,6 +11,17 @@ export type CaseStudy = {
   outcome: string;
   featured?: boolean;
   accent: string;
+  /**
+   * Cifras reales del proyecto (p. ej. { value: "320", label: "conversaciones por WhatsApp en 30 días" }).
+   * Solo datos medidos y confirmados: si no hay, se deja vacío y la sección no se muestra.
+   */
+  results?: { value: string; label: string }[];
+  /** Frase real del cliente, con su permiso. */
+  testimonial?: { quote: string; author: string; role: string };
+  /** Imagen principal en /public (p. ej. "/images/casos/am-motorsport.webp"), 16:8 recomendado. */
+  cover?: string;
+  /** Enlace a un video del proyecto (YouTube, Instagram, etc.). */
+  videoUrl?: string;
 };
 
 export const caseStudies: CaseStudy[] = [

@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { caseStudies, getCaseStudy } from "@/lib/cases";
+import { pageMetadata } from "@/lib/seo";
 
 export function generateStaticParams() {
   return caseStudies.map((item) => ({ slug: item.slug }));
@@ -9,7 +11,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = getCaseStudy(slug);
-  return { title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia", description: project?.summary };
+  if (!project) return { title: "Caso | AdVibe Agencia" };
+  return pageMetadata({
+    title: `${project.client}: ${project.services.slice(0, 2).join(" y ").toLowerCase()} | Caso AdVibe`,
+    description: project.summary,
+    path: `/casos/${project.slug}`,
+  });
 }
 
 export default async function CasePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -35,6 +42,7 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
           <h1 className="mt-8 max-w-5xl text-6xl font-semibold leading-[0.92] tracking-[-0.07em] sm:text-8xl lg:text-[7.5rem]">{project.client}</h1>
           <p className="mt-8 max-w-3xl text-2xl leading-10 text-slate-400 sm:text-3xl">{project.title}</p>
           <div className={`relative mt-16 aspect-[16/8] overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br ${project.accent}`}>
+            {project.cover ? <Image src={project.cover} alt={`${project.client}: ${project.title}`} fill priority sizes="(min-width: 1280px) 1216px, 100vw" className="object-cover" /> : null}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,.1),transparent_28%),linear-gradient(120deg,transparent_30%,rgba(255,255,255,.03))]" />
             <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between"><span className="font-mono text-xs uppercase tracking-[0.25em] text-white/40">AdVibe / {project.sector}</span><span className="text-5xl font-light tracking-[-0.06em] text-white/20 sm:text-8xl">{project.number}</span></div>
           </div>
@@ -57,19 +65,44 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
         </div>
       </section>
 
-      <section className="px-6 pb-24 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-5 md:grid-cols-3">
-            {["ESTRATEGIA", "CREATIVIDAD", "DISTRIBUCIÓN"].map((label, index) => <div key={label} className="aspect-square rounded-[1.75rem] border border-white/10 bg-white/[0.025] p-7"><span className="font-mono text-xs text-lime-300">0{index + 1}</span><div className="flex h-full items-end"><h3 className="text-3xl font-semibold tracking-[-0.05em]">{label}</h3></div></div>)}
+      {project.results?.length ? (
+        <section className="px-6 pb-24 sm:px-8">
+          <div className="mx-auto max-w-7xl">
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-lime-300">Resultados</p>
+            <div className="mt-8 grid border-y border-white/10 sm:grid-cols-2 lg:grid-cols-3">
+              {project.results.map((result) => (
+                <div key={result.label} className="border-b border-white/10 px-2 py-10 sm:border-r sm:px-8 lg:border-b-0 lg:last:border-r-0">
+                  <p className="text-5xl font-semibold tracking-[-0.06em] text-white sm:text-6xl">{result.value}</p>
+                  <p className="mt-3 max-w-xs text-sm leading-6 text-slate-400">{result.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
+
+      {project.testimonial ? (
+        <section className="px-6 pb-24 sm:px-8">
+          <figure className="mx-auto max-w-5xl border-l-2 border-lime-300 pl-8">
+            <blockquote className="text-3xl font-medium leading-tight tracking-[-0.03em] text-white sm:text-4xl">“{project.testimonial.quote}”</blockquote>
+            <figcaption className="mt-6 text-sm text-slate-400"><span className="font-semibold text-white">{project.testimonial.author}</span> · {project.testimonial.role}</figcaption>
+          </figure>
+        </section>
+      ) : null}
+
+      {project.videoUrl ? (
+        <section className="px-6 pb-24 sm:px-8">
+          <div className="mx-auto max-w-7xl">
+            <a href={project.videoUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white transition hover:border-lime-300/50 hover:text-lime-300">Ver el video del proyecto ↗</a>
+          </div>
+        </section>
+      ) : null}
 
       <section className="border-y border-white/10 bg-white/[0.025] px-6 py-20 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_2fr]"><p className="font-mono text-xs uppercase tracking-[0.3em] text-lime-300">Resultado / impacto</p><p className="text-2xl leading-10 text-slate-300 sm:text-3xl">{project.outcome}</p></div>
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_2fr]"><p className="font-mono text-xs uppercase tracking-[0.3em] text-lime-300">Qué entregamos</p><p className="text-2xl leading-10 text-slate-300 sm:text-3xl">{project.outcome}</p></div>
       </section>
 
-      <section className="px-6 py-28 sm:px-8"><div className="mx-auto max-w-7xl"><p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-600">Siguiente caso</p><Link href={`/casos/${next.slug}`} className="group mt-6 block border-b border-white/10 pb-8"><div className="flex items-end justify-between gap-5"><h2 className="text-5xl font-semibold tracking-[-0.06em] transition group-hover:text-lime-300 sm:text-7xl">{next.client}</h2><span className="text-3xl transition group-hover:-rotate-45">↗</span></div></Link><Link href="/#contacto" className="mt-12 inline-flex rounded-full bg-lime-300 px-7 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-200">Implementar algo similar <span className="ml-3">↗</span></Link></div></section>
+      <section className="px-6 py-28 sm:px-8"><div className="mx-auto max-w-7xl"><p className="font-mono text-xs uppercase tracking-[0.3em] text-slate-600">Siguiente caso</p><Link href={`/casos/${next.slug}`} className="group mt-6 block border-b border-white/10 pb-8"><div className="flex items-end justify-between gap-5"><h2 className="text-5xl font-semibold tracking-[-0.06em] transition group-hover:text-lime-300 sm:text-7xl">{next.client}</h2><span className="text-3xl transition group-hover:-rotate-45">↗</span></div></Link><Link href="/diagnostico" className="mt-12 inline-flex rounded-full bg-lime-300 px-7 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-200">Implementar algo similar <span className="ml-3">↗</span></Link></div></section>
     </main>
   );
 }

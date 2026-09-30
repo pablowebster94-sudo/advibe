@@ -1,13 +1,18 @@
 import Link from "next/link";
 import SectionHeading from "@/components/ui/SectionHeading";
 import EventButton from "@/components/EventButton";
+import { caseStudies } from "@/lib/cases";
 
-const projects = [
-  { number: "01", title: "AM Motorsport", sector: "Automotriz", work: "Contenido + Publicidad", description: "Dirección audiovisual y contenido comercial para el lanzamiento del Polaris Slingshot Roush Edition.", slug: "am-motorsport" },
-  { number: "02", title: "United Kingdom English Academy", sector: "Educación", work: "Contenido + Meta Ads", description: "Creatividad y campañas para comunicar una oferta y llevar potenciales estudiantes a conversación.", slug: "uk-english-academy" },
-  { number: "03", title: "Kamauto", sector: "Automotriz", work: "Fotografía + Video", description: "Contenido visual comercial para comunicar vehículos y productos con una estética consistente.", slug: "kamauto" },
-  { number: "04", title: "Muebles Ideal", sector: "Retail", work: "Foto + Video + Contenido", description: "Contenido comercial para presentar producto y fortalecer la comunicación digital.", slug: "muebles-ideal" },
-];
+// Misma fuente que /casos: editar los proyectos en lib/cases.ts.
+const projects = caseStudies.filter((item) => item.featured).map((item) => ({
+  number: item.number,
+  title: item.client,
+  sector: item.sector,
+  work: item.services.join(" + "),
+  description: item.summary,
+  slug: item.slug,
+  result: item.results?.[0],
+}));
 
 export default function Portfolio() {
   return (
@@ -29,7 +34,7 @@ export default function Portfolio() {
                   </div>
                 </div>
                 <div className="flex flex-col justify-between border-t border-white/10 bg-white/[0.025] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
-                  <div><span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lime-300">Servicios realizados</span><p className="mt-5 text-xl font-medium leading-8 text-white sm:text-2xl">{project.work}</p><p className="mt-4 text-sm leading-7 text-slate-500">{project.description}</p></div>
+                  <div><span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lime-300">Servicios realizados</span><p className="mt-5 text-xl font-medium leading-8 text-white sm:text-2xl">{project.work}</p><p className="mt-4 text-sm leading-7 text-slate-500">{project.description}</p>{project.result ? <p className="mt-6 border-t border-white/10 pt-5"><span className="text-3xl font-semibold tracking-[-0.05em] text-lime-300">{project.result.value}</span><span className="ml-3 text-sm text-slate-400">{project.result.label}</span></p> : null}</div>
                   <Link href={`/casos/${project.slug}`} className="mt-8 inline-flex w-fit items-center rounded-full border border-white/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-300">Ver proyecto <span className="ml-2">↗</span></Link>
                 </div>
               </div>

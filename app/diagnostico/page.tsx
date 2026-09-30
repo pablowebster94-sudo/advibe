@@ -98,20 +98,28 @@ export default function DiagnosticPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-8 text-sm text-slate-500">AdVibe conecta creatividad, performance y tecnología para empresas en Ecuador y EE. UU.</p>
+            <div className="mt-10 border-t border-white/10 pt-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Han confiado en AdVibe</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {["AM Motorsport", "United Kingdom English Academy", "CETAD San Lucas", "Kamauto", "Muebles Ideal", "Bocabell"].map((client) => (
+                  <span key={client} className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-300">{client}</span>
+                ))}
+              </div>
+              <p className="mt-5 text-sm text-slate-500">+50 empresas atendidas en Ecuador y EE. UU. · <Link href="/casos" className="text-slate-300 underline-offset-4 hover:text-lime-300 hover:underline">Ver casos</Link></p>
+            </div>
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl sm:p-8">
             <div className="mb-6">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-lime-300">1 · Cuéntanos de tu negocio</p>
               <h2 className="mt-3 text-2xl font-semibold">Solicita tu diagnóstico</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">Toma menos de 2 minutos. Usaremos la información para preparar una conversación útil.</p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Toma menos de 2 minutos. Sin costo y sin compromiso: te escribimos por WhatsApp para coordinar la sesión.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <input required name="name" autoComplete="name" placeholder="Nombre completo" className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
               <input required name="company" autoComplete="organization" placeholder="Empresa" className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
-              <input name="website" type="url" placeholder="Sitio web (opcional)" className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
+              <input name="website" type="text" inputMode="url" autoComplete="url" placeholder="Web o Instagram (opcional)" className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
               <div className="grid gap-4 sm:grid-cols-2">
                 <input required name="phone" autoComplete="tel" placeholder="WhatsApp / teléfono" className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
                 <input required name="email" type="email" autoComplete="email" placeholder="Correo" className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />

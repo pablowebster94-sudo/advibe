@@ -3,7 +3,10 @@ export type LogoItem = {
   label: string;
 };
 
+export type ServiceGroup = "Creatividad" | "Performance" | "Tecnología";
+
 export type ServiceItem = {
+  group: ServiceGroup;
   title: string;
   description: string;
   icon: string;
