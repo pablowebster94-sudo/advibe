@@ -166,6 +166,7 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       headline: concept.copy.headline,
       supportingLine: concept.copy.description,
       priceDisplay: brief.priceDisplay,
+      offerDisplay: brief.offer,
       ctaLabel: concept.copy.cta,
       productImageBuffer,
       logoBuffer,
