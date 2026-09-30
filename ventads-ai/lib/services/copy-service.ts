@@ -66,17 +66,20 @@ function ventaDirecta(
   const title = productTitle(brief);
   const missing: string[] = [];
   const priceLine = brief.priceDisplay;
-  if (!priceLine) missing.push("precio");
+  const offerLine = brief.offer?.trim();
+  if (!priceLine && !offerLine) missing.push("precio u oferta");
   const features = analysis.topFeatures;
   if (features.length === 0) missing.push("características");
 
   // Price is shown separately as a badge on the rendered creative, so the
   // headline stays focused on the product name instead of repeating it.
-  const headline = title;
+  const headline = offerLine || title;
   const primaryText = withCta(
-    features.length
-      ? `${title}. ${joinFeatures(features)}.`
-      : `${title}, disponible ahora.`,
+    offerLine
+      ? `${title}. ${offerLine}${features.length ? `. ${joinFeatures(features)}` : ""}.`
+      : features.length
+        ? `${title}. ${joinFeatures(features)}.`
+        : `${title}, disponible ahora.`,
     analysis.recommendedCta
   );
 
@@ -84,8 +87,8 @@ function ventaDirecta(
     {
       headline,
       primaryText,
-      description: priceLine ?? "Consulta disponibilidad",
-      shortCopy: priceLine ? `${title} · ${priceLine}` : title,
+      description: priceLine ?? offerLine ?? "Consulta disponibilidad",
+      shortCopy: offerLine ? `${title} · ${offerLine}` : priceLine ? `${title} · ${priceLine}` : title,
       longCopyExtra: features.length ? joinFeatures(features) : undefined,
     },
     brief,
@@ -98,13 +101,16 @@ function beneficio(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
   const title = productTitle(brief);
   const missing: string[] = [];
   const benefit = analysis.primaryBenefit;
-  if (!benefit) missing.push("beneficios");
+  const offerLine = brief.offer?.trim();
+  if (!benefit && !offerLine) missing.push("beneficio");
 
-  const headline = benefit ? benefit : `${title}, pensado para ti`;
+  const headline = benefit || offerLine || title;
   const primaryText = withCta(
     benefit
-      ? `Con ${title} obtienes ${benefit.toLowerCase()}.`
-      : `${title} está diseñado para hacer tu día más fácil.`,
+      ? `Con ${title} obtienes ${benefit.toLowerCase()}${offerLine ? `. ${offerLine}` : ""}.`
+      : offerLine
+        ? `${title}. ${offerLine}.`
+        : `${title} está diseñado para resolver una necesidad concreta.`,
     analysis.recommendedCta
   );
 
@@ -113,7 +119,7 @@ function beneficio(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
       headline,
       primaryText,
       description: title,
-      shortCopy: benefit ?? title,
+      shortCopy: benefit ?? offerLine ?? title,
     },
     brief,
     analysis,
