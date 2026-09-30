@@ -49,6 +49,10 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
 
   const productImage = product.images.find((image) => image.role === "PRODUCT");
 
+  // MVP: generate one primary 1:1 creative per concept (3 creatives total).
+  // 4:5 and 9:16 remain available for an explicit adaptation step later.
+  const initialFormats = [FORMATS[0]];
+
   for (const [index, variant] of ai.variants.entries()) {
     const type = conceptTypeForVariant(index, brief);
     await prisma.concept.create({
@@ -75,7 +79,7 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
           },
         },
         creatives: {
-          create: FORMATS.map((format) => ({
+          create: initialFormats.map((format) => ({
             format: format.id,
             sourceImageId: productImage?.id,
           })),
@@ -166,6 +170,7 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       headline: concept.copy.headline,
       supportingLine: concept.copy.description,
       priceDisplay: brief.priceDisplay,
+      offerDisplay: brief.offer,
       ctaLabel: concept.copy.cta,
       productImageBuffer,
       logoBuffer,
