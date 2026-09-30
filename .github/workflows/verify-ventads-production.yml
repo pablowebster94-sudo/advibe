@@ -83,7 +83,9 @@ jobs:
             [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
           done
 
-      # Drives the same API calls as the "Generar creatividades" button:
+      # Drives the same API calls as the "Generar creatividades" button.
+      # MVP expectation: 3 concepts -> 3 initial 1:1 creatives. Additional
+      # formats are generated later only when explicitly requested.
       # upload photo -> brand -> product -> POST /api/campaigns -> poll until
       # every creative is rendered. Prints status, content type and timing.
       - name: End-to-end generation
