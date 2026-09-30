@@ -269,5 +269,12 @@ export function conceptTypeForVariant(index: number, brief: ProductBrief): Conce
   if (isVehicle && index === 0) return "VENTA_DIRECTA";
   if (isVehicle && index === 1) return "CARACTERISTICA";
   if (isVehicle && index === 2) return "ASPIRACIONAL";
+
+  // For non-automotive products, a real promotion is a stronger second
+  // selling angle than a generic aspirational concept. Do not bury an offer.
+  if (brief.offer?.trim()) {
+    return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "OFERTA" : "BENEFICIO";
+  }
+
   return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "BENEFICIO" : "ASPIRACIONAL";
 }
