@@ -31,6 +31,18 @@ export class GeminiImageProvider implements ImageGenerationService {
   private model: string;
   private fallback: ImageGenerationService | null;
 
+  /**
+   * Identifies which key/project failed without exposing the key: its last 4
+   * characters (as Google AI Studio lists keys) and the Google Cloud project
+   * number that Google's error reports, when present.
+   */
+  private keyContext(detail: string): string {
+    const project = /projects\/(\d+)/.exec(detail)?.[1];
+    const parts = [`key …${this.apiKey.slice(-4)}`];
+    if (project) parts.push(`proyecto ${project}`);
+    return parts.join(", ");
+  }
+
   constructor(apiKey: string, fallback: ImageGenerationService | null = null) {
     if (!apiKey) throw new Error("IMAGE_PROVIDER=gemini requiere GEMINI_API_KEY. Configúrala en .env.");
     this.apiKey = apiKey;
@@ -118,7 +130,7 @@ export class GeminiImageProvider implements ImageGenerationService {
       return {
         ...local,
         provider: "local-compositor:gemini-fallback",
-        note: `Gemini (${this.model}) no generó la escena: ${redactSecrets(detail, this.apiKey).slice(0, 400)}`,
+        note: `Gemini (${this.model}) no generó la escena [${this.keyContext(detail)}]: ${redactSecrets(detail, this.apiKey).slice(0, 400)}`,
       };
     }
 
