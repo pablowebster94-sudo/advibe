@@ -49,6 +49,11 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
 
   const productImage = product.images.find((image) => image.role === "PRODUCT");
 
+  // MVP: generate one primary format per concept (3 creatives total).
+  // Additional formats remain available in the catalog for a later adaptation step,
+  // so we do not spend API budget generating 3 copies of the same concept upfront.
+  const initialFormats = [FORMATS[0]];
+
   for (const [index, variant] of ai.variants.entries()) {
     const type = conceptTypeForVariant(index, brief);
     await prisma.concept.create({
@@ -75,7 +80,7 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
           },
         },
         creatives: {
-          create: FORMATS.map((format) => ({
+          create: initialFormats.map((format) => ({
             format: format.id,
             sourceImageId: productImage?.id,
           })),
