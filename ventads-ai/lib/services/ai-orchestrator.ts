@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import type { ProductBrief } from "@/lib/product-brief";
 import type { AnalysisResult } from "@/lib/services/analysis-engine";
@@ -42,17 +41,13 @@ export type AICampaignResult = {
 };
 
 function cleanJson(raw: string) {
-  const withoutFence = raw.replace(new RegExp("\\x60{3}(?:json)?", "gi"), "").trim();
+  const withoutFence = raw.replace(new RegExp("\x60{3}(?:json)?", "gi"), "").trim();
   const start = withoutFence.indexOf("{");
   const end = withoutFence.lastIndexOf("}");
   if (start < 0 || end <= start) throw new Error("El proveedor no devolvió JSON válido.");
   return JSON.parse(withoutFence.slice(start, end + 1)) as unknown;
 }
 
-// The whole multi-provider chain runs inside POST /api/campaigns, so it must
-// finish well inside that route's maxDuration (60s): each call gets at most
-// PER_CALL_TIMEOUT_MS and never more than what is left of the shared budget.
-// A provider that runs out of time falls back to the deterministic engine.
 const PER_CALL_TIMEOUT_MS = 20_000;
 const TOTAL_AI_BUDGET_MS = Number(process.env.AI_TOTAL_TIMEOUT_MS) || 40_000;
 const MIN_USEFUL_CALL_MS = 3_000;
@@ -79,12 +74,23 @@ function briefContext(brief: ProductBrief, extra: {
   objective: string; budget?: number; location?: string; clientDescription?: string; clientUrl?: string;
 }) {
   return JSON.stringify({
-    product: brief.productName, category: brief.category, manufacturer: brief.manufacturer,
-    model: brief.model, price: brief.priceDisplay, description: brief.description,
-    features: brief.features, benefits: brief.benefits, offer: brief.offer,
-    cta: brief.cta || brief.brandCta, targetAudience: brief.targetAudience,
-    brand: brief.brandName, contact: brief.brandContact, objective: extra.objective,
-    budget: extra.budget, location: extra.location, clientDescription: extra.clientDescription,
+    product: brief.productName,
+    category: brief.category,
+    manufacturer: brief.manufacturer,
+    model: brief.model,
+    price: brief.priceDisplay,
+    description: brief.description,
+    features: brief.features,
+    benefits: brief.benefits,
+    offer: brief.offer,
+    cta: brief.cta || brief.brandCta,
+    targetAudience: brief.targetAudience,
+    brand: brief.brandName,
+    contact: brief.brandContact,
+    objective: extra.objective,
+    budget: extra.budget,
+    location: extra.location,
+    clientDescription: extra.clientDescription,
     clientUrl: extra.clientUrl,
   }, null, 2);
 }
@@ -114,15 +120,20 @@ async function claudeJson(prompt: string, deadline: Deadline): Promise<unknown> 
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error("ANTHROPIC_API_KEY no configurada.");
   const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
-  const raw = await requestText("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({
-      model, max_tokens: 3000,
-      system: "Eres un copywriter senior de respuesta directa especializado en Meta Ads. Devuelve únicamente JSON válido.",
-      messages: [{ role: "user", content: prompt }],
-    }),
-  }, deadline);
+  const raw = await requestText(
+    "https://api.anthropic.com/v1/messages",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({
+        model,
+        max_tokens: 3000,
+        system: "Eres un estratega de performance. Devuelve únicamente JSON válido y no inventes hechos.",
+        messages: [{ role: "user", content: prompt }],
+      }),
+    },
+    deadline
+  );
   const data = JSON.parse(raw) as { content?: Array<{ type?: string; text?: string }> };
   return cleanJson(data.content?.filter((x) => x.type === "text").map((x) => x.text || "").join("") || "");
 }
@@ -131,11 +142,15 @@ async function openaiJson(prompt: string, deadline: Deadline): Promise<unknown> 
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY no configurada.");
   const model = process.env.OPENAI_MODEL || "gpt-5.6";
-  const raw = await requestText("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
-    body: JSON.stringify({ model, input: prompt, text: { format: { type: "json_object" } } }),
-  }, deadline);
+  const raw = await requestText(
+    "https://api.openai.com/v1/responses",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
+      body: JSON.stringify({ model, input: prompt, text: { format: { type: "json_object" } } }),
+    },
+    deadline
+  );
   const data = JSON.parse(raw) as {
     output_text?: string;
     output?: Array<{ content?: Array<{ text?: string }> }>;
@@ -151,24 +166,22 @@ function toObjectiveId(objective: string): ObjectiveId {
 function fallbackVisualPrompt(type: ConceptPlan["type"], title: string, feature: string | null) {
   switch (type) {
     case "VENTA_DIRECTA":
-      return "Professional advertising photography of the real " + title + ", clean premium composition, realistic lighting, 4:5 portrait format, no text in image.";
+      return "Professional direct-response advertising photography of the real " + title + ", product hero, bright commercial lighting, clean composition, realistic materials, no text in image.";
     case "CARACTERISTICA":
-      return "Detail-focused advertising photography of the real " + title + (feature ? ", highlighting " + feature : "") + ", sharp close-up, realistic commercial lighting, 4:5 portrait, no text or invented product details.";
+      return "Detail-focused advertising photography of the real " + title + (feature ? ", highlighting only this real detail: " + feature : "") + ", sharp commercial lighting, no text or invented product details.";
     case "BENEFICIO":
-      return "Photorealistic advertising scene centered on the real " + title + ", visually communicating its main benefit without inventing attributes, premium commercial lighting, 4:5 portrait, no text.";
+      return "Photorealistic lifestyle advertising scene centered on the real " + title + ", communicating only its supplied benefit, natural light, premium commercial composition, no text.";
+    case "OFERTA":
+      return "High-impact promotional advertising photography of the real " + title + ", bright inviting scene, clear product focus, clean background, no text or graphic overlays.";
     default:
-      return "Premium lifestyle advertising photography featuring the real " + title + ", aspirational but factual, cinematic depth, polished composition, 4:5 portrait, no text or invented product details.";
+      return "Premium lifestyle advertising photography featuring the real " + title + ", aspirational but factual, cinematic depth, no text or invented product details.";
   }
 }
 
-/**
- * Deterministic variants built from the existing concept/copy engines, so
- * the fallback keeps their "never invent facts" templates and the
- * vehicle-specific angle mix (VENTA_DIRECTA / CARACTERISTICA / ASPIRACIONAL).
- */
 function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult, objective = "VENDER"): AIVariant[] {
   const title = productTitle(brief);
   const plans = buildConcepts(brief, analysis);
+
   return [0, 1, 2].map((index) => {
     const type = conceptTypeForVariant(index, brief);
     const plan: ConceptPlan = plans.find((item) => item.type === type) ?? {
@@ -178,6 +191,7 @@ function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult, objecti
       highlightedFeature: analysis.topFeatures[0] ?? null,
     };
     const copy = generateCopy(plan, brief, analysis, toObjectiveId(objective));
+
     return {
       id: "variant-" + (index + 1),
       angle: plan.label,
@@ -192,16 +206,29 @@ function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult, objecti
   });
 }
 
-function normalizeVariants(variants: AIVariant[], brief: ProductBrief, analysis: AnalysisResult, objective: string) {
+/**
+ * The deterministic copy engine is the source of truth for all commercial
+ * claims. External text models may suggest strategy, but they cannot replace
+ * the final headline/offer/CTA because generic model copy was the cause of
+ * weak creatives in the previous MVP.
+ */
+function normalizeVariants(
+  variants: AIVariant[],
+  brief: ProductBrief,
+  analysis: AnalysisResult,
+  objective: string
+) {
   const fallback = fallbackVariants(brief, analysis, objective);
-  return [...variants, ...fallback].slice(0, 3).map((variant, index) => ({
-    ...fallback[index],
-    ...variant,
-    id: "variant-" + (index + 1),
-    cta: variant.cta?.trim() || analysis.recommendedCta,
-    whatsapp_message: variant.whatsapp_message?.trim() ||
-      "Hola, quiero información sobre " + [brief.manufacturer, brief.productName, brief.model].filter(Boolean).join(" ") + ".",
-  }));
+
+  return fallback.map((base, index) => {
+    const ai = variants[index];
+    return {
+      ...base,
+      visual_prompt: ai?.visual_prompt?.trim() || base.visual_prompt,
+      // Preserve exact deterministic copy and CTA.
+      id: "variant-" + (index + 1),
+    };
+  });
 }
 
 export async function generateAICampaign(
@@ -211,12 +238,13 @@ export async function generateAICampaign(
 ): Promise<AICampaignResult> {
   const context = briefContext(brief, input);
   const deadline: Deadline = { at: Date.now() + TOTAL_AI_BUDGET_MS };
+
   let strategic: AIAnalysis;
   let geminiStatus: AIProviderStatus = "not_configured";
 
   try {
     strategic = analysisSchema.parse(await geminiJson(
-      "Actúa como analista senior de mercado y estratega de performance para Meta Ads. Analiza únicamente los hechos entregados. No inventes precios, promociones, características, resultados ni garantías. Identifica categoría, público, 3 pain points, UVP, keywords, objetivo recomendado, orientación de presupuesto y 3 ángulos estratégicos. Devuelve JSON. Contexto:\n" + context,
+      "Actúa como estratega senior de performance para Meta Ads. Analiza únicamente los hechos entregados. No inventes precios, promociones, características, resultados ni garantías. Devuelve 3 ángulos comerciales concretos que puedan convertirse en anuncios. Si existe una oferta, úsala explícitamente. Devuelve JSON. Contexto:\n" + context,
       deadline
     ));
     geminiStatus = "ai";
@@ -230,38 +258,55 @@ export async function generateAICampaign(
       keywords: analysis.topFeatures,
       recommended_objective: input.objective,
       budget_recommendation: input.budget ? "Presupuesto indicado: $" + input.budget : "Definir según objetivo y mercado.",
-      strategic_angles: ["Venta directa", "Beneficio", "Diferenciación"],
+      strategic_angles: brief.offer
+        ? ["Oferta", "Beneficio", "Producto"]
+        : ["Venta directa", "Beneficio", "Producto"],
     };
   }
 
-  let variants: AIVariant[];
+  // Claude is retained as an optional strategy layer, but its generic copy
+  // cannot override the deterministic commercial copy.
   let claudeStatus: AIProviderStatus = "not_configured";
+  let variants: AIVariant[] = fallbackVariants(brief, analysis, input.objective);
+
   try {
     const result = copyResponseSchema.parse(await claudeJson(
-      "Crea exactamente 3 variantes de anuncio para Meta Ads en español de Ecuador. No inventes ningún dato. Usa estos ángulos: 1) problema/urgencia, 2) frustración/agitación, 3) alivio/UVP. Cada variante debe tener hook, primary_text, headline, description, CTA, mensaje de WhatsApp y angle. Evita clichés de IA, exceso de emojis, hashtags innecesarios, lenguaje corporativo y garantías no sustentadas. Devuelve JSON con la forma {variants:[...]}. Contexto:\n" + context + "\nEstrategia:\n" + JSON.stringify(strategic),
+      "Genera exactamente 3 ángulos para Meta Ads en español. No inventes datos. La primera variante debe corresponder a venta directa; la segunda a oferta si existe una oferta real, o beneficio si no existe; la tercera a beneficio o aspiracional. No generes claims nuevos. Devuelve JSON {variants:[...]} y usa los datos entregados como contexto.\n" + context + "\nEstrategia:\n" + JSON.stringify(strategic),
       deadline
     ));
-    variants = result.variants;
+    variants = normalizeVariants(result.variants, brief, analysis, input.objective);
     claudeStatus = "ai";
   } catch {
     claudeStatus = process.env.ANTHROPIC_API_KEY ? "fallback" : "not_configured";
-    variants = fallbackVariants(brief, analysis, input.objective);
   }
 
   let openaiStatus: AIProviderStatus = "not_configured";
   try {
     const result = visualResponseSchema.parse(await openaiJson(
-      "Eres director de arte y prompt engineer para Meta Ads. Crea exactamente 3 prompts visuales en inglés, uno por variante. Especifica subject/action/environment/composition/perspective/lighting/style/palette/depth of field/lens y 4:5. Usa únicamente atributos reales del producto; no inventes. No pongas texto, precios, logos ni tipografías dentro de la imagen. Devuelve JSON con la forma {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants),
+      "Eres director de arte para Meta Ads. Crea exactamente 3 prompts visuales en inglés, uno por variante. La imagen debe mostrar únicamente una fotografía publicitaria limpia del producto real, sin texto, precios, logos, botones ni overlays. Mantén identidad, materiales, color y proporciones del producto. Haz que cada variante tenga una dirección visual distinta. Devuelve JSON {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants),
       deadline
     ));
-    variants = normalizeVariants(variants.map((v, i) => ({ ...v, visual_prompt: result.prompts[i] || v.visual_prompt })), brief, analysis, input.objective);
+    variants = normalizeVariants(
+      variants.map((variant, index) => ({ ...variant, visual_prompt: result.prompts[index] || variant.visual_prompt })),
+      brief,
+      analysis,
+      input.objective
+    );
     openaiStatus = "ai";
   } catch {
     openaiStatus = process.env.OPENAI_API_KEY ? "fallback" : "not_configured";
     variants = normalizeVariants(variants, brief, analysis, input.objective);
   }
 
-  return { analysis: strategic, variants: normalizeVariants(variants, brief, analysis, input.objective), providerStatus: { gemini: geminiStatus, claude: claudeStatus, openai: openaiStatus } };
+  return {
+    analysis: strategic,
+    variants: normalizeVariants(variants, brief, analysis, input.objective),
+    providerStatus: {
+      gemini: geminiStatus,
+      claude: claudeStatus,
+      openai: openaiStatus,
+    },
+  };
 }
 
 export function conceptTypeForVariant(index: number, brief: ProductBrief): ConceptPlan["type"] {
@@ -270,8 +315,6 @@ export function conceptTypeForVariant(index: number, brief: ProductBrief): Conce
   if (isVehicle && index === 1) return "CARACTERISTICA";
   if (isVehicle && index === 2) return "ASPIRACIONAL";
 
-  // For non-automotive products, a real promotion is a stronger second
-  // selling angle than a generic aspirational concept. Do not bury an offer.
   if (brief.offer?.trim()) {
     return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "OFERTA" : "BENEFICIO";
   }
