@@ -16,7 +16,7 @@
 <button onclick="quick('¿Qué tengo esta semana?')" class="shrink-0 px-3 py-2 rounded-full bg-slate-800">Semana</button>
 </nav>
 <main id="chat" class="flex-1 p-4 space-y-3 overflow-y-auto">
-<div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-sm">Hola. Soy ADvibe AI. Puedes decirme: “Hoy hice 2 videos para Muebles Ideal”, “¿Cuántos videos lleva Paola?”, “Grabar con Kamauto el martes a las 3 de la tarde” o “¿Qué tengo esta semana?”</div>
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-sm">Hola. Soy ADvibe AI. Puedes decirme: “Hoy hice 2 videos para Muebles Ideal”, “¿Cuántos videos lleva Paola?”, “Grabar con Kamauto el martes a las 3 de la tarde” o “¿Qué tengo esta semana?” o “Kamauto pagó $200 por transferencia”. Antes de escribir en la hoja te pido confirmación.</div>
 </main>
 <footer class="p-4 border-t border-slate-800 sticky bottom-0 bg-slate-950">
 <form onsubmit="send(event)" class="flex gap-2">
@@ -27,7 +27,34 @@
 <script>
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function add(who,msg){let d=document.createElement('div');d.className=who==='me'?'text-right':'text-left';d.innerHTML='<div class="inline-block max-w-[90%] rounded-2xl px-4 py-3 whitespace-pre-wrap '+(who==='me'?'bg-blue-600':'bg-slate-900 border border-slate-800')+'">'+esc(msg)+'</div>';document.getElementById('chat').appendChild(d);d.scrollIntoView()}
-function send(e){e.preventDefault();let i=document.getElementById('p'),v=i.value.trim();if(!v)return;i.value='';add('me',v);google.script.run.withSuccessHandler(r=>add('ai',r.message||JSON.stringify(r))).withFailureHandler(e=>add('ai','⚠️ '+e.message)).processNaturalLanguage(v,'')}
+function send(e){e.preventDefault();let i=document.getElementById('p'),v=i.value.trim();if(!v)return;i.value='';add('me',v);google.script.run.withSuccessHandler(handleAgentResponse).withFailureHandler(fail).processNaturalLanguage(v)}
+function fail(e){add('ai','⚠️ '+(e&&e.message||e))}
+function done(r){add('ai',r.success?(r.message||'Hecho.'):'⚠️ '+r.error)}
+// Lecturas: se ejecutan directo. Escrituras: tarjeta de aprobación; el servidor solo ejecuta con el token que emitió.
+function handleAgentResponse(r){
+  if(!r.success){add('ai','⚠️ '+r.error);return}
+  if(!r.requires_approval){google.script.run.withSuccessHandler(done).withFailureHandler(fail).executeAction({intent:r.intent,data:r.data});return}
+  renderApprovalCard(r)
+}
+const RISK={MEDIUM:['Requiere aprobación','border-amber-500','bg-amber-600'],HIGH:['Riesgo alto · confirmación explícita','border-red-500','bg-red-600']};
+function renderApprovalCard(r){
+  const [label,border,btn]=RISK[r.risk_level]||RISK.MEDIUM, card=document.createElement('div');
+  const rows=Object.entries(r.data).filter(([,v])=>v!==''&&v!=null).map(([k,v])=>`<div class="flex gap-2"><span class="text-slate-400 shrink-0">${esc(k)}</span><span class="break-words min-w-0">${esc(v)}</span></div>`).join('');
+  card.className='bg-slate-900 border-2 '+border+' rounded-2xl p-4 text-sm space-y-3';
+  card.innerHTML=`<div class="text-xs uppercase tracking-wide text-slate-400">${esc(label)}</div><div class="font-semibold">${esc(r.summary)}</div><div class="space-y-1 text-xs">${rows}</div>`+
+    (r.risk_level==='HIGH'?`<input inputmode="decimal" class="c w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-2" placeholder="${esc(r.confirm_hint)}">`:'')+
+    `<div class="act flex gap-2"><button class="ok flex-1 rounded-lg py-2 font-semibold ${btn}">Confirmar</button><button class="no flex-1 rounded-lg py-2 bg-slate-800">Cancelar</button></div>`;
+  const ok=card.querySelector('.ok'),no=card.querySelector('.no'),c=card.querySelector('.c');
+  const close=t=>{ok.disabled=no.disabled=true;if(c)c.disabled=true;card.classList.add('opacity-60');card.querySelector('.act').innerHTML=`<div class="text-xs text-slate-400">${esc(t)}</div>`};
+  ok.onclick=()=>{
+    if(c&&!c.value.trim()){c.focus();return}
+    ok.disabled=no.disabled=true;
+    google.script.run.withSuccessHandler(x=>{if(x.success)close('Confirmado');else{ok.disabled=no.disabled=false}done(x)}).withFailureHandler(e=>{ok.disabled=no.disabled=false;fail(e)})
+      .executeAction({intent:r.intent,token:r.token,confirmation:c?c.value:undefined})
+  };
+  no.onclick=()=>{close('Cancelado');add('ai','Cancelado. No se escribió nada.')};
+  document.getElementById('chat').appendChild(card);card.scrollIntoView()
+}
 function voice(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert('Reconocimiento de voz no disponible en este navegador.');return}const r=new R();r.lang='es-EC';r.continuous=false;r.onresult=e=>{document.getElementById('p').value=e.results[0][0].transcript;send(new Event('submit'))};r.start()}
 const LABELS={active:'Clientes activos',done:'Piezas hechas',pending:'Piezas pendientes',projected:'Cobros proyectados',paid:'Cobrado',balance:'Saldo por cobrar',tasks:'Tareas pendientes'};
 function loadDash(){google.script.run.withSuccessHandler(d=>{let el=document.getElementById('dash');el.classList.remove('hidden');el.innerHTML=Object.entries(d).map(([k,v])=>`<div class="rounded-xl bg-slate-900 p-4"><div class="text-xs text-slate-400">${esc(LABELS[k]||k)}</div><div class="text-2xl font-bold">${esc(v)}</div></div>`).join('')}).withFailureHandler(e=>add('ai','⚠️ '+e.message)).getDashboardData()}

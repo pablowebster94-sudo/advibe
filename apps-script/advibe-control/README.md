@@ -25,8 +25,33 @@ Chat web, pensado para el móvil, con el que Pablo registra el trabajo del día:
 | "Publicar Muebles Ideal el jueves a las 19:00" | Crea un evento en Calendar y una fila en PUBLICACIONES |
 | "Tarea: llamar a Gualaceo mañana a las 9" | Crea un evento en Calendar y una fila en TAREAS |
 | "¿Qué tengo hoy / mañana / esta semana?" | Agenda sacada de la hoja y de Calendar, incluidas las publicaciones recurrentes |
+| "Kamauto pagó $200 por transferencia" | Añade una fila en PAGOS y actualiza Total pagado, Saldo y Estado del cobro abierto en COBROS |
+
+Todo lo que escribe pasa antes por una tarjeta de aprobación. Los pagos, además, piden escribir el monto.
 
 Fechas que entiende: hoy, mañana, pasado mañana, un día de la semana, "5 de octubre" y "5/10". La hora solo se toma si va marcada ("a las 3", "15:30", "4pm"). Si no hay hora, usa las 10:00.
+
+## Acciones y aprobación
+
+El texto nunca escribe directamente. Pasa por dos puertas:
+
+1. `processNaturalLanguage(texto)` o `prepareAction(payload)` convierten la petición en una intención, la validan (cliente existente, fecha real, cantidad y monto con sentido) y devuelven un resumen redactado por el servidor. Si la acción escribe, también devuelven un **token de un solo uso** que caduca a los 10 minutos.
+2. `executeAction(payload)` ejecuta. Las lecturas se ejecutan directamente. Las escrituras solo se ejecutan con un token vigente, y lo que se ejecuta es **lo que se aprobó**, guardado en el servidor, no lo que envíe el navegador.
+
+| Intención | Riesgo | `data` |
+|---|---|---|
+| `GET_AGENDA` | LOW | `offset` (días desde hoy), `days` |
+| `GET_CLIENT_SUMMARY` | LOW | `client` |
+| `CREATE_RECORDING` | MEDIUM | `client`, `date` AAAA-MM-DD, `time` HH:mm (10:00), `duration_min` (120), `description` |
+| `CREATE_PUBLICATION` | MEDIUM | `client`, `date`, `time` (`HORARIO_DEFAULT_PUBLICACION`), `platform` (Instagram), `description` |
+| `CREATE_TASK` | MEDIUM | `client` (opcional), `title`, `date`, `time` (10:00), `description` |
+| `RECORD_PRODUCTION` | MEDIUM | `client`, `quantity`, `mode` `ADD` o `SET`, `type` (VIDEO), `description` |
+| `RECORD_PAYMENT` | HIGH | `client`, `amount`, `date` (hoy), `method`, `reference`, `notes`, `cobro_id` |
+
+- **El riesgo lo fija el servidor** (tabla `ACTIONS_`). Se ignoran `risk_level` y `requires_approval` si vienen en el payload, sea de Claude o del navegador.
+- **Pagos:** si el cliente tiene un solo cobro con saldo, se asocia a ese. Si tiene varios, pide `cobro_id`. Si no tiene ninguno, registra el pago sin cobro y lo avisa. Rechaza los pagos mayores que el saldo. No sobrescribe las celdas de COBROS que tengan fórmula. Estados: `PAGADO` o `PARCIAL`.
+- **Solo son llamables** desde el navegador las funciones sin `_` final: `doGet`, `processNaturalLanguage`, `prepareAction`, `executeAction`, `getDashboardData`, `setupSystem` y los triggers. Todo lo que escribe es privado.
+- Un payload generado por Claude usa el mismo formato: `{intent, data}` → `prepareAction` → tarjeta → `executeAction({intent, token, confirmation})`.
 
 ## Correcciones frente a la versión original (probadas en `node`)
 
