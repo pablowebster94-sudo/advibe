@@ -4,6 +4,15 @@ import { CATEGORIES } from "@/lib/catalog/categories";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import type { ProductFormState } from "@/lib/wizard-types";
 
+function isVehicleCategory(value: string) {
+  const normalized = value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  return /\bvehiculos?\b|\bautos?\b|\bcamionetas?\b|\bcamiones?\b|\bmotos?\b|\bpickups?\b|\bsedans?\b|\bsuvs?\b/.test(normalized);
+}
+
 export function ProductStep({
   value,
   onChange,
@@ -15,16 +24,23 @@ export function ProductStep({
     onChange({ ...value, [key]: v });
   }
 
-  const categoryText = value.category.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
-  const isVehicle = /vehiculo|auto|camioneta|camion|moto|pickup|sedan|suv/.test(categoryText);
+  const isVehicle = isVehicleCategory(value.category);
+
+  function setCategory(category: string) {
+    onChange({
+      ...value,
+      category,
+      // Never leak a previous vehicle model into a generic product.
+      model: isVehicleCategory(category) ? value.model : "",
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Información del producto</h2>
+        <h2 className="text-lg font-semibold text-foreground">¿Qué vas a promocionar?</h2>
         <p className="text-sm text-muted mt-1">
-          Cuéntanos qué vendes. No inventamos características: usamos exactamente lo que
-          escribas aquí.
+          Solo necesitamos la información real del producto. VentAds se encarga de convertirla en una propuesta publicitaria.
         </p>
       </div>
 
@@ -33,7 +49,7 @@ export function ProductStep({
           <Input
             list="category-options"
             value={value.category}
-            onChange={(e) => set("category", e.target.value)}
+            onChange={(e) => setCategory(e.target.value)}
             placeholder="Muebles, restaurante, servicios..."
           />
           <datalist id="category-options">
@@ -43,7 +59,7 @@ export function ProductStep({
           </datalist>
         </Field>
 
-        <Field label="Nombre del producto" required>
+        <Field label="Nombre del producto o servicio" required>
           <Input
             value={value.name}
             onChange={(e) => set("name", e.target.value)}
@@ -60,8 +76,12 @@ export function ProductStep({
         </Field>
 
         {isVehicle && (
-          <Field label="Modelo / año" hint="Solo aplica a vehículos">
-            <Input value={value.model} onChange={(e) => set("model", e.target.value)} placeholder="Ej: Tracker 2026" />
+          <Field label="Modelo / año" hint="Este campo solo aparece para vehículos">
+            <Input
+              value={value.model}
+              onChange={(e) => set("model", e.target.value)}
+              placeholder="Ej: Tracker 2026"
+            />
           </Field>
         )}
 
@@ -85,29 +105,27 @@ export function ProductStep({
 
         <Field
           label="Texto de precio (opcional)"
-          hint='Sobrescribe el precio mostrado, ej: "Desde $51.500" o "Consultar"'
+          hint='Ej: "Desde $51.500" o "Consultar"'
         >
-          <Input
-            value={value.priceLabel}
-            onChange={(e) => set("priceLabel", e.target.value)}
-          />
+          <Input value={value.priceLabel} onChange={(e) => set("priceLabel", e.target.value)} />
         </Field>
 
-        <Field label="CTA preferido" hint='Ej: "Agenda tu prueba de manejo"'>
+        <Field label="CTA preferido" hint='Ej: "Comprar ahora", "Cotizar" o "WhatsApp"'>
           <Input value={value.cta} onChange={(e) => set("cta", e.target.value)} />
         </Field>
       </div>
 
-      <Field label="Descripción">
+      <Field label="¿Qué hace especial a este producto?">
         <Textarea
           value={value.description}
           onChange={(e) => set("description", e.target.value)}
           rows={3}
+          placeholder="Describe brevemente qué vendes y por qué alguien debería considerarlo."
         />
       </Field>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Características" hint="Una por línea">
+        <Field label="Características" hint="Una por línea. Solo datos reales.">
           <Textarea
             value={value.features}
             onChange={(e) => set("features", e.target.value)}
@@ -115,7 +133,7 @@ export function ProductStep({
             placeholder={"Material de madera maciza\nTapizado lavable\nEntrega inmediata"}
           />
         </Field>
-        <Field label="Beneficios" hint="Una por línea">
+        <Field label="Beneficios" hint="Una por línea. Qué obtiene el cliente.">
           <Textarea
             value={value.benefits}
             onChange={(e) => set("benefits", e.target.value)}
@@ -126,13 +144,21 @@ export function ProductStep({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Oferta / promoción vigente" hint='Ej: "15% de descuento" o "2x1"'>
-          <Input value={value.offer} onChange={(e) => set("offer", e.target.value)} />
+        <Field
+          label="Oferta / promoción vigente"
+          hint='Debe ser concreta: "15% de descuento", "2x1", "Envío gratis".'
+        >
+          <Input
+            value={value.offer}
+            onChange={(e) => set("offer", e.target.value)}
+            placeholder="15% de descuento"
+          />
         </Field>
-        <Field label="Público objetivo">
+        <Field label="Público objetivo" hint="Opcional">
           <Input
             value={value.targetAudience}
             onChange={(e) => set("targetAudience", e.target.value)}
+            placeholder="Familias, dueños de negocio, estudiantes..."
           />
         </Field>
       </div>

@@ -11,62 +11,28 @@ import { applyScrimAndCopy, type RenderCreativeInput } from "@/lib/services/crea
 import { buildScenePrompt } from "@/lib/services/gemini-prompt";
 import { detectMimeType, nearestSupportedAspectRatio } from "@/lib/services/image-utils";
 
-// "Nano Banana 2" — Gemini's native image generation/editing model. Chosen
-// over the older gemini-2.5-flash-image because it's the current
-// recommended model for this use case (multi-image blending, precise
-// edits, product-identity preservation). Overridable in case Google renames
-// it again — see the AdVibe /estudio implementation, which hit exactly that
-// with the preview id being retired.
 const DEFAULT_MODEL = "gemini-3.1-flash-image";
-
-// A single campaign can trigger up to 5 concepts x 3 formats = 15 of these
-// calls in one request (see campaign-service.ts). A hung request must fail
-// loudly instead of blocking the whole campaign indefinitely, and a failed
-// request must never silently become a second billable retry.
-// Kept well inside the worker's maxDuration (240s) together with its 45s
-// claim window; a slower call falls back to the local compositor instead.
 const REQUEST_TIMEOUT_MS = 100_000;
 const RETRY_ATTEMPTS = 1;
-
-// Our largest target canvas is 1080x1920 (STORY_9_16). Requesting 2K headroom
-// from Gemini avoids upscaling a 1K result through applyScrimAndCopy's final
-// resize, which would look soft. Good to know: some SDK/model builds have
-// been reported to ignore imageConfig.imageSize and always return 1K — this
-// is harmless to request either way, just re-check if output looks soft.
 const IMAGE_SIZE = "2K";
 
 function getImageModel() {
   return process.env.GEMINI_IMAGE_MODEL?.trim() || DEFAULT_MODEL;
 }
 
-/** Strips the API key out of an error message before it's logged or persisted. */
 function redactSecrets(value: string, apiKey: string): string {
   if (!apiKey || apiKey.length < 8) return value;
   return value.split(apiKey).join("[REDACTED]");
 }
 
-/**
- * Real generative provider: Gemini ("Nano Banana") composes the background
- * scene and integrates the product photo into it. The copy (headline,
- * price, CTA) is still rendered deterministically by
- * `applyScrimAndCopy` — no generative model is ever asked to draw text, so
- * ad copy is always exactly what the analysis/copy engines produced,
- * regardless of which image backend is active (see AGENTS.md #7 and
- * ARCHITECTURE.md → Image generation).
- */
 export class GeminiImageProvider implements ImageGenerationService {
   private client: GoogleGenAI;
   private apiKey: string;
   private model: string;
-  /** Used for a creative whenever Gemini fails, so a campaign never breaks on the AI. */
   private fallback: ImageGenerationService | null;
 
   constructor(apiKey: string, fallback: ImageGenerationService | null = null) {
-    if (!apiKey) {
-      throw new Error(
-        "IMAGE_PROVIDER=gemini requiere GEMINI_API_KEY. Configúrala en .env."
-      );
-    }
+    if (!apiKey) throw new Error("IMAGE_PROVIDER=gemini requiere GEMINI_API_KEY. Configúrala en .env.");
     this.apiKey = apiKey;
     this.fallback = fallback;
     this.client = new GoogleGenAI({ apiKey });
@@ -88,9 +54,8 @@ export class GeminiImageProvider implements ImageGenerationService {
       )
     );
 
-    let response;
     try {
-      response = await this.client.models.generateContent({
+      const response = await this.client.models.generateContent({
         model: this.model,
         contents: createUserContent([prompt, ...imageParts]),
         config: {
@@ -103,29 +68,25 @@ export class GeminiImageProvider implements ImageGenerationService {
           },
         },
       });
-    } catch (error) {
-      const detail = redactSecrets(
-        error instanceof Error ? error.message : String(error),
-        this.apiKey
+
+      const parts = response.candidates?.[0]?.content?.parts ?? [];
+      const imagePart = parts.find((part) => part.inlineData?.data);
+      if (imagePart?.inlineData?.data) return Buffer.from(imagePart.inlineData.data, "base64");
+
+      const blockReason = response.promptFeedback?.blockReason;
+      const textPart = parts.find((part) => part.text)?.text;
+      throw new Error(
+        blockReason
+          ? `Gemini bloqueó la generación (${blockReason}).`
+          : textPart
+            ? `Gemini no devolvió una imagen: ${redactSecrets(textPart.slice(0, 200), this.apiKey)}`
+            : "Gemini no devolvió ninguna imagen."
       );
+    } catch (error) {
+      const detail = redactSecrets(error instanceof Error ? error.message : String(error), this.apiKey);
+      if (detail.startsWith("Gemini bloqueó") || detail.startsWith("Gemini no devolvió")) throw new Error(detail);
       throw new Error(`No se pudo generar la imagen con Gemini: ${detail}`);
     }
-
-    const parts = response.candidates?.[0]?.content?.parts ?? [];
-    const imagePart = parts.find((part) => part.inlineData?.data);
-    if (imagePart?.inlineData?.data) {
-      return Buffer.from(imagePart.inlineData.data, "base64");
-    }
-
-    const blockReason = response.promptFeedback?.blockReason;
-    const textPart = parts.find((part) => part.text)?.text;
-    throw new Error(
-      blockReason
-        ? `Gemini bloqueó la generación (${blockReason}).`
-        : textPart
-          ? `Gemini no devolvió una imagen: ${redactSecrets(textPart.slice(0, 200), this.apiKey)}`
-          : "Gemini no devolvió ninguna imagen."
-    );
   }
 
   async generateCreative(input: RenderCreativeInput): Promise<GeneratedImage> {
@@ -139,7 +100,7 @@ export class GeminiImageProvider implements ImageGenerationService {
       hasProduct: Boolean(input.productImageBuffer),
       isVehicle: Boolean(input.isVehicle),
       objective: input.objective,
-      hasPrice: Boolean(input.priceDisplay),
+      hasPrice: Boolean(input.priceDisplay || input.offerDisplay),
     });
 
     let scene: Buffer;
@@ -152,7 +113,7 @@ export class GeminiImageProvider implements ImageGenerationService {
     } catch (error) {
       if (!this.fallback) throw error;
       const detail = error instanceof Error ? error.message : String(error);
-      console.error(`[gemini-image] ${this.model} failed, using the local compositor: ${detail.slice(0, 300)}`);
+      console.error(`[gemini-image] ${this.model} failed, using local compositor: ${detail.slice(0, 300)}`);
       const local = await this.fallback.generateCreative(input);
       return {
         ...local,
@@ -161,7 +122,6 @@ export class GeminiImageProvider implements ImageGenerationService {
       };
     }
 
-    // Gemini draws the scene only; the exact copy goes on top here.
     const composed = await applyScrimAndCopy(scene, {
       formatId: input.formatId,
       styleId: input.styleId,
@@ -169,10 +129,12 @@ export class GeminiImageProvider implements ImageGenerationService {
       headline: input.headline,
       supportingLine: input.supportingLine,
       priceDisplay: input.priceDisplay,
+      offerDisplay: input.offerDisplay,
       ctaLabel: input.ctaLabel,
       logoBuffer: input.logoBuffer,
       highlights: input.highlights,
     });
+
     return { ...composed, provider: `gemini:${this.model}`, extension: "jpg" };
   }
 
@@ -181,15 +143,9 @@ export class GeminiImageProvider implements ImageGenerationService {
   }
 
   async editProductImage(buffer: Buffer, targetFormatId: string): Promise<GeneratedImage> {
-    // Never runs this through the generative model — resizing/positioning
-    // the product photo must never alter the product itself (AGENTS.md
-    // #3/#15), so this is the same non-AI transform the local provider uses.
     const format = getFormat(targetFormatId);
     const out = await sharp(buffer)
-      .resize(format.width, format.height, {
-        fit: "contain",
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
+      .resize(format.width, format.height, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } })
       .png()
       .toBuffer();
     return { buffer: out, width: format.width, height: format.height };
@@ -207,21 +163,14 @@ export class GeminiImageProvider implements ImageGenerationService {
       isVehicle: false,
     });
     const buffer = await this.callGemini({ prompt, images: [], aspectRatio });
-    const resized = await sharp(buffer)
-      .resize(format.width, format.height, { fit: "cover" })
-      .png()
-      .toBuffer();
+    const resized = await sharp(buffer).resize(format.width, format.height, { fit: "cover" }).png().toBuffer();
     return { buffer: resized, width: format.width, height: format.height };
   }
 
-  async createComposition(
-    backgroundBuffer: Buffer,
-    productImageBuffer: Buffer
-  ): Promise<GeneratedImage> {
+  async createComposition(backgroundBuffer: Buffer, productImageBuffer: Buffer): Promise<GeneratedImage> {
     const bgMeta = await sharp(backgroundBuffer).metadata();
     const width = bgMeta.width ?? 1080;
     const height = bgMeta.height ?? 1080;
-
     const buffer = await this.callGemini({
       prompt: [
         "The first attached image is a background scene. The second attached image is a real product photo.",
@@ -232,7 +181,6 @@ export class GeminiImageProvider implements ImageGenerationService {
       images: [backgroundBuffer, productImageBuffer],
       aspectRatio: nearestSupportedAspectRatio(width, height),
     });
-
     const resized = await sharp(buffer).resize(width, height, { fit: "cover" }).png().toBuffer();
     return { buffer: resized, width, height };
   }

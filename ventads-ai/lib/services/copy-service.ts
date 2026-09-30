@@ -17,8 +17,8 @@ const OBJECTIVE_CLOSING: Record<ObjectiveId, string> = {
   VENDER: "Compra hoy mismo.",
   MENSAJES: "Escríbenos y te ayudamos a elegir.",
   LEADS: "Déjanos tus datos y te contactamos.",
-  PROMOCIONAR: "Oferta por tiempo limitado.",
-  LANZAMIENTO: "Sé de los primeros en tenerlo.",
+  PROMOCIONAR: "Aprovecha la oferta mientras esté vigente.",
+  LANZAMIENTO: "Sé de los primeros en conocerlo.",
   RECONOCIMIENTO: "Conócelo hoy.",
 };
 
@@ -59,21 +59,22 @@ function buildResult(
   };
 }
 
-function ventaDirecta(
-  brief: ProductBrief,
-  analysis: AnalysisResult
-): CopyResult {
+function ventaDirecta(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
   const title = productTitle(brief);
   const missing: string[] = [];
   const priceLine = brief.priceDisplay;
   const offerLine = brief.offer?.trim();
   if (!priceLine && !offerLine) missing.push("precio u oferta");
+
   const features = analysis.topFeatures;
   if (features.length === 0) missing.push("características");
 
-  // Price is shown separately as a badge on the rendered creative, so the
-  // headline stays focused on the product name instead of repeating it.
-  const headline = offerLine || title;
+  const headline = offerLine
+    ? `${offerLine} en ${title}`
+    : priceLine
+      ? `${title} desde ${priceLine.replace(/^desde\s*/i, "")}`
+      : `${title}: disponible ahora`;
+
   const primaryText = withCta(
     offerLine
       ? `${title}. ${offerLine}${features.length ? `. ${joinFeatures(features)}` : ""}.`
@@ -87,8 +88,12 @@ function ventaDirecta(
     {
       headline,
       primaryText,
-      description: priceLine ?? offerLine ?? "Consulta disponibilidad",
-      shortCopy: offerLine ? `${title} · ${offerLine}` : priceLine ? `${title} · ${priceLine}` : title,
+      description: offerLine ?? priceLine ?? "Consulta disponibilidad",
+      shortCopy: offerLine
+        ? `${offerLine} · ${title}`
+        : priceLine
+          ? `${title} · ${priceLine}`
+          : title,
       longCopyExtra: features.length ? joinFeatures(features) : undefined,
     },
     brief,
@@ -102,15 +107,21 @@ function beneficio(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
   const missing: string[] = [];
   const benefit = analysis.primaryBenefit;
   const offerLine = brief.offer?.trim();
+
   if (!benefit && !offerLine) missing.push("beneficio");
 
-  const headline = benefit || offerLine || title;
+  const headline = benefit
+    ? benefit
+    : offerLine
+      ? `${offerLine} en ${title}`
+      : `Descubre ${title}`;
+
   const primaryText = withCta(
     benefit
-      ? `Con ${title} obtienes ${benefit.toLowerCase()}${offerLine ? `. ${offerLine}` : ""}.`
+      ? `${title}. ${benefit}${offerLine ? `. ${offerLine}` : ""}.`
       : offerLine
         ? `${title}. ${offerLine}.`
-        : `${title} está diseñado para resolver una necesidad concreta.`,
+        : `${title}. Conoce sus características y disponibilidad.`,
     analysis.recommendedCta
   );
 
@@ -118,7 +129,7 @@ function beneficio(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
     {
       headline,
       primaryText,
-      description: title,
+      description: offerLine ?? title,
       shortCopy: benefit ?? offerLine ?? title,
     },
     brief,
@@ -127,19 +138,26 @@ function beneficio(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
   );
 }
 
-function aspiracional(
-  brief: ProductBrief,
-  analysis: AnalysisResult
-): CopyResult {
+function aspiracional(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
   const title = productTitle(brief);
   const missing: string[] = [];
-  if (!brief.targetAudience) missing.push("público objetivo");
+  const benefit = analysis.primaryBenefit;
+  const offerLine = brief.offer?.trim();
 
-  const headline = `Vive la experiencia ${title}`;
+  if (!brief.targetAudience && !benefit) missing.push("público objetivo o beneficio");
+
+  const headline = benefit
+    ? benefit
+    : brief.targetAudience
+      ? `Diseñado para ${brief.targetAudience}`
+      : `Descubre ${title}`;
+
   const primaryText = withCta(
-    brief.targetAudience
-      ? `Diseñado para ${brief.targetAudience.toLowerCase()}.`
-      : `${title} te acompaña en cada paso.`,
+    benefit
+      ? `${title}. ${benefit}${offerLine ? `. ${offerLine}` : ""}.`
+      : brief.targetAudience
+        ? `${title}, pensado para ${brief.targetAudience}.`
+        : `${title}. Conoce más sobre el producto.`,
     analysis.recommendedCta
   );
 
@@ -147,8 +165,8 @@ function aspiracional(
     {
       headline,
       primaryText,
-      description: title,
-      shortCopy: title,
+      description: offerLine ?? title,
+      shortCopy: benefit ?? title,
     },
     brief,
     analysis,
@@ -160,15 +178,21 @@ function oferta(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
   const title = productTitle(brief);
   const missing: string[] = [];
   const offerLine = brief.offer?.trim();
+
   if (!offerLine && !brief.priceDisplay) missing.push("oferta o precio");
 
-  const headline = offerLine ?? (brief.priceDisplay ? `${title} — ${brief.priceDisplay}` : title);
+  const headline = offerLine
+    ? `${offerLine} en ${title}`
+    : brief.priceDisplay
+      ? `${title} desde ${brief.priceDisplay.replace(/^desde\s*/i, "")}`
+      : `Conoce ${title}`;
+
   const primaryText = withCta(
     offerLine
-      ? `${offerLine} en ${title}.`
+      ? `${title}. ${offerLine}.`
       : brief.priceDisplay
         ? `${title} a ${brief.priceDisplay}.`
-        : `${title}, disponibilidad limitada.`,
+        : `${title}, consulta disponibilidad.`,
     analysis.recommendedCta
   );
 
@@ -176,7 +200,7 @@ function oferta(brief: ProductBrief, analysis: AnalysisResult): CopyResult {
     {
       headline,
       primaryText,
-      description: brief.priceDisplay ?? "Oferta por tiempo limitado",
+      description: offerLine ?? brief.priceDisplay ?? title,
       shortCopy: offerLine ?? brief.priceDisplay ?? title,
     },
     brief,
@@ -192,14 +216,20 @@ function caracteristica(
 ): CopyResult {
   const title = productTitle(brief);
   const missing: string[] = [];
-  const feature = concept.highlightedFeature;
+  const feature = concept.highlightedFeature || analysis.differentiatingFeature;
   if (!feature) missing.push("características");
 
-  const headline = feature ? feature : title;
+  const offerLine = brief.offer?.trim();
+  const headline = feature
+    ? feature
+    : offerLine
+      ? `${offerLine} en ${title}`
+      : `Conoce ${title}`;
+
   const primaryText = withCta(
     feature
-      ? `${title} incorpora ${feature.toLowerCase()}.`
-      : `Descubre todo lo que ofrece ${title}.`,
+      ? `${title}. ${feature}.${offerLine ? ` ${offerLine}.` : ""}`
+      : `${title}.${offerLine ? ` ${offerLine}.` : ""}`,
     analysis.recommendedCta
   );
 
@@ -207,8 +237,8 @@ function caracteristica(
     {
       headline,
       primaryText,
-      description: title,
-      shortCopy: feature ?? title,
+      description: offerLine ?? title,
+      shortCopy: feature ?? offerLine ?? title,
     },
     brief,
     analysis,
@@ -217,11 +247,9 @@ function caracteristica(
 }
 
 /**
- * Deterministic, template-based copywriter — no external API key needed, so
- * the MVP works out of the box (see AGENTS.md #7: never invent facts). Every
- * template only reads fields that exist on the brief; anything it can't
- * fill in is reported in `missingInfo` instead of being fabricated. Swap in
- * an LLM-backed provider later behind the same signature.
+ * Deterministic copy engine. It only uses facts supplied in the brief.
+ * The strategic angle changes by concept, while every exact commercial claim
+ * remains grounded in the product data.
  */
 export function generateCopy(
   concept: ConceptPlan,
