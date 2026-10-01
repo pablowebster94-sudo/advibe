@@ -200,8 +200,14 @@ function fallbackVariants(
     };
     const copy = generateCopy(plan, brief, analysis, toObjectiveId(objective));
     if (usedHeadlines.has(copy.headline.toLowerCase())) {
-      const fact = spareFacts.find((item) => !usedHeadlines.has(item.toLowerCase()) && item.length <= 40);
-      copy.headline = fact ?? `Pregunta por ${title}`;
+      const candidates = [
+        ...spareFacts
+          .filter((item) => item.length <= 40)
+          .map((item) => (item.split(/\s+/).length < 2 ? `${title} ${item.toLowerCase()}` : item)),
+        `Pregunta por ${title}`,
+        `${title} disponible`,
+      ];
+      copy.headline = candidates.find((item) => !usedHeadlines.has(item.toLowerCase())) ?? copy.headline;
     }
     usedHeadlines.add(copy.headline.toLowerCase());
 

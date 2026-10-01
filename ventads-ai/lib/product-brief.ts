@@ -29,6 +29,20 @@ function normalizeOffer(value: string | null | undefined): string | null {
   return offer;
 }
 
+/**
+ * Ad copy starts with a capital letter. Only touches text typed entirely in
+ * lowercase ("chevrolet" -> "Chevrolet"), so deliberate casing such as
+ * "iPhone" or "BMW" is kept exactly as written. Exported for tests.
+ */
+export function displayCase(value: string): string;
+export function displayCase(value: string | null): string | null;
+export function displayCase(value: string | null): string | null {
+  const text = value?.trim();
+  if (!text) return value;
+  if (text !== text.toLowerCase()) return text;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function buildProductBrief(product: Product, brand: Brand | null): ProductBrief {
   const priceDisplay = product.priceLabel?.trim() || formatPrice(product.price, product.currency);
 
@@ -43,14 +57,14 @@ export function buildProductBrief(product: Product, brand: Brand | null): Produc
   }
 
   return {
-    productName: product.name,
+    productName: displayCase(product.name),
     category: product.category,
-    manufacturer: product.manufacturer,
+    manufacturer: displayCase(product.manufacturer),
     model: product.model,
     priceDisplay,
     description: product.description,
-    features: toList(product.features),
-    benefits: toList(product.benefits),
+    features: toList(product.features).map((item) => displayCase(item)),
+    benefits: toList(product.benefits).map((item) => displayCase(item)),
     offer: normalizeOffer(product.offer),
     cta: product.cta,
     targetAudience: product.targetAudience,

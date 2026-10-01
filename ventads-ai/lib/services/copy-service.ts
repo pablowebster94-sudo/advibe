@@ -220,8 +220,12 @@ function caracteristica(
   if (!feature) missing.push("características");
 
   const offerLine = brief.offer?.trim();
+  // A one-word fact ("Nuevo", "4x4") is not a headline on its own: pair it
+  // with the product ("Chevrolet nuevo").
   const headline = feature
-    ? feature
+    ? feature.trim().split(/\s+/).length < 2
+      ? `${title} ${feature.trim().toLowerCase()}`
+      : feature
     : offerLine
       ? `${offerLine} en ${title}`
       : `Conoce ${title}`;
