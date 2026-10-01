@@ -7,6 +7,7 @@ import { analyzeProduct } from "@/lib/services/analysis-engine";
 import { activeImageProviderName, imageGeneration } from "@/lib/services/image-generation";
 import { currentJobConcurrency, dispatchWorkers } from "@/lib/services/job-dispatch";
 import { storage } from "@/lib/services/storage";
+import { cutoutProduct } from "@/lib/services/cutout";
 import { conceptTypeForVariant, generateAICampaign } from "@/lib/services/ai-orchestrator";
 
 // Backoff before a retriable job becomes claimable again, indexed by
@@ -153,6 +154,9 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
     const productImageBuffer = productImage
       ? await storage.read(productImage.key)
       : null;
+    // The real product without its background, so the creative shows the
+    // exact car/product on a new scene (never redrawn). Null -> original photo.
+    const productCutout = productImageBuffer ? await cutoutProduct(productImageBuffer) : null;
     const logoImage = product.images.find((image) => image.role === "LOGO");
     const logoBuffer = logoImage
       ? await storage.read(logoImage.key)
@@ -173,6 +177,7 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       offerDisplay: brief.offer,
       ctaLabel: concept.copy.cta,
       productImageBuffer,
+      productCutout,
       logoBuffer,
       variantSeed: creative.version - 1,
       highlights: creativeHighlights(concept.type, brief, concept.copy.headline),

@@ -7,8 +7,13 @@ import {
 import sharp from "sharp";
 import { getFormat } from "@/lib/catalog/formats";
 import type { GeneratedImage, ImageGenerationService } from "@/lib/services/image-generation";
-import { applyScrimAndCopy, type RenderCreativeInput } from "@/lib/services/creative-renderer";
-import { buildScenePrompt } from "@/lib/services/gemini-prompt";
+import {
+  applyScrimAndCopy,
+  heroRatioFor,
+  placeProductOnScene,
+  type RenderCreativeInput,
+} from "@/lib/services/creative-renderer";
+import { buildBackgroundPrompt, buildScenePrompt } from "@/lib/services/gemini-prompt";
 import { detectMimeType, nearestSupportedAspectRatio } from "@/lib/services/image-utils";
 
 const DEFAULT_MODEL = "gemini-3.1-flash-image";
@@ -104,24 +109,48 @@ export class GeminiImageProvider implements ImageGenerationService {
   async generateCreative(input: RenderCreativeInput): Promise<GeneratedImage> {
     const format = getFormat(input.formatId);
     const aspectRatio = nearestSupportedAspectRatio(format.width, format.height);
-    const prompt = buildScenePrompt({
-      conceptType: input.conceptType,
-      styleId: input.styleId,
-      formatId: input.formatId,
-      variantSeed: input.variantSeed,
-      hasProduct: Boolean(input.productImageBuffer),
-      isVehicle: Boolean(input.isVehicle),
-      objective: input.objective,
-      hasPrice: Boolean(input.priceDisplay || input.offerDisplay),
-    });
+
+    // The real product is never sent to the model to be redrawn: with a
+    // cut-out, Gemini paints only the empty set and the original pixels are
+    // placed on it; without one, the original photo is used as is.
+    if (input.productImageBuffer && !input.productCutout && this.fallback) {
+      const local = await this.fallback.generateCreative(input);
+      return {
+        ...local,
+        note: "No se pudo aislar el producto de la foto (fondo poco claro o producto cortado por el borde); se usó la foto original sin modificar.",
+      };
+    }
+
+    const prompt = input.productCutout
+      ? buildBackgroundPrompt({
+          conceptType: input.conceptType,
+          styleId: input.styleId,
+          formatId: input.formatId,
+          variantSeed: input.variantSeed,
+          isVehicle: Boolean(input.isVehicle),
+          visibleHeight: heroRatioFor(input.formatId),
+        })
+      : buildScenePrompt({
+          conceptType: input.conceptType,
+          styleId: input.styleId,
+          formatId: input.formatId,
+          variantSeed: input.variantSeed,
+          hasProduct: false,
+          isVehicle: Boolean(input.isVehicle),
+          objective: input.objective,
+          hasPrice: Boolean(input.priceDisplay || input.offerDisplay),
+        });
 
     let scene: Buffer;
     try {
-      scene = await this.callGemini({
-        prompt,
-        images: input.productImageBuffer ? [input.productImageBuffer] : [],
-        aspectRatio,
-      });
+      scene = await this.callGemini({ prompt, images: [], aspectRatio });
+      if (input.productCutout) {
+        scene = await placeProductOnScene(scene, input.productCutout, {
+          formatId: input.formatId,
+          dark: false,
+          reflection: 0.08,
+        });
+      }
     } catch (error) {
       if (!this.fallback) throw error;
       const detail = error instanceof Error ? error.message : String(error);
@@ -147,7 +176,11 @@ export class GeminiImageProvider implements ImageGenerationService {
       highlights: input.highlights,
     });
 
-    return { ...composed, provider: `gemini:${this.model}`, extension: "jpg" };
+    return {
+      ...composed,
+      provider: input.productCutout ? `gemini:${this.model}+producto-real` : `gemini:${this.model}`,
+      extension: "jpg",
+    };
   }
 
   async generateVariation(input: RenderCreativeInput): Promise<GeneratedImage> {

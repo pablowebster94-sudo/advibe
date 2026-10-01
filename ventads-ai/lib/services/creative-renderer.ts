@@ -2,6 +2,7 @@ import "@/lib/fonts";
 import sharp, { type OverlayOptions } from "sharp";
 import { getFormat } from "@/lib/catalog/formats";
 import { escapeXml, wrapText } from "@/lib/services/svg";
+import type { ProductCutout } from "@/lib/services/cutout";
 
 export type RenderCreativeInput = {
   formatId: string;
@@ -13,6 +14,8 @@ export type RenderCreativeInput = {
   offerDisplay?: string | null;
   ctaLabel: string;
   productImageBuffer: Buffer | null;
+  /** Background-free version of the product photo (lib/services/cutout.ts), when available. */
+  productCutout?: ProductCutout | null;
   logoBuffer: Buffer | null;
   variantSeed: number;
   highlights?: string[];
@@ -43,6 +46,11 @@ function layoutFor(formatId: string): Layout {
     return { heroRatio: 0.61, margin: 64, topSafe: 48, bottomSafe: 56, headlineSize: 72, headlineMaxLines: 3, supportingSize: 32, ctaHeight: 100 };
   }
   return { heroRatio: 0.62, margin: 60, topSafe: 44, bottomSafe: 48, headlineSize: 66, headlineMaxLines: 2, supportingSize: 30, ctaHeight: 92 };
+}
+
+/** Fraction of the canvas (from the top) left visible above the copy panel. */
+export function heroRatioFor(formatId: string) {
+  return layoutFor(formatId).heroRatio;
 }
 
 type Theme = {
@@ -190,7 +198,9 @@ function contentLayer(input: {
        font-family="${FONT}" font-weight="800" font-size="30" fill="${theme.accentInk}">${escapeXml(input.ctaLabel)}</text>`
   );
 
-  if (price && !offer) {
+  // Skip the side price when the headline already says it (e.g. "... desde $38.900").
+  const headlineHasPrice = Boolean(price && input.headline.includes(price));
+  if (price && !offer && !headlineHasPrice) {
     const priceSize = Math.min(Math.round(L.headlineSize * 0.7), Math.floor(contentWidth / Math.max(8, price.length * BOLD_EM)));
     parts.push(
       `<text x="${input.width - L.margin}" y="${ctaY + priceSize}" text-anchor="end"
@@ -213,14 +223,129 @@ function heroFadeSvg(width: number, height: number, dark: boolean) {
   );
 }
 
+/** Seamless photo-studio backdrop (cyclorama) for the hero area, in the style's tones. */
+// Per-concept studio tint so the 3 creatives don't look identical:
+// neutral for the direct sale, cool/tech for the feature, warm for aspirational.
+const STUDIO_TONES: Record<string, { light: [string[], string[]]; dark: [string[], string[]] }> = {
+  CARACTERISTICA: {
+    light: [["#ffffff", "#e9eef3", "#d4dce4"], ["#dde4ea", "#c6cfd8"]],
+    dark: [["#2f3b46", "#151b21", "#0b0f12"], ["#18202a", "#080a0d"]],
+  },
+  ASPIRACIONAL: {
+    light: [["#fffaf2", "#f3e8da", "#e2d2be"], ["#eadccb", "#d6c4ae"]],
+    dark: [["#4a3a2c", "#1e1712", "#0e0b09"], ["#221a14", "#0b0908"]],
+  },
+};
+
+function studioSvg(width: number, height: number, heroHeight: number, theme: Theme, conceptType: string) {
+  const tone = STUDIO_TONES[conceptType]?.[theme.dark ? "dark" : "light"];
+  const wall = tone?.[0] ?? (theme.dark ? ["#3b403d", "#1a1d1b", theme.background] : ["#ffffff", "#eef0ec", "#dfe2dd"]);
+  const floor = tone?.[1] ?? (theme.dark ? ["#1c1f1d", "#0a0b0b"] : ["#e4e7e2", "#cfd3cd"]);
+  const horizon = Math.round(heroHeight * 0.56);
+  return Buffer.from(
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="w" cx="50%" cy="${Math.round((heroHeight * 0.42 * 100) / height)}%" r="70%">
+          <stop offset="0" stop-color="${wall[0]}"/><stop offset="0.55" stop-color="${wall[1]}"/><stop offset="1" stop-color="${wall[2]}"/>
+        </radialGradient>
+        <linearGradient id="f" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${floor[0]}" stop-opacity="0"/>
+          <stop offset="0.18" stop-color="${floor[0]}" stop-opacity="0.85"/>
+          <stop offset="1" stop-color="${floor[1]}"/>
+        </linearGradient>
+      </defs>
+      <rect width="${width}" height="${height}" fill="url(#w)"/>
+      <rect y="${horizon}" width="${width}" height="${height - horizon}" fill="url(#f)"/>
+    </svg>`
+  );
+}
+
+/**
+ * Places the REAL product (background-free cut-out, original pixels, never
+ * redrawn) on a scene: scaled into the hero area, standing on a baseline,
+ * with a soft contact shadow and an optional floor reflection.
+ */
+export async function placeProductOnScene(
+  scene: Buffer,
+  cutout: ProductCutout,
+  options: { formatId: string; dark: boolean; reflection: number }
+): Promise<Buffer> {
+  const format = getFormat(options.formatId);
+  const L = layoutFor(format.id);
+  const { width, height } = format;
+  const heroHeight = Math.round(height * L.heroRatio);
+
+  const scale = Math.min((width * 0.86) / cutout.width, (heroHeight * 0.72) / cutout.height);
+  const pw = Math.max(1, Math.round(cutout.width * scale));
+  const ph = Math.max(1, Math.round(cutout.height * scale));
+  const baseline = Math.round(heroHeight * 0.92);
+  const left = Math.round((width - pw) / 2);
+  const top = baseline - ph;
+
+  const product = await sharp(cutout.png).resize(pw, ph, { fit: "fill" }).png().toBuffer();
+
+  const shadowOpacity = options.dark ? 0.8 : 0.5;
+  const shadow = Buffer.from(
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${Math.max(6, ph * 0.04)}"/></filter>
+        <filter id="tight" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${Math.max(3, ph * 0.012)}"/></filter>
+      </defs>
+      <ellipse cx="${width / 2}" cy="${baseline - ph * 0.05}" rx="${pw * 0.5}" ry="${Math.max(10, ph * 0.1)}" fill="#000" fill-opacity="${shadowOpacity * 0.6}" filter="url(#soft)"/>
+      <ellipse cx="${width / 2}" cy="${baseline - ph * 0.04}" rx="${pw * 0.42}" ry="${Math.max(4, ph * 0.05)}" fill="#000" fill-opacity="${shadowOpacity}" filter="url(#tight)"/>
+    </svg>`
+  );
+
+  const layers: OverlayOptions[] = [{ input: shadow, left: 0, top: 0 }];
+
+  const reflectionHeight = Math.min(Math.round(ph * 0.22), height - baseline);
+  if (options.reflection > 0 && reflectionHeight > 4) {
+    const fade = Buffer.from(
+      `<svg width="${pw}" height="${reflectionHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="r" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff" stop-opacity="${options.reflection}"/>
+          <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient></defs>
+        <rect width="${pw}" height="${reflectionHeight}" fill="url(#r)"/>
+      </svg>`
+    );
+    const reflection = await sharp(product)
+      .flip()
+      .extract({ left: 0, top: 0, width: pw, height: reflectionHeight })
+      .composite([{ input: fade, blend: "dest-in" }])
+      .png()
+      .toBuffer();
+    layers.push({ input: reflection, left, top: baseline - Math.round(ph * 0.01) });
+  }
+
+  layers.push({ input: product, left, top });
+
+  return sharp(scene)
+    .resize(width, height, { fit: "cover", position: "centre" })
+    .composite(layers)
+    .png()
+    .toBuffer();
+}
+
 export async function composeLocalBackground(
-  input: Pick<RenderCreativeInput, "formatId" | "styleId" | "productImageBuffer" | "variantSeed">
+  input: Pick<
+    RenderCreativeInput,
+    "formatId" | "styleId" | "conceptType" | "productImageBuffer" | "productCutout" | "variantSeed"
+  >
 ): Promise<Buffer> {
   const format = getFormat(input.formatId);
   const L = layoutFor(format.id);
   const theme = themeFor(input.styleId);
   const { width, height } = format;
   const heroHeight = Math.round(height * L.heroRatio);
+
+  if (input.productCutout) {
+    return placeProductOnScene(await sharp(studioSvg(width, height, heroHeight, theme, input.conceptType)).png().toBuffer(), input.productCutout, {
+      formatId: format.id,
+      dark: theme.dark,
+      reflection: theme.dark ? 0.16 : 0,
+    });
+  }
 
   const base = Buffer.from(
     `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
