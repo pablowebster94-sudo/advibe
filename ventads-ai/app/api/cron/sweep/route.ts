@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { isWorkerRequestAuthorized } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { finalizeCampaignIfDone, processClaimedJob } from "@/lib/services/campaign-service";
-import { claimNextJob } from "@/lib/services/job-queue";
+import { claimNextJob, reclaimAbandonedJobs } from "@/lib/services/job-queue";
 
 export const runtime = "nodejs";
 export const maxDuration = 240;
@@ -34,16 +34,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const staleThreshold = new Date(Date.now() - ABANDONED_THRESHOLD_MS);
-  const reclaimed = await prisma.creative.updateMany({
-    where: { status: "PROCESSING", claimedAt: { lt: staleThreshold } },
-    data: {
-      status: "PENDING",
-      claimedAt: null,
-      claimedBy: null,
-      error: "Recuperado tras timeout del worker.",
-    },
-  });
+  const reclaimed = await reclaimAbandonedJobs({ olderThanMs: ABANDONED_THRESHOLD_MS });
 
   const openCampaigns = await prisma.campaign.findMany({
     where: { status: "PENDING" },
@@ -62,7 +53,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json(
-    { reclaimed: reclaimed.count, campaignsChecked: openCampaigns.length, processed },
+    { reclaimed: reclaimed.requeued + reclaimed.failed, campaignsChecked: openCampaigns.length, processed },
     { status: 200 }
   );
 }

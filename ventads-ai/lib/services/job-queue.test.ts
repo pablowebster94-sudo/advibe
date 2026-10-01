@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
-import { claimNextJob } from "@/lib/services/job-queue";
+import { claimNextJob, isCampaignStalled, reclaimAbandonedJobs } from "@/lib/services/job-queue";
 
 async function makeCampaignWithJobs(count: number, campaignSuffix: string = randomUUID()) {
   const user = await prisma.user.create({
@@ -180,5 +180,40 @@ describe("claimNextJob", () => {
       expect(row.status).toBe("PROCESSING");
       expect(row.attempts).toBe(1);
     }
+  });
+});
+
+describe("reclaimAbandonedJobs", () => {
+  it("requeues a job whose worker died mid-flight, so the campaign can finish", async () => {
+    const { campaign, creatives } = await makeCampaignWithJobs(1);
+    await claimNextJob({ claimedBy: "dead-worker" });
+    await prisma.creative.update({
+      where: { id: creatives[0].id },
+      data: { claimedAt: new Date(Date.now() - 10 * 60 * 1000) },
+    });
+
+    // Before the fix this state was invisible to the stall detector.
+    expect(await reclaimAbandonedJobs({ campaignId: campaign.id })).toEqual({ requeued: 1, failed: 0 });
+    const row = await prisma.creative.findUniqueOrThrow({ where: { id: creatives[0].id } });
+    expect(row.status).toBe("PENDING");
+    expect(await isCampaignStalled(campaign.id)).toBe(true);
+  });
+
+  it("fails (instead of requeuing forever) a job that already used all its attempts", async () => {
+    const { campaign, creatives } = await makeCampaignWithJobs(1);
+    await prisma.creative.update({
+      where: { id: creatives[0].id },
+      data: { status: "PROCESSING", attempts: 3, maxAttempts: 3, claimedAt: new Date(Date.now() - 10 * 60 * 1000) },
+    });
+
+    expect(await reclaimAbandonedJobs({ campaignId: campaign.id })).toEqual({ requeued: 0, failed: 1 });
+    const row = await prisma.creative.findUniqueOrThrow({ where: { id: creatives[0].id } });
+    expect(row.status).toBe("FAILED");
+  });
+
+  it("leaves a job that is still within a healthy run time alone", async () => {
+    const { campaign } = await makeCampaignWithJobs(1);
+    await claimNextJob({ claimedBy: "live-worker" });
+    expect(await reclaimAbandonedJobs({ campaignId: campaign.id })).toEqual({ requeued: 0, failed: 0 });
   });
 });

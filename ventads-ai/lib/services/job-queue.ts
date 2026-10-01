@@ -130,3 +130,45 @@ export async function isCampaignStalled(campaignId: string, activeWindowMs = 30_
   if (active > 0) return false;
   return hasClaimableWork(campaignId);
 }
+
+/**
+ * A job left PROCESSING longer than any healthy run takes was abandoned by a
+ * worker that died mid-flight (timeout, crash, out of memory, redeploy).
+ * Puts it back in the queue — or marks it FAILED once it has used all its
+ * attempts, so a job that keeps killing its worker can never block its
+ * campaign forever. Returns how many jobs were requeued / failed.
+ */
+export const ABANDONED_JOB_MS = 3 * 60 * 1000;
+
+export async function reclaimAbandonedJobs({
+  campaignId,
+  olderThanMs = ABANDONED_JOB_MS,
+}: { campaignId?: string; olderThanMs?: number } = {}): Promise<{ requeued: number; failed: number }> {
+  const stale = await prisma.creative.findMany({
+    where: {
+      status: "PROCESSING",
+      claimedAt: { lt: new Date(Date.now() - olderThanMs) },
+      ...(campaignId ? { concept: { campaignId } } : {}),
+    },
+    select: { id: true, attempts: true, maxAttempts: true },
+    take: 50,
+  });
+
+  let requeued = 0;
+  let failed = 0;
+  for (const job of stale) {
+    const exhausted = job.attempts >= job.maxAttempts;
+    // Re-checks PROCESSING so a worker that finishes right now wins the race.
+    const result = await prisma.creative.updateMany({
+      where: { id: job.id, status: "PROCESSING" },
+      data: exhausted
+        ? { status: "FAILED", error: "El worker se detuvo varias veces procesando este creative." }
+        : { status: "PENDING", claimedAt: null, claimedBy: null, error: "Recuperado tras detenerse el worker." },
+    });
+    if (result.count === 1) {
+      if (exhausted) failed++;
+      else requeued++;
+    }
+  }
+  return { requeued, failed };
+}
