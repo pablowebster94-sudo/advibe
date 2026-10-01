@@ -27,6 +27,11 @@ const LOOKS = [
   { id: "PREMIUM", label: "Oscuro premium" },
 ] as const;
 
+const COUNTS = [
+  { id: "3", label: "3 anuncios" },
+  { id: "4", label: "4 anuncios" },
+] as const;
+
 const LAST_BRAND_KEY = "ventads:last-brand";
 
 function remembered(key: string) {
@@ -92,6 +97,7 @@ export default function QuickAdPage() {
   const [price, setPrice] = useState("");
   const [details, setDetails] = useState("");
   const [look, setLook] = useState<string>(LOOKS[0].id);
+  const [count, setCount] = useState<string>(COUNTS[0].id);
 
   const [brands, setBrands] = useState<Brand[]>([]);
   const [brandId, setBrandId] = useState<string>("");
@@ -157,7 +163,12 @@ export default function QuickAdPage() {
       const campaignRes = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: productData.product.id, objective: "VENDER", style: look }),
+        body: JSON.stringify({
+          productId: productData.product.id,
+          objective: "VENDER",
+          style: look,
+          variants: Number(count),
+        }),
       });
       const campaignData = await readJson<{ error?: string; campaign: { id: string } }>(campaignRes);
       if (!campaignRes.ok) throw new Error(campaignData.error ?? "No se pudieron generar los anuncios.");
@@ -239,6 +250,14 @@ export default function QuickAdPage() {
         </div>
 
         <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-foreground">Variantes</span>
+          <Chips options={COUNTS} value={count} onChange={setCount} />
+          <span className="text-xs text-muted">
+            Cada anuncio sale en 1080×1080, 1080×1350 y 1080×1920 (feed, feed vertical e historias).
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2">
           <span className="text-sm font-medium text-foreground">Tu negocio</span>
           {brands.length > 0 && (
             <select
@@ -276,7 +295,7 @@ export default function QuickAdPage() {
         {error && <p className="text-sm text-danger">{error}</p>}
 
         <Button type="submit" size="lg" disabled={!canGenerate}>
-          {submitting ? "Creando tus anuncios…" : "Crear 3 anuncios"}
+          {submitting ? "Creando tus anuncios…" : `Crear ${count} anuncios`}
         </Button>
       </form>
 

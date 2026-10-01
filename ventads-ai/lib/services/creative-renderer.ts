@@ -40,7 +40,9 @@ type Layout = {
 
 function layoutFor(formatId: string): Layout {
   if (formatId === "STORY_9_16") {
-    return { heroRatio: 0.55, margin: 72, topSafe: 76, bottomSafe: 88, headlineSize: 82, headlineMaxLines: 3, supportingSize: 34, ctaHeight: 116 };
+    // Stories/Reels: Meta's UI covers ~14% at the top and the reply bar the
+    // bottom ~20%; keep the logo and the button out of those zones.
+    return { heroRatio: 0.57, margin: 72, topSafe: 250, bottomSafe: 330, headlineSize: 82, headlineMaxLines: 3, supportingSize: 36, ctaHeight: 116 };
   }
   if (formatId === "PORTRAIT_4_5") {
     return { heroRatio: 0.61, margin: 64, topSafe: 48, bottomSafe: 56, headlineSize: 72, headlineMaxLines: 3, supportingSize: 32, ctaHeight: 100 };
@@ -234,6 +236,14 @@ const STUDIO_TONES: Record<string, { light: [string[], string[]]; dark: [string[
   ASPIRACIONAL: {
     light: [["#fffaf2", "#f3e8da", "#e2d2be"], ["#eadccb", "#d6c4ae"]],
     dark: [["#4a3a2c", "#1e1712", "#0e0b09"], ["#221a14", "#0b0908"]],
+  },
+  BENEFICIO: {
+    light: [["#fbfffd", "#e6f2ec", "#cfe3d9"], ["#dcebe3", "#c3d8cd"]],
+    dark: [["#2c4239", "#131d19", "#0a0f0d"], ["#17221e", "#080b0a"]],
+  },
+  OFERTA: {
+    light: [["#fffaf8", "#f8e4de", "#eccabf"], ["#efd6ce", "#e0bdb2"]],
+    dark: [["#4d2a26", "#1f1210", "#0f0908"], ["#241513", "#0b0707"]],
   },
 };
 

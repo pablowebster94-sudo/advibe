@@ -82,6 +82,21 @@ const CONCEPT_DIRECTION: Record<string, ConceptDirection> = {
       ],
     },
   },
+  BENEFICIO: {
+    intent:
+      "Benefit-focused ad. The scene makes the customer feel the real, supplied benefit of the product, without inventing any new claim.",
+    mood: "Fresh, bright, optimistic and trustworthy. Clean natural light, airy space.",
+    scenes: {
+      vehicle: [
+        { setting: "a bright, clean modern street with soft trees in the background", light: "fresh morning daylight", camera: "front three-quarter view at eye level" },
+        { setting: "an airy contemporary garage with large windows", light: "soft daylight with gentle reflections", camera: "three-quarter view, clean and calm" },
+      ],
+      generic: [
+        { setting: "a bright, airy everyday setting where the product is used", light: "soft natural window light", camera: "eye level, product clearly in focus" },
+        { setting: "a fresh light studio with soft pastel tones", light: "diffused, even light", camera: "hero angle, product dominant" },
+      ],
+    },
+  },
   OFERTA: {
     intent: "Promotional ad. The product must read instantly with an energetic, high-urgency feel.",
     mood: "Energetic, bold, high contrast, vivid.",

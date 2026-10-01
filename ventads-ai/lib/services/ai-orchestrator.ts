@@ -178,11 +178,19 @@ function fallbackVisualPrompt(type: ConceptPlan["type"], title: string, feature:
   }
 }
 
-function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult, objective = "VENDER"): AIVariant[] {
+function fallbackVariants(
+  brief: ProductBrief,
+  analysis: AnalysisResult,
+  objective = "VENDER",
+  count = 3
+): AIVariant[] {
   const title = productTitle(brief);
   const plans = buildConcepts(brief, analysis);
+  const usedHeadlines = new Set<string>();
+  // Real facts the user typed, used to keep each variant's headline distinct.
+  const spareFacts = [...brief.benefits, ...brief.features].map((item) => item.trim()).filter(Boolean);
 
-  return [0, 1, 2].map((index) => {
+  return Array.from({ length: count }, (_, index) => index).map((index) => {
     const type = conceptTypeForVariant(index, brief);
     const plan: ConceptPlan = plans.find((item) => item.type === type) ?? {
       type,
@@ -191,6 +199,11 @@ function fallbackVariants(brief: ProductBrief, analysis: AnalysisResult, objecti
       highlightedFeature: analysis.topFeatures[0] ?? null,
     };
     const copy = generateCopy(plan, brief, analysis, toObjectiveId(objective));
+    if (usedHeadlines.has(copy.headline.toLowerCase())) {
+      const fact = spareFacts.find((item) => !usedHeadlines.has(item.toLowerCase()) && item.length <= 40);
+      copy.headline = fact ?? `Pregunta por ${title}`;
+    }
+    usedHeadlines.add(copy.headline.toLowerCase());
 
     return {
       id: "variant-" + (index + 1),
@@ -216,9 +229,10 @@ function normalizeVariants(
   variants: AIVariant[],
   brief: ProductBrief,
   analysis: AnalysisResult,
-  objective: string
+  objective: string,
+  count = 3
 ) {
-  const fallback = fallbackVariants(brief, analysis, objective);
+  const fallback = fallbackVariants(brief, analysis, objective, count);
 
   return fallback.map((base, index) => {
     const ai = variants[index];
@@ -234,8 +248,17 @@ function normalizeVariants(
 export async function generateAICampaign(
   brief: ProductBrief,
   analysis: AnalysisResult,
-  input: { objective: string; budget?: number; location?: string; clientDescription?: string; clientUrl?: string }
+  input: {
+    objective: string;
+    budget?: number;
+    location?: string;
+    clientDescription?: string;
+    clientUrl?: string;
+    /** Number of ad angles (3 by default, 4 max). */
+    variantCount?: number;
+  }
 ): Promise<AICampaignResult> {
+  const count = Math.min(4, Math.max(3, input.variantCount ?? 3));
   const context = briefContext(brief, input);
   const deadline: Deadline = { at: Date.now() + TOTAL_AI_BUDGET_MS };
 
@@ -267,14 +290,14 @@ export async function generateAICampaign(
   // Claude is retained as an optional strategy layer, but its generic copy
   // cannot override the deterministic commercial copy.
   let claudeStatus: AIProviderStatus = "not_configured";
-  let variants: AIVariant[] = fallbackVariants(brief, analysis, input.objective);
+  let variants: AIVariant[] = fallbackVariants(brief, analysis, input.objective, count);
 
   try {
     const result = copyResponseSchema.parse(await claudeJson(
-      "Genera exactamente 3 ángulos para Meta Ads en español. No inventes datos. La primera variante debe corresponder a venta directa; la segunda a oferta si existe una oferta real, o beneficio si no existe; la tercera a beneficio o aspiracional. No generes claims nuevos. Devuelve JSON {variants:[...]} y usa los datos entregados como contexto.\n" + context + "\nEstrategia:\n" + JSON.stringify(strategic),
+      "Genera exactamente " + count + " ángulos para Meta Ads en español. No inventes datos. La primera variante debe corresponder a venta directa; la segunda a oferta si existe una oferta real, o beneficio si no existe; la tercera a beneficio o aspiracional; una cuarta, si se pide, a la característica real más fuerte. No generes claims nuevos. Devuelve JSON {variants:[...]} y usa los datos entregados como contexto.\n" + context + "\nEstrategia:\n" + JSON.stringify(strategic),
       deadline
     ));
-    variants = normalizeVariants(result.variants, brief, analysis, input.objective);
+    variants = normalizeVariants(result.variants, brief, analysis, input.objective, count);
     claudeStatus = "ai";
   } catch {
     claudeStatus = process.env.ANTHROPIC_API_KEY ? "fallback" : "not_configured";
@@ -283,24 +306,25 @@ export async function generateAICampaign(
   let openaiStatus: AIProviderStatus = "not_configured";
   try {
     const result = visualResponseSchema.parse(await openaiJson(
-      "Eres director de arte para Meta Ads. Crea exactamente 3 prompts visuales en inglés, uno por variante. La imagen debe mostrar únicamente una fotografía publicitaria limpia del producto real, sin texto, precios, logos, botones ni overlays. Mantén identidad, materiales, color y proporciones del producto. Haz que cada variante tenga una dirección visual distinta. Devuelve JSON {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants),
+      "Eres director de arte para Meta Ads. Crea exactamente " + count + " prompts visuales en inglés, uno por variante. La imagen debe mostrar únicamente una fotografía publicitaria limpia del producto real, sin texto, precios, logos, botones ni overlays. Mantén identidad, materiales, color y proporciones del producto. Haz que cada variante tenga una dirección visual distinta. Devuelve JSON {prompts:[...]}. Contexto:\n" + context + "\nVariantes:\n" + JSON.stringify(variants),
       deadline
     ));
     variants = normalizeVariants(
       variants.map((variant, index) => ({ ...variant, visual_prompt: result.prompts[index] || variant.visual_prompt })),
       brief,
       analysis,
-      input.objective
+      input.objective,
+      count
     );
     openaiStatus = "ai";
   } catch {
     openaiStatus = process.env.OPENAI_API_KEY ? "fallback" : "not_configured";
-    variants = normalizeVariants(variants, brief, analysis, input.objective);
+    variants = normalizeVariants(variants, brief, analysis, input.objective, count);
   }
 
   return {
     analysis: strategic,
-    variants: normalizeVariants(variants, brief, analysis, input.objective),
+    variants: normalizeVariants(variants, brief, analysis, input.objective, count),
     providerStatus: {
       gemini: geminiStatus,
       claude: claudeStatus,
@@ -314,10 +338,11 @@ export function conceptTypeForVariant(index: number, brief: ProductBrief): Conce
   if (isVehicle && index === 0) return "VENTA_DIRECTA";
   if (isVehicle && index === 1) return "CARACTERISTICA";
   if (isVehicle && index === 2) return "ASPIRACIONAL";
+  if (isVehicle) return brief.offer?.trim() ? "OFERTA" : "BENEFICIO";
 
   if (brief.offer?.trim()) {
-    return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "OFERTA" : "BENEFICIO";
+    return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "OFERTA" : index === 2 ? "BENEFICIO" : "ASPIRACIONAL";
   }
 
-  return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "BENEFICIO" : "ASPIRACIONAL";
+  return index === 0 ? "VENTA_DIRECTA" : index === 1 ? "BENEFICIO" : index === 2 ? "ASPIRACIONAL" : "CARACTERISTICA";
 }

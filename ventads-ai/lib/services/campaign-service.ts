@@ -28,7 +28,10 @@ function backoffMs(attempts: number) {
  * returns after strategy/copy metadata is persisted; image rendering remains asynchronous.
  */
 
-export async function createCampaignJobs(campaignId: string): Promise<void> {
+export async function createCampaignJobs(
+  campaignId: string,
+  options: { variants?: number } = {}
+): Promise<void> {
   const campaign = await prisma.campaign.findUniqueOrThrow({
     where: { id: campaignId },
     include: { product: { include: { brand: true, images: true } } },
@@ -38,7 +41,7 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
   const brief = buildProductBrief(product, product.brand);
   const objective = campaign.objective as ObjectiveId;
   const baseAnalysis = analyzeProduct(brief, objective);
-  const ai = await generateAICampaign(brief, baseAnalysis, { objective });
+  const ai = await generateAICampaign(brief, baseAnalysis, { objective, variantCount: options.variants });
 
   await prisma.campaign.update({
     where: { id: campaign.id },
@@ -50,9 +53,9 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
 
   const productImage = product.images.find((image) => image.role === "PRODUCT");
 
-  // MVP: generate one primary 1:1 creative per concept (3 creatives total).
-  // 4:5 and 9:16 remain available for an explicit adaptation step later.
-  const initialFormats = [FORMATS[0]];
+  // Every angle in every Meta placement: feed 1080x1080, feed 1080x1350 and
+  // stories/reels 1080x1920.
+  const initialFormats = FORMATS;
 
   for (const [index, variant] of ai.variants.entries()) {
     const type = conceptTypeForVariant(index, brief);

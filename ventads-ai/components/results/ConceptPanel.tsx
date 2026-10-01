@@ -163,7 +163,7 @@ export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
         </Button>
         {active?.status === "COMPLETED" && active.imageUrl && (
           <a
-            href={`${active.imageUrl}?download=${conceptType.id}-${format.id}.png`}
+            href={`${active.imageUrl}?download=${conceptType.id}-${format.id}.${/\.(\w+)(?:\?|$)/.exec(active.imageUrl)?.[1] ?? "jpg"}`}
             className="inline-flex items-center justify-center rounded-[var(--radius-md)] border border-border bg-surface px-4 py-1.5 text-sm font-medium text-foreground hover:border-accent-strong"
           >
             Descargar
