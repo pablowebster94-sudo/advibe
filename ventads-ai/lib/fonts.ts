@@ -20,8 +20,9 @@ export function ensureFontsConfigured(): boolean {
     configured = false;
     return configured;
   }
-  // Only take over fontconfig when nobody configured it explicitly.
-  if (!process.env.FONTCONFIG_FILE) {
+  // Always our own config (bundled fonts only, no system fonts): the render
+  // must be identical locally and on Vercel, whatever the host provides.
+  {
     const tmp = path.join("/tmp", "ventads-fontconfig");
     mkdirSync(tmp, { recursive: true });
     const file = path.join(tmp, "fonts.conf");

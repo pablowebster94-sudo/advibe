@@ -63,6 +63,20 @@ jobs:
           cat health.json; echo
           [ "$code" = "200" ] || { echo "::error::/api/health is not healthy (HTTP $code). See the JSON above."; exit 1; }
 
+      - name: Render is identical to local tests (fonts included)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          prod = json.load(open("health.json")).get("render", {}).get("fingerprint")
+          pinned = json.load(open("ventads-ai/tests/fixtures/render-fingerprint.json"))["sha256"]
+          print("production:", prod)
+          print("pinned:    ", pinned)
+          if prod != pinned:
+              print("::error::Production renders the reference creative differently from local tests (fonts, sharp or renderer differ).")
+              sys.exit(1)
+          PY
+
       - name: Auth gate is configured (401, not 500)
         shell: bash
         run: |
@@ -140,7 +154,19 @@ jobs:
           curl -sS "${auth[@]}" "$APP/api/campaigns/$campaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];[print(k["type"]+"-"+x["format"], x["imageUrl"]) for k in c["concepts"] for x in k["creatives"] if x["imageUrl"]]' > creatives/urls.txt
           while read -r name url; do
             curl -sS "${auth[@]}" -o "creatives/$name.${url##*.}" -w "GET creative $name -> HTTP %{http_code} %{content_type}\n" "$APP$url"
+            # Exact Meta sizes per format.
+            case "$name" in
+              *SQUARE_1_1) want=1080x1080;; *PORTRAIT_4_5) want=1080x1350;; *STORY_9_16) want=1080x1920;; *) want="";;
+            esac
+            got=$(file -b "creatives/$name.${url##*.}" | grep -oE '[0-9]+x[0-9]+' | tail -1)
+            echo "  size $got (expected $want)"
+            [ -z "$want" ] || [ "$got" = "$want" ] || { echo "::error::$name is $got, expected $want"; failed=1; }
           done < creatives/urls.txt
+          # Private files: unauthenticated access must be refused.
+          first=$(head -1 creatives/urls.txt | cut -d' ' -f2)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' "$APP$first")
+          echo "GET creative without credentials -> HTTP $code"
+          [ "$code" = "401" ] || { echo "::error::Creative files must require authentication (got $code)"; failed=1; }
           code=$(curl -sS "${auth[@]}" -o /dev/null -w '%{http_code}' "$APP/results/$campaign")
           echo "GET /results/$campaign -> HTTP $code"
           [ "$code" = "200" ] || failed=1
