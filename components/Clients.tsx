@@ -39,7 +39,7 @@ export default function Clients() {
         </div>
 
         <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-4 text-xs uppercase tracking-[0.2em] text-slate-600">
-          <span><strong className="mr-2 text-white">+50</strong> empresas atendidas</span>
+          <span><strong className="mr-2 text-white">250</strong> campañas gestionadas</span>
           <span><strong className="mr-2 text-white">Ecuador + EE. UU.</strong> mercados</span>
           <span><strong className="mr-2 text-white">360°</strong> estrategia + creatividad + tecnología</span>
         </div>
