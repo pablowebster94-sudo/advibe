@@ -1,11 +1,6 @@
 import type { Brand, Product } from "@/generated/prisma/client";
 import { formatPrice, toList } from "@/lib/text";
 
-/**
- * Normalized view of a Product (+ its optional Brand identity) that every
- * downstream engine (analysis, concepts, copy, rendering) reads from. Having
- * one shared shape means none of those engines need to know about Prisma.
- */
 export type ProductBrief = {
   productName: string;
   category: string;
@@ -25,13 +20,31 @@ export type ProductBrief = {
   brandColors: string[] | null;
 };
 
-export function buildProductBrief(
-  product: Product,
-  brand: Brand | null
-): ProductBrief {
-  const priceDisplay =
-    product.priceLabel?.trim() ||
-    formatPrice(product.price, product.currency);
+function normalizeOffer(value: string | null | undefined): string | null {
+  const offer = value?.trim();
+  if (!offer) return null;
+  // A bare "Descuento", "Oferta" or "Promoción" is not a usable commercial
+  // claim. Do not let it become the main headline of a finished ad.
+  if (/^(descuento|oferta|promocion|promoción|promo)$/i.test(offer)) return null;
+  return offer;
+}
+
+/**
+ * Ad copy starts with a capital letter. Only touches text typed entirely in
+ * lowercase ("chevrolet" -> "Chevrolet"), so deliberate casing such as
+ * "iPhone" or "BMW" is kept exactly as written. Exported for tests.
+ */
+export function displayCase(value: string): string;
+export function displayCase(value: string | null): string | null;
+export function displayCase(value: string | null): string | null {
+  const text = value?.trim();
+  if (!text) return value;
+  if (text !== text.toLowerCase()) return text;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+export function buildProductBrief(product: Product, brand: Brand | null): ProductBrief {
+  const priceDisplay = product.priceLabel?.trim() || formatPrice(product.price, product.currency);
 
   let brandColors: string[] | null = null;
   if (brand?.colors) {
@@ -44,15 +57,15 @@ export function buildProductBrief(
   }
 
   return {
-    productName: product.name,
+    productName: displayCase(product.name),
     category: product.category,
-    manufacturer: product.manufacturer,
+    manufacturer: displayCase(product.manufacturer),
     model: product.model,
     priceDisplay,
     description: product.description,
-    features: toList(product.features),
-    benefits: toList(product.benefits),
-    offer: product.offer,
+    features: toList(product.features).map((item) => displayCase(item)),
+    benefits: toList(product.benefits).map((item) => displayCase(item)),
+    offer: normalizeOffer(product.offer),
     cta: product.cta,
     targetAudience: product.targetAudience,
     brandName: brand?.name ?? null,
@@ -64,23 +77,25 @@ export function buildProductBrief(
 }
 
 export function productTitle(brief: ProductBrief) {
-  return [brief.manufacturer, brief.productName, brief.model]
-    .filter(Boolean)
-    .join(" ");
+  return [brief.manufacturer, brief.productName, brief.model].filter(Boolean).join(" ");
 }
 
-/**
- * Vehicles get stricter identity rules in art direction and their own angle
- * mix. The wizard stores the catalog id "vehiculos" (no accent); free-text
- * fields are matched too for products entered under another category.
- */
 export function isVehicleBrief(
   brief: Pick<ProductBrief, "category" | "productName" | "description">
 ): boolean {
+  const normalized = (brief.category + " " + brief.productName + " " + (brief.description || ""))
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
   return (
-    brief.category === "vehiculos" ||
-    /auto|veh[ií]culo|camioneta|camión|moto|pickup|sedán|suv/i.test(
-      brief.category + " " + brief.productName + " " + (brief.description || "")
-    )
+    /\bvehiculos?\b/.test(normalized) ||
+    /\bautos?\b/.test(normalized) ||
+    /\bcamionetas?\b/.test(normalized) ||
+    /\bcamiones?\b/.test(normalized) ||
+    /\bmotos?\b/.test(normalized) ||
+    /\bpickups?\b/.test(normalized) ||
+    /\bsedans?\b/.test(normalized) ||
+    /\bsuvs?\b/.test(normalized)
   );
 }

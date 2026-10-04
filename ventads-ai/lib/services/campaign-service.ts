@@ -7,6 +7,7 @@ import { analyzeProduct } from "@/lib/services/analysis-engine";
 import { activeImageProviderName, imageGeneration } from "@/lib/services/image-generation";
 import { currentJobConcurrency, dispatchWorkers } from "@/lib/services/job-dispatch";
 import { storage } from "@/lib/services/storage";
+import { cutoutProduct } from "@/lib/services/cutout";
 import { conceptTypeForVariant, generateAICampaign } from "@/lib/services/ai-orchestrator";
 
 // Backoff before a retriable job becomes claimable again, indexed by
@@ -27,7 +28,10 @@ function backoffMs(attempts: number) {
  * returns after strategy/copy metadata is persisted; image rendering remains asynchronous.
  */
 
-export async function createCampaignJobs(campaignId: string): Promise<void> {
+export async function createCampaignJobs(
+  campaignId: string,
+  options: { variants?: number } = {}
+): Promise<void> {
   const campaign = await prisma.campaign.findUniqueOrThrow({
     where: { id: campaignId },
     include: { product: { include: { brand: true, images: true } } },
@@ -37,7 +41,7 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
   const brief = buildProductBrief(product, product.brand);
   const objective = campaign.objective as ObjectiveId;
   const baseAnalysis = analyzeProduct(brief, objective);
-  const ai = await generateAICampaign(brief, baseAnalysis, { objective });
+  const ai = await generateAICampaign(brief, baseAnalysis, { objective, variantCount: options.variants });
 
   await prisma.campaign.update({
     where: { id: campaign.id },
@@ -48,6 +52,10 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
   });
 
   const productImage = product.images.find((image) => image.role === "PRODUCT");
+
+  // Every angle in every Meta placement: feed 1080x1080, feed 1080x1350 and
+  // stories/reels 1080x1920.
+  const initialFormats = FORMATS;
 
   for (const [index, variant] of ai.variants.entries()) {
     const type = conceptTypeForVariant(index, brief);
@@ -75,7 +83,7 @@ export async function createCampaignJobs(campaignId: string): Promise<void> {
           },
         },
         creatives: {
-          create: FORMATS.map((format) => ({
+          create: initialFormats.map((format) => ({
             format: format.id,
             sourceImageId: productImage?.id,
           })),
@@ -149,6 +157,9 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
     const productImageBuffer = productImage
       ? await storage.read(productImage.key)
       : null;
+    // The real product without its background, so the creative shows the
+    // exact car/product on a new scene (never redrawn). Null -> original photo.
+    const productCutout = productImageBuffer ? await cutoutProduct(productImageBuffer) : null;
     const logoImage = product.images.find((image) => image.role === "LOGO");
     const logoBuffer = logoImage
       ? await storage.read(logoImage.key)
@@ -166,8 +177,10 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
       headline: concept.copy.headline,
       supportingLine: concept.copy.description,
       priceDisplay: brief.priceDisplay,
+      offerDisplay: brief.offer,
       ctaLabel: concept.copy.cta,
       productImageBuffer,
+      productCutout,
       logoBuffer,
       variantSeed: creative.version - 1,
       highlights: creativeHighlights(concept.type, brief, concept.copy.headline),

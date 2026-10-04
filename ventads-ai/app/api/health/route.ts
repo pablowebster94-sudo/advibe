@@ -7,6 +7,7 @@ import { ensureFontsConfigured } from "@/lib/fonts";
 import { resolveStorageProvider } from "@/lib/services/storage";
 import { activeImageProviderName } from "@/lib/services/image-generation";
 import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
+import { renderFingerprint } from "@/lib/render-fingerprint";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -82,14 +83,24 @@ export async function GET() {
     };
   }
 
+  // Same hash as tests/fixtures/render-fingerprint.json <=> production renders
+  // creatives (fonts included) exactly like local tests do.
+  let render: Record<string, unknown>;
+  try {
+    render = { ok: true, fingerprint: await renderFingerprint() };
+  } catch (error) {
+    render = { ok: false, error: errorCode(error) };
+  }
+
   const ok =
+    render.ok === true &&
     database.connected === true &&
     config.auth !== "missing" &&
     config.CRON_SECRET &&
     config.APP_URL !== "missing";
 
   return NextResponse.json(
-    { status: ok ? "ok" : "degraded", database, config },
+    { status: ok ? "ok" : "degraded", database, render, config },
     { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } }
   );
 }

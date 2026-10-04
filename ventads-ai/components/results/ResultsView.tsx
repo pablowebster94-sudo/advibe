@@ -25,6 +25,12 @@ export function ResultsView({ campaign: initialCampaign }: { campaign: CampaignW
     if (Date.now() - startedAt > MAX_POLL_MS) return;
 
     const timer = setInterval(async () => {
+      // Checked on every tick: the effect alone only re-runs when the
+      // campaign changes, so a stalled campaign would otherwise poll forever.
+      if (Date.now() - startedAt > MAX_POLL_MS) {
+        clearInterval(timer);
+        return;
+      }
       try {
         const res = await fetch(`/api/campaigns/${campaign.id}`, { cache: "no-store" });
         if (!res.ok) return;

@@ -82,6 +82,21 @@ const CONCEPT_DIRECTION: Record<string, ConceptDirection> = {
       ],
     },
   },
+  BENEFICIO: {
+    intent:
+      "Benefit-focused ad. The scene makes the customer feel the real, supplied benefit of the product, without inventing any new claim.",
+    mood: "Fresh, bright, optimistic and trustworthy. Clean natural light, airy space.",
+    scenes: {
+      vehicle: [
+        { setting: "a bright, clean modern street with soft trees in the background", light: "fresh morning daylight", camera: "front three-quarter view at eye level" },
+        { setting: "an airy contemporary garage with large windows", light: "soft daylight with gentle reflections", camera: "three-quarter view, clean and calm" },
+      ],
+      generic: [
+        { setting: "a bright, airy everyday setting where the product is used", light: "soft natural window light", camera: "eye level, product clearly in focus" },
+        { setting: "a fresh light studio with soft pastel tones", light: "diffused, even light", camera: "hero angle, product dominant" },
+      ],
+    },
+  },
   OFERTA: {
     intent: "Promotional ad. The product must read instantly with an energetic, high-urgency feel.",
     mood: "Energetic, bold, high contrast, vivid.",
@@ -178,4 +193,42 @@ export function buildScenePrompt(input: ScenePromptInput): string {
   ]
     .filter(Boolean)
     .join("\n\n");
+}
+
+export type BackgroundPromptInput = {
+  conceptType: string;
+  styleId: string;
+  formatId: string;
+  variantSeed: number;
+  isVehicle: boolean;
+  /** Fraction of the canvas height (from the top) that stays visible above the copy panel. */
+  visibleHeight: number;
+};
+
+/**
+ * "Real product" mode: Gemini paints ONLY the empty environment. The real
+ * product (background-removed photo, original pixels) is placed on it
+ * afterwards by creative-renderer.ts#placeProductOnScene, so the model never
+ * gets the chance to redraw — and alter — the car.
+ */
+export function buildBackgroundPrompt(input: BackgroundPromptInput): string {
+  const direction = CONCEPT_DIRECTION[input.conceptType] ?? CONCEPT_DIRECTION.VENTA_DIRECTA;
+  const style = getStyle(input.styleId);
+  const format = getFormat(input.formatId);
+  const scene = pickScene(input.conceptType, input.isVehicle, input.variantSeed);
+  const subject = input.isVehicle ? "vehicle" : "product";
+  const visiblePct = Math.round(input.visibleHeight * 100);
+  const groundPct = Math.round(input.visibleHeight * 92);
+
+  return [
+    `You are the art director and commercial photographer of a top performance-advertising agency${input.isVehicle ? " specialized in automotive campaigns" : ""}. Create an EMPTY background plate for a paid social ad (Meta Ads): the set where a real ${subject} will be placed later by compositing.`,
+    `The scene must be completely EMPTY: no ${input.isVehicle ? "cars, vehicles, motorcycles" : "products, objects on the hero spot"}, no people, no animals. Leave a clear, flat, unobstructed ${input.isVehicle ? "floor/ground area" : "surface"} in the center of the frame.`,
+    `Campaign angle: ${direction.intent}`,
+    `Mood: ${direction.mood}`,
+    `Setting: ${scene.setting}. Lighting: ${scene.light}. Camera: eye level at about 1 meter, straight-on, normal 35-50mm perspective with a level horizon.`,
+    `Brand style "${style.label}" (${style.description}): grade the scene to harmonize with ${style.palette.background}, ${style.palette.panel} and ${style.palette.accent} accents.`,
+    `Canvas: ${format.width}x${format.height}. Only the top ${visiblePct}% of the canvas will be visible (the rest is covered by the ad's text panel), so build the composition there: the empty ground spot where the ${subject} will stand must be centered horizontally, with its ground contact line at about ${groundPct}% of the canvas height; keep the background behind it calm and slightly darker at the edges so a ${subject} placed in the center stands out. Keep the top-left corner calm for a logo.`,
+    "Quality: photorealistic high-end commercial photography, natural physically-correct light, professional color grading, sharp but not busy.",
+    NO_TEXT_RULES,
+  ].join("\n\n");
 }

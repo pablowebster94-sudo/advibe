@@ -106,7 +106,7 @@ overflow, clipping, or broken layouts — don't just check HTTP status codes.
   `lib/services/providers/` holds concrete `ImageGenerationService`
   implementations (Gemini today).
 - `lib/product-brief.ts` — the one normalized shape every engine reads.
-- `components/wizard/` — the 6-step product creation flow (`app/new`).
+- `components/wizard/` — the 6-step product creation flow (`app/new/avanzado`); `app/new` is the one-screen quick form.
 - `components/results/` — the results/variants view (`app/results/[id]`).
 - `prisma/schema.prisma` — data model; see ARCHITECTURE.md for the
   rationale behind each modeling choice before changing it.

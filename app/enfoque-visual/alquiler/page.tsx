@@ -1,3 +1,8 @@
-import {properties as demo} from "@/lib/enfoque-data";import {getPublishedProperties,supabaseConfigured} from "@/lib/enfoque-supabase";import {Header} from "@/components/enfoque/Header";import {PropertyCard} from "@/components/enfoque/Cards";
+import type {Metadata} from "next";
+import {evMetadata} from "@/lib/enfoque-seo";
+import {PropertyCatalog} from "@/components/enfoque/PropertyCatalog";
 export const dynamic="force-dynamic";
-export default async function Page(){const all=supabaseConfigured()?await getPublishedProperties().catch(()=>demo):demo;const properties=all.filter(x=>x.operation==="alquiler");return <><Header/><main className="mx-auto max-w-7xl px-5 py-14"><p className="text-xs font-black uppercase tracking-[.2em] text-black/40">Enfoque Visual</p><h1 className="ev-display mt-2 text-6xl font-black">Alquiler</h1><div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{properties.map(x=><PropertyCard key={x.id} x={x}/>)}</div></main></>}
+export const metadata:Metadata=evMetadata({title:"Propiedades en alquiler",description:"Departamentos, casas y locales en alquiler en Cuenca y Azuay.",path:"/alquiler"});
+export default async function Page({searchParams}:{searchParams:Promise<{[key:string]:string|string[]|undefined}>}){
+  return <PropertyCatalog searchParams={await searchParams} action="/enfoque-visual/alquiler" title="Alquiler" intro="Propiedades disponibles para arrendar. El precio indicado es mensual." operation="alquiler"/>;
+}

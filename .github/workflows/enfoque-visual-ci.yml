@@ -13,8 +13,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      - name: Lint (Enfoque Visual)
+        run: npx eslint app/enfoque-visual components/enfoque lib/enfoque-*.ts app/api/enfoque middleware.ts tests/enfoque.test.ts tests/e2e/enfoque*.mjs
+      - run: npm test
       - run: npm run build

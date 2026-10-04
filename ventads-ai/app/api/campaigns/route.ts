@@ -51,7 +51,7 @@ async function handlePOST(request: Request) {
     // Loaded inside the handler: it pulls in sharp (native), and a module-load
     // failure there must still answer JSON through jsonRoute, never an HTML 500.
     const { createCampaignJobs } = await import("@/lib/services/campaign-service");
-    await createCampaignJobs(campaign.id);
+    await createCampaignJobs(campaign.id, { variants: parsed.data.variants });
   } catch (error) {
     console.error("Campaign setup failed", error);
     await prisma.campaign.update({

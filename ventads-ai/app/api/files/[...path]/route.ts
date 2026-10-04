@@ -34,7 +34,11 @@ export async function GET(
     const buffer = await storage.read(key);
     const headers: Record<string, string> = {
       "Content-Type": contentType,
-      "Cache-Control": "public, max-age=31536000, immutable",
+      // Private files behind the Basic Auth gate (proxy.ts): the viewer's
+      // browser may cache them (keys are unique, content never changes), but
+      // no shared cache / CDN may store them.
+      "Cache-Control": "private, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
     };
     if (download) {
       headers["Content-Disposition"] = `attachment; filename="${download.replace(/[^a-z0-9_.-]/gi, "_")}"`;

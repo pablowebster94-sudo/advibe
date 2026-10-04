@@ -16,6 +16,7 @@ import Footer from "@/components/Footer";
 import AIChatbot from "@/components/AIChatbot";
 import StickyDesktopCTA from "@/components/StickyDesktopCTA";
 import MobileConversionOverlays from "@/components/MobileConversionOverlays";
+import { faqSchema, organizationSchema } from "@/lib/advibe-schema";
 
 export default function Home() {
   return (
@@ -40,6 +41,8 @@ export default function Home() {
       </main>
       <MobileConversionOverlays />
       <AIChatbot />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
     </div>
   );
 }

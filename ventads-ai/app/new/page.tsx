@@ -2,112 +2,176 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { BrandStep } from "@/components/wizard/steps/BrandStep";
-import { ObjectiveStep } from "@/components/wizard/steps/ObjectiveStep";
-import { PhotosStep } from "@/components/wizard/steps/PhotosStep";
-import { ProductStep } from "@/components/wizard/steps/ProductStep";
-import { ReviewStep } from "@/components/wizard/steps/ReviewStep";
-import { StyleStep } from "@/components/wizard/steps/StyleStep";
-import { Stepper } from "@/components/wizard/Stepper";
-import { EMPTY_WIZARD_STATE, type WizardState } from "@/lib/wizard-types";
+import { Field, Input, Textarea } from "@/components/ui/Field";
+import { ImageUploader, type UploadedImage } from "@/components/wizard/ImageUploader";
 import { readJson } from "@/lib/fetch-json";
 
-function canProceed(step: number, state: WizardState) {
-  if (step === 0) return state.product.category.trim() !== "" && state.product.name.trim() !== "";
-  if (step === 2 && state.brand.mode === "new") return state.brand.name.trim() !== "";
-  return true;
+/**
+ * Quick ad: one screen, four fields. Everything else (objective, style,
+ * brand, copy) takes sensible defaults or is reused from last time; the
+ * full 6-step wizard stays available at /new/avanzado.
+ */
+
+type Brand = { id: string; name: string; contactPhone: string | null };
+
+const KINDS = [
+  { id: "Vehículos", label: "Vehículo" },
+  { id: "Productos de retail", label: "Producto" },
+  { id: "Servicios", label: "Servicio" },
+] as const;
+
+const LOOKS = [
+  { id: "COMERCIAL", label: "Claro" },
+  { id: "PREMIUM", label: "Oscuro premium" },
+] as const;
+
+const COUNTS = [
+  { id: "3", label: "3 anuncios" },
+  { id: "4", label: "4 anuncios" },
+] as const;
+
+const LAST_BRAND_KEY = "ventads:last-brand";
+
+function remembered(key: string) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
-export default function NewProductPage() {
+function remember(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Private mode / blocked storage: nothing to remember, nothing breaks.
+  }
+}
+
+/** One selling point per line; "a, b, c" on one line also works. */
+function toLines(text: string) {
+  return text
+    .split(/\n|,\s+|\s+·\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function Chips<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly { id: T; label: string }[];
+  value: T;
+  onChange: (id: T) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          aria-pressed={value === option.id}
+          onClick={() => onChange(option.id)}
+          className={`rounded-full border px-4 py-2 text-sm cursor-pointer transition-colors ${
+            value === option.id
+              ? "border-accent-strong bg-accent-strong text-white"
+              : "border-border bg-surface text-foreground hover:border-accent-strong/60"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function QuickAdPage() {
   const router = useRouter();
-  const [state, setState] = useState<WizardState>(EMPTY_WIZARD_STATE);
-  const [step, setStep] = useState(0);
-  const [furthest, setFurthest] = useState(0);
+  const [photos, setPhotos] = useState<UploadedImage[]>([]);
+  const [kind, setKind] = useState<string>(KINDS[0].id);
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [details, setDetails] = useState("");
+  const [look, setLook] = useState<string>(LOOKS[0].id);
+  const [count, setCount] = useState<string>(COUNTS[0].id);
+
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [brandId, setBrandId] = useState<string>("");
+  const [businessName, setBusinessName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function goTo(index: number) {
-    if (index <= furthest) setStep(index);
-  }
+  useEffect(() => {
+    fetch("/api/brands")
+      .then((res) => readJson<{ brands?: Brand[] }>(res))
+      .then((data) => {
+        const list = data.brands ?? [];
+        setBrands(list);
+        const saved = remembered(LAST_BRAND_KEY);
+        const preferred = list.find((b) => b.id === saved) ?? list[0];
+        if (preferred) setBrandId(preferred.id);
+      })
+      .catch(() => setBrands([]));
+  }, []);
 
-  function next() {
-    const nextStep = Math.min(step + 1, 5);
-    setStep(nextStep);
-    setFurthest((f) => Math.max(f, nextStep));
-  }
+  const canGenerate = name.trim() !== "" && !submitting;
 
-  function back() {
-    setStep((s) => Math.max(s - 1, 0));
-  }
-
-  async function handleGenerate() {
+  async function generate() {
     setSubmitting(true);
     setError(null);
     try {
-      let brandId: string | null = null;
-
-      if (state.brand.mode === "existing") {
-        brandId = state.brand.existingBrandId;
-      } else if (state.brand.mode === "new") {
+      let useBrandId = brandId === "new" ? "" : brandId;
+      if ((brandId === "new" || brands.length === 0) && (businessName.trim() || whatsapp.trim())) {
         const res = await fetch("/api/brands", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: state.brand.name,
-            logoKey: state.brand.logo?.key,
-            defaultCta: state.brand.defaultCta || undefined,
-            contactPhone: state.brand.contactPhone || undefined,
-            contactEmail: state.brand.contactEmail || undefined,
-            website: state.brand.website || undefined,
+            name: businessName.trim() || "Mi negocio",
+            contactPhone: whatsapp.trim() || undefined,
+            defaultCta: whatsapp.trim() ? "Escríbenos por WhatsApp" : undefined,
           }),
         });
         const data = await readJson<{ error?: string; brand: { id: string } }>(res);
-        if (!res.ok) throw new Error(data.error ?? "No se pudo crear la marca.");
-        brandId = data.brand.id;
+        if (!res.ok) throw new Error(data.error ?? "No se pudo guardar tu negocio.");
+        useBrandId = data.brand.id;
       }
+      if (useBrandId) remember(LAST_BRAND_KEY, useBrandId);
 
-      const images = [
-        ...state.productImages.map((img) => ({ ...img, role: "PRODUCT" as const })),
-        ...state.referenceImages.map((img) => ({ ...img, role: "REFERENCE" as const })),
-      ];
-
+      const numericPrice = Number(price.replace(/[^\d.]/g, ""));
       const productRes = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          category: state.product.category,
-          name: state.product.name,
-          manufacturer: state.product.manufacturer || undefined,
-          model: state.product.model || undefined,
-          price: state.product.price ? Number(state.product.price) : undefined,
-          currency: state.product.currency || "USD",
-          priceLabel: state.product.priceLabel || undefined,
-          description: state.product.description || undefined,
-          features: state.product.features || undefined,
-          benefits: state.product.benefits || undefined,
-          offer: state.product.offer || undefined,
-          cta: state.product.cta || undefined,
-          targetAudience: state.product.targetAudience || undefined,
-          brandId: brandId || undefined,
-          images,
+          category: kind,
+          name: name.trim(),
+          price: price.trim() && numericPrice > 0 ? numericPrice : undefined,
+          currency: "USD",
+          features: details.trim() ? toLines(details) : undefined,
+          brandId: useBrandId || undefined,
+          images: photos.map((img) => ({ ...img, role: "PRODUCT" as const })),
         }),
       });
       const productData = await readJson<{ error?: string; product: { id: string } }>(productRes);
-      if (!productRes.ok) throw new Error(productData.error ?? "No se pudo crear el producto.");
+      if (!productRes.ok) throw new Error(productData.error ?? "No se pudo guardar el producto.");
 
       const campaignRes = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: productData.product.id,
-          objective: state.objective,
-          style: state.style,
+          objective: "VENDER",
+          style: look,
+          variants: Number(count),
         }),
       });
       const campaignData = await readJson<{ error?: string; campaign: { id: string } }>(campaignRes);
-      if (!campaignRes.ok) throw new Error(campaignData.error ?? "No se pudieron generar las creatividades.");
+      if (!campaignRes.ok) throw new Error(campaignData.error ?? "No se pudieron generar los anuncios.");
 
       router.push(`/results/${campaignData.campaign.id}`);
     } catch (err) {
@@ -116,8 +180,10 @@ export default function NewProductPage() {
     }
   }
 
+  const showNewBusiness = brands.length === 0 || brandId === "new";
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-10">
+    <div className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-4 py-8 sm:px-6">
       <header className="flex items-center justify-between">
         <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
           ventADS<span className="text-accent-strong">.ai</span>
@@ -127,59 +193,118 @@ export default function NewProductPage() {
         </Link>
       </header>
 
-      <Stepper current={step} furthestUnlocked={furthest} onSelect={goTo} />
-
-      <div className="rounded-[var(--radius-lg)] border border-border bg-surface p-6 sm:p-8">
-        {step === 0 && (
-          <ProductStep
-            value={state.product}
-            onChange={(product) => setState((s) => ({ ...s, product }))}
-          />
-        )}
-        {step === 1 && (
-          <PhotosStep
-            productImages={state.productImages}
-            referenceImages={state.referenceImages}
-            onProductImagesChange={(productImages) =>
-              setState((s) => ({ ...s, productImages }))
-            }
-            onReferenceImagesChange={(referenceImages) =>
-              setState((s) => ({ ...s, referenceImages }))
-            }
-          />
-        )}
-        {step === 2 && (
-          <BrandStep value={state.brand} onChange={(brand) => setState((s) => ({ ...s, brand }))} />
-        )}
-        {step === 3 && (
-          <ObjectiveStep
-            value={state.objective}
-            onChange={(objective) => setState((s) => ({ ...s, objective }))}
-          />
-        )}
-        {step === 4 && (
-          <StyleStep value={state.style} onChange={(style) => setState((s) => ({ ...s, style }))} />
-        )}
-        {step === 5 && (
-          <ReviewStep
-            state={state}
-            onGenerate={handleGenerate}
-            submitting={submitting}
-            error={error}
-          />
-        )}
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">Nuevo anuncio</h1>
+        <p className="mt-1 text-sm text-muted">
+          Sube la foto, escribe qué vendes y listo. Usamos tu producto real, tal cual está en la foto.
+        </p>
       </div>
 
-      {step < 5 && (
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={back} disabled={step === 0}>
-            Atrás
-          </Button>
-          <Button onClick={next} disabled={!canProceed(step, state)}>
-            Continuar
-          </Button>
+      <form
+        className="flex flex-col gap-5 rounded-[var(--radius-lg)] border border-border bg-surface p-5 sm:p-6"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (canGenerate) void generate();
+        }}
+      >
+        <ImageUploader
+          images={photos}
+          onChange={setPhotos}
+          folder="products"
+          label="Foto del producto"
+          hint="Mejor si se ve completo, sin cortes en los bordes. La primera foto es la que se usa."
+        />
+
+        <Chips options={KINDS} value={kind} onChange={setKind} />
+
+        <Field label="¿Qué vendes?" required>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={kind === "Vehículos" ? "Ej: Chevrolet Blazer RS 2021" : "Ej: Sala modular 3 piezas"}
+            autoFocus
+          />
+        </Field>
+
+        <Field label="Precio (USD)" hint="Opcional. Déjalo vacío si prefieres «Consultar».">
+          <Input
+            inputMode="decimal"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="Ej: 38900"
+          />
+        </Field>
+
+        <Field label="Detalles que quieres destacar" hint="Opcional. Solo datos reales: separados por coma o uno por línea.">
+          <Textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            placeholder={kind === "Vehículos" ? "Único dueño, 30.000 km, full equipo" : "Envío gratis, garantía de 1 año"}
+            className="min-h-20"
+          />
+        </Field>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-foreground">Estilo</span>
+          <Chips options={LOOKS} value={look} onChange={setLook} />
         </div>
-      )}
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-foreground">Variantes</span>
+          <Chips options={COUNTS} value={count} onChange={setCount} />
+          <span className="text-xs text-muted">
+            Cada anuncio sale en 1080×1080, 1080×1350 y 1080×1920 (feed, feed vertical e historias).
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-foreground">Tu negocio</span>
+          {brands.length > 0 && (
+            <select
+              value={brandId}
+              onChange={(e) => setBrandId(e.target.value)}
+              className="w-full rounded-[var(--radius-sm)] border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground"
+            >
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                  {b.contactPhone ? ` · ${b.contactPhone}` : ""}
+                </option>
+              ))}
+              <option value="">Sin marca</option>
+              <option value="new">+ Otro negocio…</option>
+            </select>
+          )}
+          {showNewBusiness && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Input
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="Nombre (opcional)"
+              />
+              <Input
+                inputMode="tel"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="WhatsApp (opcional)"
+              />
+            </div>
+          )}
+        </div>
+
+        {error && <p className="text-sm text-danger">{error}</p>}
+
+        <Button type="submit" size="lg" disabled={!canGenerate}>
+          {submitting ? "Creando tus anuncios…" : `Crear ${count} anuncios`}
+        </Button>
+      </form>
+
+      <p className="text-center text-xs text-muted">
+        ¿Necesitas objetivo, público, logo u oferta?{" "}
+        <Link href="/new/avanzado" className="underline hover:text-foreground">
+          Modo avanzado
+        </Link>
+      </p>
     </div>
   );
 }

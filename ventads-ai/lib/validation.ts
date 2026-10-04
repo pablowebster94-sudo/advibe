@@ -48,4 +48,6 @@ export const campaignInputSchema = z.object({
   productId: z.string().min(1),
   objective: z.enum(objectiveIds),
   style: z.enum(styleIds),
+  /** How many ad angles (each rendered in every format). */
+  variants: z.number().int().min(3).max(4).optional(),
 });
