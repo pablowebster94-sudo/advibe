@@ -40,7 +40,7 @@ export default function Hero() {
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_70%_30%,rgba(120,217,79,0.16),transparent_35%),radial-gradient(circle_at_15%_80%,rgba(36,86,145,0.18),transparent_40%),linear-gradient(135deg,#05070a_0%,#071018_58%,#07100b_100%)]" />
       <video
         ref={videoRef}
-        className={`absolute inset-0 -z-10 h-full w-full object-cover transition-opacity duration-1000 ${videoReady ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 -z-10 h-full w-full object-cover object-[80%_center] transition-opacity duration-1000 lg:object-center ${videoReady ? "opacity-25 lg:opacity-100" : "opacity-0"}`}
         src={HERO_VIDEO}
         poster={HERO_POSTER}
         autoPlay
@@ -52,8 +52,8 @@ export default function Hero() {
         onCanPlay={() => setVideoReady(true)}
         onError={() => setVideoReady(false)}
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#05070a] via-[#05070a]/70 to-[#05070a]/30" />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#05070a]/80 via-transparent to-transparent" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#05070a] via-[#05070a]/40 to-transparent" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#05070a]/90 via-[#05070a]/40 to-transparent" />
 
       <div className="mx-auto w-full max-w-7xl">
         <p className="mb-6 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
