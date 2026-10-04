@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
-const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
-const rotatingWords = ["atraen.", "convierten.", "crecen."];
+const highlights = ["Meta Ads", "Contenido y video", "Web"];
+const rotatingWords = ["mensajes.", "clientes.", "confianza."];
 const system = [
-  { number: "01", title: "Estrategia", text: "Definimos qué decir, a quién y por qué." },
-  { number: "02", title: "Creación", text: "Convertimos ideas en contenido que se recuerda." },
-  { number: "03", title: "Performance", text: "Medimos, optimizamos y hacemos que avance." },
+  { number: "01", title: "Diagnóstico", text: "Revisamos tu negocio, tus redes y tus anuncios antes de proponer nada." },
+  { number: "02", title: "Contenido y anuncios", text: "Grabamos, editamos y lanzamos campañas que llevan a WhatsApp." },
+  { number: "03", title: "Medición", text: "Cada semana sabes cuántas conversaciones entraron y cuánto costó cada una." },
 ];
 
 export default function Hero() {
@@ -34,11 +34,11 @@ export default function Hero() {
         <div className="grid items-end gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
           <div>
             <p className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
-              <span className="h-px w-8 bg-lime-300" /> Agencia creativa + tecnológica · Ecuador
+              <span className="h-px w-8 bg-lime-300" /> Agencia de marketing digital · Azuay, Ecuador
             </p>
             <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
-              <span className="block">Convertimos atención</span>
-              <span className="block">en oportunidades que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
+              <span className="block">Contenido y anuncios</span>
+              <span className="block">que generan <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
                 <AnimatePresence initial={false}>
                   <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="[grid-area:1/1] inline-block whitespace-nowrap">
                     {rotatingWords[wordIndex]}
@@ -47,10 +47,10 @@ export default function Hero() {
               </span></span>
             </h1>
             <p className="mt-9 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Estrategia, contenido, Meta Ads y tecnología conectados para atraer personas, convertir interés en oportunidades y hacer crecer tu negocio.
+              Producimos tu contenido y gestionamos tus anuncios en Facebook e Instagram para que más personas te escriban por WhatsApp. Más de 2.800 conversaciones generadas para negocios de Ecuador y EE. UU., a $0,54 de promedio.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <EventButton href="#contacto" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} leadOnClick className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi negocio <span className="ml-2">↗</span></EventButton>
+              <EventButton href="#contacto" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} leadOnClick className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Pedir diagnóstico gratis <span className="ml-2">↗</span></EventButton>
               <Button href="#portafolio" variant="secondary" className="rounded-full border-white/10 bg-white/[0.03] px-7 py-4 text-white hover:border-white/20 hover:bg-white/[0.08]">Ver casos</Button>
             </div>
           </div>
@@ -61,7 +61,7 @@ export default function Hero() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Cómo hacemos que pase</p>
                 <span className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-lime-300/70"><span className="h-1.5 w-1.5 rounded-full bg-lime-300 shadow-[0_0_12px_rgba(120,217,79,.8)]" /> AdVibe system</span>
               </div>
-              <p className="mt-5 max-w-md text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Creatividad que comunica.<br />Tecnología que acelera.</p>
+              <p className="mt-5 max-w-md text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Menos likes vacíos.<br />Más conversaciones reales.</p>
 
               <div className="mt-8">
                 {system.map((item) => (
@@ -95,9 +95,9 @@ export default function Hero() {
 
         <div className="mt-20 border-t border-white/10 pt-5 sm:mt-24">
           <div className="flex flex-wrap items-center justify-between gap-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-600">AdVibe / Creative systems</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-600">AdVibe / Agencia de marketing</p>
             <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span>Contenido</span><span className="text-lime-300">×</span><span>Performance</span><span className="text-lime-300">×</span><span>Technology</span>
+              <span>Contenido</span><span className="text-lime-300">×</span><span>Anuncios</span><span className="text-lime-300">×</span><span>Web</span>
             </div>
           </div>
         </div>

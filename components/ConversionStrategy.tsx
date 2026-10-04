@@ -28,13 +28,14 @@ const pillars = [
   },
 ];
 
+// Cifras: exportaciones de Meta Ads de las 4 cuentas de AdVibe (27-09-2026), sector asignado por nombre de campaña.
 const verticals = [
-  ["Inmobiliarias", "Captación de compradores, proyectos, propiedades y seguimiento de leads desde anuncios hasta WhatsApp."],
-  ["Automotriz", "Contenido de vehículos, campañas de adquisición y sistemas de contacto para oportunidades comerciales."],
-  ["Salud", "Presencia digital profesional, captación de consultas y seguimiento de prospectos."],
-  ["Educación", "Comunicación institucional, campañas de captación y experiencias digitales para familias y estudiantes."],
-  ["Retail / Comercio", "Contenido de producto, campañas, catálogo digital y conversaciones orientadas a compra."],
-  ["Servicios", "Propuesta de valor clara, generación de demanda y automatización del seguimiento comercial."],
+  ["Inmobiliarias", "Captación de compradores, proyectos, propiedades y seguimiento de leads desde anuncios hasta WhatsApp.", "552 conversaciones · $0,54 c/u"],
+  ["Automotriz", "Contenido de vehículos, campañas de adquisición y sistemas de contacto para oportunidades comerciales.", "476 conversaciones · $0,41 c/u"],
+  ["Retail y joyería", "Contenido de producto, campañas, catálogo digital y conversaciones orientadas a compra.", "311 conversaciones · $0,45 c/u"],
+  ["Arquitectura y diseño", "Proyectos y portafolio presentados para generar consultas de clientes con presupuesto.", "217 conversaciones · $0,75 c/u"],
+  ["Educación y deporte", "Comunicación institucional, campañas de inscripción y contenido para familias y estudiantes.", "142 conversaciones · $0,71 c/u"],
+  ["Salud", "Presencia digital profesional, captación de consultas y seguimiento de prospectos.", "83 conversaciones · $0,83 c/u"],
 ] as const;
 
 export default function ConversionStrategy() {
@@ -119,9 +120,10 @@ export default function ConversionStrategy() {
             El sistema cambia según cómo vende cada negocio.
           </h2>
           <div className="mt-14 grid gap-px overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
-            {verticals.map(([title, text]) => (
+            {verticals.map(([title, text, metric]) => (
               <article key={title} className="bg-[#07101a] p-7 sm:p-8">
                 <h3 className="text-xl font-semibold text-white">{title}</h3>
+                <p className="mt-3 font-mono text-xs text-lime-300">{metric}</p>
                 <p className="mt-4 text-sm leading-7 text-slate-500">{text}</p>
               </article>
             ))}
@@ -148,7 +150,7 @@ export default function ConversionStrategy() {
               leadOnClick
               className="mt-7 inline-flex shrink-0 items-center justify-center rounded-full bg-lime-300 px-7 py-3 text-sm font-semibold text-slate-950 hover:bg-lime-200 lg:mt-0"
             >
-              Analizar mi negocio ↗
+              Diagnóstico gratis ↗
             </EventButton>
           </div>
         </div>
