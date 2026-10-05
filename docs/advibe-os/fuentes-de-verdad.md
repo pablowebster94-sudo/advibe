@@ -28,6 +28,8 @@ No se borra ni se sobrescribe ninguna de las fuentes en conflicto: se conservan 
 
 Pablo registra producción, grabaciones, publicaciones y tareas con la web app **ADvibe CONTROL** (`apps-script/advibe-control/`), vinculada a la hoja oficial. Los agentes de Claude solo leen: no deben escribir en la hoja sin pasar por el nivel 2.
 
+Cobros y recordatorios también entran por **ADvibe Bot**, el bot de Telegram (`apps-script/advibe-bot/`). Un pago solo se escribe en COBROS / PAGOS cuando Pablo pulsa "✅ Sí" en el chat; ese botón es su confirmación de nivel 2. Los recordatorios que dicta se guardan en TAREAS con Origen `TELEGRAM`.
+
 ## Reglas
 
 - Métricas de Meta: la API manda sobre cualquier hoja o CSV exportado.
