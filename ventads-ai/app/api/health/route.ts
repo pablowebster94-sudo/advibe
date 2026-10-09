@@ -7,7 +7,7 @@ import { ensureFontsConfigured } from "@/lib/fonts";
 import { resolveStorageProvider } from "@/lib/services/storage";
 import { activeImageProviderName } from "@/lib/services/image-generation";
 import { resolveAppUrlSource } from "@/lib/services/job-dispatch";
-import { renderFingerprint } from "@/lib/render-fingerprint";
+import { renderFingerprint, templateFingerprint } from "@/lib/render-fingerprint";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -87,7 +87,7 @@ export async function GET() {
   // creatives (fonts included) exactly like local tests do.
   let render: Record<string, unknown>;
   try {
-    render = { ok: true, fingerprint: await renderFingerprint() };
+    render = { ok: true, fingerprint: await renderFingerprint(), templateFingerprint: await templateFingerprint() };
   } catch (error) {
     render = { ok: false, error: errorCode(error) };
   }

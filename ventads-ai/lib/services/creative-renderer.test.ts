@@ -3,13 +3,13 @@ import path from "node:path";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { ensureFontsConfigured } from "@/lib/fonts";
-import { REFERENCE_CREATIVE, renderFingerprint } from "@/lib/render-fingerprint";
+import { REFERENCE_CREATIVE, renderFingerprint, templateFingerprint } from "@/lib/render-fingerprint";
 import { renderCreative } from "@/lib/services/creative-renderer";
 import { FORMATS } from "@/lib/catalog/formats";
 
 const pinned = JSON.parse(
   readFileSync(path.join(process.cwd(), "tests/fixtures/render-fingerprint.json"), "utf8")
-) as { sha256: string };
+) as { sha256: string; templateSha256: string };
 
 describe("creative renderer", () => {
   it("uses only the bundled fonts", () => {
@@ -19,6 +19,10 @@ describe("creative renderer", () => {
 
   it("renders the reference creative byte-for-byte as pinned (same output local and in production)", async () => {
     expect(await renderFingerprint()).toBe(pinned.sha256);
+  });
+
+  it("renders the reference template ad byte-for-byte as pinned (Playfair + DejaVu + icons)", async () => {
+    expect(await templateFingerprint()).toBe(pinned.templateSha256);
   });
 
   it.each(FORMATS.map((f) => [f.id, f.width, f.height] as const))(

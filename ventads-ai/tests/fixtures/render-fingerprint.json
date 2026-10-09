@@ -1,4 +1,5 @@
 {
   "sha256": "13cdf00223adea3f386d5e1307e797c8f12ee596fc32073c0f1320485293a76b",
-  "about": "SHA-256 of lib/render-fingerprint.ts REFERENCE_CREATIVE. Production must report the same value in /api/health (render.fingerprint). Update it only when a change to the renderer, fonts or sharp is intentional: run `npm test` and copy the new hash from the failing assertion."
+  "about": "SHA-256 of lib/render-fingerprint.ts REFERENCE_CREATIVE. Production must report the same value in /api/health (render.fingerprint). Update it only when a change to the renderer, fonts or sharp is intentional: run `npm test` and copy the new hash from the failing assertion. templateSha256 is the same check for the poster template (REFERENCE_TEMPLATE), reported as render.templateFingerprint.",
+  "templateSha256": "c178cfe35db68d9c29e0e6a5ae36a961bce38c9186e693f436d99ba48a3d6fde"
 }

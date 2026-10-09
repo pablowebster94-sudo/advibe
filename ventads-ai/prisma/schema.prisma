@@ -35,6 +35,8 @@ model Brand {
   contactEmail  String?
   website       String?
   defaultCta    String?
+  footerNote    String? // fixed footer line of the ad, e.g. "Envío a todo el país"
+  templateId    String? // default ad template, lib/templates
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   products      Product[]
@@ -62,6 +64,9 @@ model Product {
   offer           String?
   cta             String?
   targetAudience  String?
+  adTitle         String? // ad title; a newline splits kicker / main line ("Juego de sala\nImperial")
+  includes        String? // what the product/bundle includes, newline-separated list
+  promotions      Json? // [{ value, label, detail?, note? }], see lib/templates/content.ts
 
   images          ProductImage[]
   campaigns       Campaign[]
@@ -106,6 +111,7 @@ model Campaign {
   status     String     @default("PENDING") // PENDING | READY | FAILED
   aiAnalysis String?
   providerStatus String?
+  templateId String? // ad template (lib/templates); null = classic renderer
   concepts   Concept[]
   createdAt  DateTime   @default(now())
 }
@@ -169,6 +175,8 @@ model Creative {
   imageKey        String? // storage key, resolved to a URL at read time
   provider        String        @default("local-compositor")
   error           String?
+  templateId      String? // template used to render it, null = classic renderer
+  renderMeta      Json? // resolved layout: blocks shown/omitted, font sizes, scene source
 
   // Claim/retry bookkeeping. See lib/services/job-queue.ts#claimNextJob for
   // the atomic claim that guards these fields against concurrent workers.

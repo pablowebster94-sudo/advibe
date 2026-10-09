@@ -41,6 +41,7 @@ async function handlePOST(request: Request) {
       productId: product.id,
       objective: parsed.data.objective,
       style: parsed.data.style,
+      templateId: parsed.data.templateId ?? null,
     },
   });
 

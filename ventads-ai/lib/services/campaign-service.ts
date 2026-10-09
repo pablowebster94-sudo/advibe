@@ -4,7 +4,9 @@ import type { Creative } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { buildProductBrief, isVehicleBrief } from "@/lib/product-brief";
 import { analyzeProduct } from "@/lib/services/analysis-engine";
-import { activeImageProviderName, imageGeneration } from "@/lib/services/image-generation";
+import { activeImageProviderName, imageGeneration, type GeneratedImage } from "@/lib/services/image-generation";
+import { isTemplateId } from "@/lib/templates/catalog";
+import { buildAdContent, templateBrandFrom } from "@/lib/templates/content";
 import { currentJobConcurrency, dispatchWorkers } from "@/lib/services/job-dispatch";
 import { storage } from "@/lib/services/storage";
 import { cutoutProduct } from "@/lib/services/cutout";
@@ -157,9 +159,6 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
     const productImageBuffer = productImage
       ? await storage.read(productImage.key)
       : null;
-    // The real product without its background, so the creative shows the
-    // exact car/product on a new scene (never redrawn). Null -> original photo.
-    const productCutout = productImageBuffer ? await cutoutProduct(productImageBuffer) : null;
     const logoImage = product.images.find((image) => image.role === "LOGO");
     const logoBuffer = logoImage
       ? await storage.read(logoImage.key)
@@ -167,26 +166,62 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
         ? await storage.read(product.brand.logoKey).catch(() => null)
         : null;
 
-    // version 1 (first generation) -> variantSeed 0; each regeneration
-    // bumps both version and variantSeed together, so the layout reliably
-    // alternates on every "Regenerar" click, not just every other one.
-    const rendered = await imageGeneration.generateCreative({
-      formatId: creative.format,
-      styleId: campaign.style,
-      conceptType: concept.type,
-      headline: concept.copy.headline,
-      supportingLine: concept.copy.description,
-      priceDisplay: brief.priceDisplay,
-      offerDisplay: brief.offer,
-      ctaLabel: concept.copy.cta,
-      productImageBuffer,
-      productCutout,
-      logoBuffer,
-      variantSeed: creative.version - 1,
-      highlights: creativeHighlights(concept.type, brief, concept.copy.headline),
-      isVehicle: isVehicleBrief(brief),
-      objective: campaign.objective,
-    });
+    const classic = async (): Promise<GeneratedImage> => {
+      // The real product without its background, so the creative shows the
+      // exact car/product on a new scene (never redrawn). Null -> original photo.
+      const productCutout = productImageBuffer ? await cutoutProduct(productImageBuffer) : null;
+      // version 1 (first generation) -> variantSeed 0; each regeneration
+      // bumps both version and variantSeed together, so the layout reliably
+      // alternates on every "Regenerar" click, not just every other one.
+      return imageGeneration.generateCreative({
+        formatId: creative.format,
+        styleId: campaign.style,
+        conceptType: concept.type,
+        headline: concept.copy!.headline,
+        supportingLine: concept.copy!.description,
+        priceDisplay: brief.priceDisplay,
+        offerDisplay: brief.offer,
+        ctaLabel: concept.copy!.cta,
+        productImageBuffer,
+        productCutout,
+        logoBuffer,
+        variantSeed: creative.version - 1,
+        highlights: creativeHighlights(concept.type, brief, concept.copy!.headline),
+        isVehicle: isVehicleBrief(brief),
+        objective: campaign.objective,
+      });
+    };
+
+    // Template campaigns: VentAds designs the whole ad (logo, type, icons,
+    // promotions, CTA) over the original photo. Any template error falls back
+    // to the classic renderer for this creative, so there is always an ad.
+    let rendered: GeneratedImage & { templateId?: string; renderMeta?: object };
+    if (isTemplateId(campaign.templateId)) {
+      try {
+        const { renderTemplate } = await import("@/lib/templates/render");
+        const result = await renderTemplate({
+          formatId: creative.format,
+          conceptType: concept.type,
+          content: buildAdContent({ product, brand: product.brand, brief, conceptType: concept.type, copy: concept.copy }),
+          brand: templateBrandFrom(product.brand, logoBuffer),
+          scene: productImageBuffer,
+          sceneSource: productImageBuffer ? "original" : "none",
+        });
+        rendered = {
+          ...result,
+          provider: `template:${campaign.templateId}`,
+          extension: "jpg",
+          templateId: campaign.templateId,
+          renderMeta: result.meta,
+        };
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error(`[template] ${campaign.templateId} failed, using classic renderer: ${detail.slice(0, 300)}`);
+        rendered = { ...(await classic()), note: `La plantilla falló (${detail.slice(0, 200)}); se usó el diseño clásico.` };
+      }
+    } else {
+      rendered = await classic();
+    }
 
     const saved = await storage.save({
       buffer: rendered.buffer,
@@ -204,6 +239,8 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
         // A completed creative normally has no error; after a provider
         // fallback this keeps the reason (e.g. Gemini's API error) visible.
         error: rendered.note ?? null,
+        templateId: rendered.templateId ?? null,
+        renderMeta: rendered.renderMeta ?? undefined,
       },
     });
   } catch (error) {

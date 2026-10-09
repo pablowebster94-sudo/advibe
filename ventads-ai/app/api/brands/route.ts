@@ -3,6 +3,7 @@ import { getCurrentUser } from "../../../lib/auth";
 import { prisma } from "../../../lib/db";
 import { brandInputSchema } from "../../../lib/validation";
 import { jsonRoute } from "@/lib/api-route";
+import { storage } from "@/lib/services/storage";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,11 @@ async function handleGET() {
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ brands });
+  // Logo URL resolved for the Brand Kit editor (the key stays private).
+  const withLogos = await Promise.all(
+    brands.map(async (brand) => ({ ...brand, logoUrl: brand.logoKey ? await storage.urlFor(brand.logoKey) : null }))
+  );
+  return NextResponse.json({ brands: withLogos });
 }
 
 async function handlePOST(request: Request) {

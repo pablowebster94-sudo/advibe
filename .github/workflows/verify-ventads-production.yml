@@ -75,6 +75,14 @@ jobs:
           if prod != pinned:
               print("::error::Production renders the reference creative differently from local tests (fonts, sharp or renderer differ).")
               sys.exit(1)
+          render = json.load(open("health.json")).get("render", {})
+          pinned_tpl = json.load(open("ventads-ai/tests/fixtures/render-fingerprint.json")).get("templateSha256")
+          if "templateFingerprint" in render or pinned_tpl:
+              print("template production:", render.get("templateFingerprint"))
+              print("template pinned:    ", pinned_tpl)
+              if render.get("templateFingerprint") != pinned_tpl:
+                  print("::error::Production renders the reference template ad differently from local tests.")
+                  sys.exit(1)
           PY
 
       - name: Auth gate is configured (401, not 500)
@@ -167,6 +175,28 @@ jobs:
           code=$(curl -sS -o /dev/null -w '%{http_code}' "$APP$first")
           echo "GET creative without credentials -> HTTP $code"
           [ "$code" = "401" ] || { echo "::error::Creative files must require authentication (got $code)"; failed=1; }
+          # Template campaign ("Póster de marca"): Brand Kit + exact content
+          # rendered by VentAds over the original photo, 3 concepts x 3 formats.
+          call POST /api/brands '{"name":"[QA] Muebles","contactPhone":"099 000 0000","footerNote":"Envío a todo el país","colors":["#0b5d2e","#c9a227"]}'
+          tbrand=$(python3 -c 'import json;print(json.load(open("out.json"))["brand"]["id"])')
+          call POST /api/products "{\"category\":\"Productos de retail\",\"name\":\"[QA] Juego de sala\",\"adTitle\":\"Juego de sala\\nImperial\",\"price\":1299,\"includes\":\"Sofá triple\\nSofá doble\\n2 poltronas\\nMesa de centro\",\"benefits\":\"Madera de alta calidad\\nTapizado antifluido\",\"promotions\":[{\"value\":\"15%\",\"label\":\"de descuento\",\"detail\":\"En toda la tienda\"}],\"brandId\":\"$tbrand\",\"images\":[$images]}"
+          tproduct=$(python3 -c 'import json;print(json.load(open("out.json"))["product"]["id"])')
+          call POST /api/campaigns "{\"productId\":\"$tproduct\",\"objective\":\"VENDER\",\"style\":\"COMERCIAL\",\"templateId\":\"poster-elegante\"}"
+          tcampaign=$(python3 -c 'import json;print(json.load(open("out.json"))["campaign"]["id"])')
+          for i in $(seq 1 60); do
+            tstate=$(curl -sS -m 30 "${auth[@]}" "$APP/api/campaigns/$tcampaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];cr=[x["status"] for k in c["concepts"] for x in k["creatives"]];print(c["status"],cr.count("COMPLETED"),len(cr),cr.count("FAILED"))')
+            echo "template poll $i: $tstate"
+            case "$tstate" in READY*|FAILED*) break;; esac
+            sleep 4
+          done
+          curl -sS "${auth[@]}" "$APP/api/campaigns/$tcampaign" | python3 -c 'import sys,json,collections;c=json.load(sys.stdin)["campaign"];cr=[x for k in c["concepts"] for x in k["creatives"]];print("template providers:",dict(collections.Counter(x["provider"] for x in cr)));[print("template note:",n) for n in sorted({x["error"] for x in cr if x.get("error")})]'
+          set -- $tstate
+          [ "$1" = "READY" ] && [ "$2" = "$3" ] || { echo "::error::Template campaign ended as: $tstate"; failed=1; }
+          curl -sS "${auth[@]}" "$APP/api/campaigns/$tcampaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];[print("TEMPLATE_"+k["type"]+"-"+x["format"], x["imageUrl"]) for k in c["concepts"] for x in k["creatives"] if x["imageUrl"]]' >> creatives/urls-template.txt
+          while read -r name url; do
+            curl -sS "${auth[@]}" -o "creatives/$name.${url##*.}" -w "GET creative $name -> HTTP %{http_code} %{content_type}\n" "$APP$url"
+          done < creatives/urls-template.txt
+
           code=$(curl -sS "${auth[@]}" -o /dev/null -w '%{http_code}' "$APP/results/$campaign")
           echo "GET /results/$campaign -> HTTP $code"
           [ "$code" = "200" ] || failed=1
