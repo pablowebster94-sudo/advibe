@@ -5,14 +5,19 @@ import {supabaseAdmin,supabaseAdminConfigured} from "@/lib/enfoque-supabase";
 import {capiFields,clientIp,isValidPhone,normalizePhone,resolveFbc,resolveFbp,sendMetaEvent} from "@/lib/enfoque-meta";
 import {asUuid,resolveListing,type ListingRef} from "@/lib/enfoque-listing-lookup";
 import {notifyNewLead} from "@/lib/enfoque-notify";
+import {RATE_LIMITS,createRateLimiter,tooManyRequests} from "@/lib/enfoque-rate-limit";
 import {criteriaForNotice,describeCriteria,parseBuscoPropiedad,type SearchCriteria} from "@/lib/enfoque-demand";
 
 const INTERESTS=["publicar_propiedad","publicar_vehiculo","comprar_propiedad","alquilar_propiedad","comprar_vehiculo","informacion_general"];
 const SITE=process.env.NEXT_PUBLIC_SITE_URL||"https://enfoque.advibeagencia.com";
 const httpsUrl=(v:unknown)=>typeof v==="string"&&v.startsWith("https://")&&v.length<=2048?v:null;
 const fail=(error:string,status:number)=>NextResponse.json({ok:false,error},{status});
+// Por IP y por instancia (ver la limitación en serverless en lib/enfoque-rate-limit.ts).
+const limiter=createRateLimiter(RATE_LIMITS.leads);
 
 export async function POST(req:Request){
+  const limit=limiter(clientIp(req)||"sin-ip");
+  if(!limit.ok)return tooManyRequests(limit,"Recibimos varias solicitudes seguidas. Espera unos minutos o escríbenos por WhatsApp.");
   let body:Record<string,unknown>;
   try{body=await req.json();}catch{return fail("Solicitud inválida.",400);}
   // Honeypot: campo oculto que solo rellenan los bots. Se responde "ok" sin guardar nada.

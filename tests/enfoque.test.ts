@@ -16,6 +16,7 @@ import {describeCriteria,parseBuscoPropiedad} from "../lib/enfoque-demand";
 import {LEAD_CSV_COLUMNS,csvCell,leadsToCsv} from "../lib/enfoque-leads-csv";
 import {leadFilterQuery} from "../lib/enfoque-leads-filter";
 import type {LeadRow} from "../lib/enfoque-types";
+import {RATE_LIMITS,createRateLimiter,tooManyRequests} from "../lib/enfoque-rate-limit";
 import {leadWebhookPayload,leadWebhookUrl,notifyNewLead} from "../lib/enfoque-notify";
 
 test("video: YouTube, Shorts, youtu.be y Vimeo se convierten en embed", () => {
@@ -342,4 +343,28 @@ test("filtro de leads: solo valores conocidos llegan a PostgREST", () => {
   assert.equal(leadFilterQuery("nuevo","buscadores"),"&status=eq.nuevo&interest_type=eq.busco_propiedad");
   assert.equal(leadFilterQuery("x&id=eq.1",null),"");
   assert.equal(leadFilterQuery(null,"otro"),"");
+});
+
+test("límite de peticiones: ventana fija por IP, independiente entre IPs y con Retry-After", async () => {
+  const check=createRateLimiter({limit:3,windowMs:60_000});
+  const t0=1_000_000;
+  assert.deepEqual([1,2,3].map(()=>check("1.1.1.1",t0).ok),[true,true,true]);
+  const blocked=check("1.1.1.1",t0+10_000);
+  assert.equal(blocked.ok,false);
+  assert.equal(blocked.retryAfter,50);
+  assert.equal(check("2.2.2.2",t0+10_000).ok,true);
+  assert.equal(check("1.1.1.1",t0+60_000).ok,true);
+  const r=tooManyRequests(blocked);
+  assert.equal(r.status,429);
+  assert.equal(r.headers.get("Retry-After"),"50");
+  assert.equal((await r.json()).ok,false);
+  assert.ok(RATE_LIMITS.leads.limit>=3&&RATE_LIMITS.track.limit>RATE_LIMITS.leads.limit);
+});
+
+test("límite de peticiones: la memoria no crece sin límite", () => {
+  const check=createRateLimiter({limit:1,windowMs:1000});
+  for(let i=0;i<12_000;i++)check("ip"+i,0);
+  // Pasada la ventana, una IP nueva limpia las caducadas y las IPs viejas vuelven a empezar.
+  assert.equal(check("nueva",5000).ok,true);
+  assert.equal(check("ip1",5000).ok,true);
 });
