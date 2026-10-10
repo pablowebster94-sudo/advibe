@@ -28,7 +28,7 @@ create type public.transmission_type   as enum ('manual','automatica','otra');
 create type public.vehicle_condition   as enum ('nuevo','usado');
 create type public.owner_kind          as enum ('propio','particular','inmobiliaria','concesionario','empresa');
 create type public.user_role           as enum ('admin','editor');
-create type public.interest_type       as enum ('publicar_propiedad','publicar_vehiculo','comprar_propiedad','alquilar_propiedad','comprar_vehiculo','informacion_general');
+create type public.interest_type       as enum ('publicar_propiedad','publicar_vehiculo','comprar_propiedad','alquilar_propiedad','comprar_vehiculo','informacion_general','busco_propiedad');
 create type public.lead_channel        as enum ('formulario','whatsapp','llamada','otro');
 create type public.lead_status         as enum ('nuevo','contactado','calificado','visita_agendada','negociacion','cerrado','descartado');
 
@@ -234,10 +234,14 @@ create table public.leads (
   deal_currency        public.currency_code default 'USD',
   notes                text,
   privacy_accepted_at  timestamptz,
+  -- "Busco propiedad" (migración 003): criterios validados en el servidor y consentimiento LOPDP
+  search_criteria      jsonb,
+  consent_at           timestamptz,
   created_at           timestamptz not null default now(),
   updated_at           timestamptz not null default now(),
   constraint leads_contact_required check (phone is not null or email is not null),
-  constraint leads_single_listing   check (num_nonnulls(property_id, vehicle_id) <= 1)
+  constraint leads_single_listing   check (num_nonnulls(property_id, vehicle_id) <= 1),
+  constraint leads_search_criteria_object check (search_criteria is null or jsonb_typeof(search_criteria) = 'object')
 );
 
 -- Cada cambio de estado queda registrado: base del embudo y de eventos offline hacia Meta.
@@ -331,6 +335,8 @@ create index leads_campaign_idx         on public.leads (utm_campaign, created_a
 create index leads_visitor_idx          on public.leads (visitor_id) where visitor_id is not null;
 create index leads_agent_idx            on public.leads (assigned_agent_id);
 create unique index leads_ref_code_key  on public.leads (ref_code) where ref_code is not null;
+create index leads_search_created_idx   on public.leads (created_at desc) where search_criteria is not null;
+create index leads_search_criteria_gin  on public.leads using gin (search_criteria jsonb_path_ops) where search_criteria is not null;
 
 create index lead_history_lead_idx      on public.lead_status_history (lead_id, changed_at);
 

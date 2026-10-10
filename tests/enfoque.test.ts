@@ -12,6 +12,7 @@ import {createHash} from "node:crypto";
 import {orderImages} from "../lib/enfoque-supabase";
 import {runHealthChecks} from "../lib/enfoque-health";
 import {properties,vehicles} from "../lib/enfoque-data";
+import {describeCriteria,parseBuscoPropiedad} from "../lib/enfoque-demand";
 import {leadWebhookPayload,leadWebhookUrl,notifyNewLead} from "../lib/enfoque-notify";
 
 test("video: YouTube, Shorts, youtu.be y Vimeo se convierten en embed", () => {
@@ -234,4 +235,48 @@ test("health: avisa si falta el webhook de leads y no muestra su URL completa", 
   const c=ok.find(x=>x.id==="lead_webhook");
   assert.equal(c?.status,"ok");
   assert.ok(!JSON.stringify(ok).includes("token"));
+});
+
+const busco=(over:Record<string,unknown>={})=>parseBuscoPropiedad({what:"casa",operation:"comprar",canton:"gualaceo",name:"Ana Prueba",phone:"0991234567",consent:true,...over});
+
+test("busco_propiedad: consentimiento obligatorio (solo true explícito)", () => {
+  for(const consent of [undefined,false,"true","on",1,null])
+    assert.deepEqual(busco({consent}).ok,false,`consent=${String(consent)}`);
+  const ok=busco();
+  assert.equal(ok.ok,true);
+});
+
+test("busco_propiedad: WhatsApp en E.164 (Ecuador y exterior)", () => {
+  const r=busco();
+  assert.ok(r.ok&&r.phone==="+593991234567");
+  const usa=busco({phone:"+1 555 123 4567",from_abroad:true,country:"Estados Unidos"});
+  assert.ok(usa.ok&&usa.phone==="+15551234567"&&usa.criteria.country==="Estados Unidos");
+  for(const phone of ["","123","099123","+593 99 123 45","abc"])assert.equal(busco({phone}).ok,false,`phone=${phone}`);
+});
+
+test("busco_propiedad: presupuesto opcional y >= 0", () => {
+  const none=busco();assert.ok(none.ok&&none.criteria.budget_max===null);
+  const zero=busco({budget_max:0});assert.ok(zero.ok&&zero.criteria.budget_max===0);
+  const str=busco({budget_max:"85,000"});assert.ok(str.ok&&str.criteria.budget_max===85000);
+  for(const budget_max of [-1,"-500","mucho",Infinity])assert.equal(busco({budget_max}).ok,false,`budget=${String(budget_max)}`);
+});
+
+test("busco_propiedad: opciones cerradas, país si compra desde el exterior y campos limpios", () => {
+  assert.equal(busco({what:"castillo"}).ok,false);
+  assert.equal(busco({operation:"permutar"}).ok,false);
+  assert.equal(busco({canton:"quito"}).ok,false);
+  assert.equal(busco({from_abroad:true}).ok,false);
+  assert.equal(busco({name:" A "}).ok,false);
+  assert.equal(busco({email:"no-es-correo"}).ok,false);
+  const r=busco({canton:"otro",canton_other:"  Santa   Isabel ",timeframe:"3_meses",notes:"x".repeat(5000),email:" Ana@Example.COM ",extra:"<script>"});
+  assert.ok(r.ok);
+  if(r.ok){
+    assert.equal(r.criteria.canton_other,"Santa Isabel");
+    assert.equal(r.criteria.notes?.length,1000);
+    assert.equal(r.email,"ana@example.com");
+    assert.equal(r.criteria.country,null);
+    assert.deepEqual(Object.keys(r.criteria).sort(),["budget_max","canton","canton_other","country","from_abroad","notes","operation","timeframe","what"]);
+    assert.equal(describeCriteria(r.criteria),"Casa · comprar · Santa Isabel · en los próximos 3 meses");
+  }
+  const t=busco({timeframe:"ayer"});assert.ok(t.ok&&t.criteria.timeframe===null);
 });
