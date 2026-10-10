@@ -1,10 +1,13 @@
 // Publica en Enfoque Visual las casas que hoy se anuncian en Meta (textos de los anuncios, 27-09 a 09-10-2026).
 // Uso: node enfoque-cargar-casas.mjs .env.prod   (archivo de `vercel env pull`)
+//   o: SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… node enfoque-cargar-casas.mjs   (claves de Supabase → Settings → API)
 // Si el slug ya existe, actualiza la publicación en lugar de duplicarla. Las fotos se suben luego desde el panel.
 import { readFileSync } from "node:fs";
 
-const env = Object.fromEntries(readFileSync(process.argv[2] || ".env.prod", "utf8").split("\n")
-  .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*"?(.*?)"?\s*$/)).filter(Boolean).map(m => [m[1], m[2]]));
+const fromFile = process.argv[2] ? Object.fromEntries(readFileSync(process.argv[2], "utf8").split("\n")
+  .map(l => l.match(/^\s*([A-Z0-9_]+)\s*=\s*"?(.*?)"?\s*$/)).filter(Boolean).map(m => [m[1], m[2]])) : {};
+const env = { ...fromFile, ...Object.fromEntries(Object.entries(process.env).filter(([k, v]) => k.includes("SUPABASE") && v)) };
+for (const k of Object.keys(env)) if (env[k] === "[SENSITIVE]") delete env[k];
 const URL_ = env.SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL, KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!URL_ || !KEY) { console.error("✗ Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el archivo (¿variable marcada como Sensitive en Vercel?)."); process.exit(1); }
 const H = { apikey: KEY, ...(KEY.startsWith("eyJ") ? { Authorization: "Bearer " + KEY } : {}), "Content-Type": "application/json" };
