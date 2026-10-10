@@ -3,6 +3,8 @@
 import Script from "next/script";
 
 const AM_MOTORSPORT_PIXEL_ID = "1780546316542423";
+// Pixel "Enfoque Visual" (creado el 10-10-2026). La variable de entorno, si existe, tiene prioridad.
+const ENFOQUE_PIXEL_ID = "1085472627411154";
 
 export default function MetaPixel() {
   const isEnfoque =
@@ -18,7 +20,7 @@ export default function MetaPixel() {
   const pixelId = isAMMotorsport
     ? AM_MOTORSPORT_PIXEL_ID
     : isEnfoque
-      ? process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID
+      ? process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID || ENFOQUE_PIXEL_ID
       : process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
   if (!pixelId) return null;
