@@ -17,12 +17,13 @@ export default function Page(){
       <p className="text-xs font-black uppercase tracking-[.25em] text-[#d9ff3f]">Enfoque Visual · Oportunidades</p>
       <h1 className="ev-display mt-4 text-5xl font-black leading-[.9] md:text-7xl">En venta ahora <span className="text-[#d9ff3f]">en Azuay.</span></h1>
       <p className="mt-5 max-w-xl text-lg leading-8 text-white/60">Precio, ubicación y datos completos de cada oportunidad. Si una te interesa, escríbenos y coordinamos la visita.</p>
-      <nav aria-label="Oportunidades" className="mt-7 flex flex-wrap gap-2">{OPORTUNIDADES.map(o=><a key={o.id} href={"#"+o.id} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold ring-1 ring-white/15 hover:bg-white/20">{o.title}</a>)}</nav>
+      <nav aria-label="Oportunidades" className="-mx-5 mt-7 flex gap-2 overflow-x-auto px-5 pb-1 md:mx-0 md:flex-wrap md:px-0">{OPORTUNIDADES.map(o=><a key={o.id} href={"#"+o.id} className="shrink-0 rounded-full bg-white/10 px-4 py-2 text-sm font-bold ring-1 ring-white/15 hover:bg-white/20">{o.title}</a>)}</nav>
     </div></section>
     <div className="mx-auto max-w-7xl space-y-6 px-5 py-10">
       {OPORTUNIDADES.map(o=><article key={o.id} id={o.id} className="ev-card grid scroll-mt-24 md:grid-cols-[1.1fr_1fr]">
         <div className="relative aspect-[4/3] bg-[#e8e5dd] md:aspect-auto md:min-h-[360px]">
-          {o.image?<Image src={o.image} alt={o.title} fill sizes="(min-width:768px) 55vw, 100vw" className="object-cover"/>:<div className="flex h-full min-h-[240px] items-center justify-center text-sm font-bold uppercase tracking-[.16em] text-black/35">Fotos por WhatsApp</div>}
+          {o.images.length?<div className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto">{o.images.map((src,i)=><div key={src} className="relative h-full w-full shrink-0 snap-center"><Image src={src} alt={`${o.title} · foto ${i+1}`} fill sizes="(min-width:768px) 55vw, 100vw" className="object-cover" priority={i===0&&o===OPORTUNIDADES[0]}/></div>)}</div>:<div className="flex h-full min-h-[240px] items-center justify-center text-sm font-bold uppercase tracking-[.16em] text-black/35">Fotos por WhatsApp</div>}
+          {o.images.length>1&&<span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-[11px] font-bold text-white">{o.images.length} fotos · desliza →</span>}
           <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-black uppercase tracking-wide">{KIND[o.kind]}</span>
         </div>
         <div className="flex flex-col p-6 md:p-8">
