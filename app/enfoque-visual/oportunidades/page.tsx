@@ -5,6 +5,7 @@ import {evMetadata} from "@/lib/enfoque-seo";
 import {OPORTUNIDADES,OPORTUNIDADES_WHATSAPP} from "@/lib/enfoque-oportunidades";
 import {Header} from "@/components/enfoque/Header";
 import {OportunidadCta} from "@/components/enfoque/OportunidadCta";
+import {OportunidadView} from "@/components/enfoque/OportunidadView";
 
 export const metadata:Metadata=evMetadata({title:"Oportunidades en venta en Azuay",description:"Casas en Gualaceo y Sígsig, línea de bus y autos de AM Motorsport: precios, fotos y datos completos.",path:"/oportunidades"});
 
@@ -12,7 +13,7 @@ const KIND={propiedad:"Propiedad",vehiculo:"Vehículo",negocio:"Negocio"} as con
 
 export default function Page(){
   const number=(OPORTUNIDADES_WHATSAPP||process.env.NEXT_PUBLIC_WHATSAPP_NUMBER||"").replace(/\D/g,"");
-  return <><Header/><main>
+  return <><Header/><OportunidadView items={OPORTUNIDADES.map(({id,title,price})=>({id,title,price}))}/><main>
     <section className="bg-black px-5 py-12 text-white md:py-16"><div className="mx-auto max-w-7xl">
       <p className="text-xs font-black uppercase tracking-[.25em] text-[#d9ff3f]">Enfoque Visual · Oportunidades</p>
       <h1 className="ev-display mt-4 text-5xl font-black leading-[.9] md:text-7xl">En venta ahora <span className="text-[#d9ff3f]">en Azuay.</span></h1>
