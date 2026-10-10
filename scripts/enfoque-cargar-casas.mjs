@@ -42,4 +42,20 @@ for (const c of CASAS) {
   const [saved] = await db("properties?on_conflict=slug", { method: "POST", headers: { Prefer: "return=representation,resolution=merge-duplicates" }, body: JSON.stringify(row) });
   console.log(`✓ ${saved.title} — ${saved.publication_status} — /propiedades/${saved.slug}`);
 }
-console.log("\nListo. Revisa https://enfoque.advibeagencia.com/propiedades y sube las fotos desde /admin/propiedades.");
+// Autos de AM Motorsport (ficha y precio enviados por Pablo, 10-10-2026). El i10 no tiene año confirmado: queda fuera.
+const AUTOS = [
+  {
+    slug: "toyota-gt86-limited-2013",
+    brand: "Toyota", model: "GT86", trim: "Limited Edition", year: 2013, price: 38000, condition: "usado",
+    mileage_km: 67000, fuel: "gasolina", engine: "2.0 L Boxer 4 cilindros con supercargador Edelbrock",
+    city: "Cuenca", province: "Azuay", is_featured: true,
+    description: "Toyota GT86 Limited Edition 2013 con supercargador Edelbrock y computadora Link. Aros originales Niche de 18\", asientos en cuero y gamuza, A/C funcional, tratamiento cerámico de dos años y escape inoxidable. 67.000 km aprox. Traspaso directo, documentos al día. Dígito de placa L. Vendido por AM Motorsport.",
+    features: ["Supercargador Edelbrock", "Computadora Link", "Aros Niche 18\"", "Llantas Maxxis", "Asientos en cuero y gamuza", "Láminas de seguridad", "A/C funcional", "Vidrios eléctricos", "Mandos al volante", "Radio Android", "Cámara de reversa", "Escape inoxidable", "Tratamiento cerámico (2 años)", "Dos llaves y manual", "Traspaso directo"],
+  },
+];
+for (const a of AUTOS) {
+  const row = { ...a, currency: "USD", owner_id: owner, publication_status: "publicado", availability: "disponible" };
+  const [saved] = await db("vehicles?on_conflict=slug", { method: "POST", headers: { Prefer: "return=representation,resolution=merge-duplicates" }, body: JSON.stringify(row) });
+  console.log(`✓ ${saved.brand} ${saved.model} — ${saved.publication_status} — /vehiculos/${saved.slug}`);
+}
+console.log("\nListo. Revisa https://enfoque.advibeagencia.com/propiedades y /vehiculos, y sube las fotos desde /admin.");
