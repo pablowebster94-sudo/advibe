@@ -8,7 +8,8 @@ export type Oportunidad={id:string;kind:"propiedad"|"vehiculo"|"negocio";title:s
 export const OPORTUNIDADES_WHATSAPP="";
 
 export const OPORTUNIDADES:Oportunidad[]=[
-  {id:"casa-gualaceo",kind:"propiedad",title:"Casa remodelada de 2 plantas",price:190000,place:"Gualaceo · Divina Misericordia",seller:"Venta directa con el propietario",images:[],
+  {id:"casa-gualaceo",kind:"propiedad",title:"Casa remodelada de 2 plantas",price:190000,place:"Gualaceo · Divina Misericordia",seller:"Venta directa con el propietario",
+    images:[1,2].map(n=>`/enfoque-visual/oportunidades/casa-gualaceo-${n}.jpg`),
     specs:["223,96 m² de terreno","223,04 m² de construcción","Garaje para 2–3 vehículos","Habitación máster con walk-in clóset"],
     description:"A media cuadra de la iglesia Divina Misericordia. Planta baja: garaje, sala, cocina, comedor, 1 habitación y baño social; atrás, lavandería, zona de barbacoa, patio y cuarto adicional. Planta alta: habitación máster con baño privado, hall amplio y 1 habitación más con baño compartido. Losa de hormigón armado, recién remodelada y lista para habitar."},
   {id:"casa-tasqui",kind:"propiedad",title:"Casa de campo en Tasqui",price:165000,place:"Tasqui · a 5 min de Sígsig",seller:"Constructora Peralta",
