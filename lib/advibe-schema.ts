@@ -9,7 +9,7 @@ export const organizationSchema = {
   "@type": "ProfessionalService",
   name: "AdVibe Agencia",
   url: siteUrl,
-  description: "Agencia creativa y tecnológica especializada en marketing, producción audiovisual, desarrollo web, inteligencia artificial y automatización.",
+  description: "Agencia de marketing digital en Gualaceo, Azuay: contenido, video, anuncios en Facebook e Instagram y páginas web.",
   areaServed: { "@type": "Country", name: "Ecuador" },
   address: { "@type": "PostalAddress", addressLocality: "Gualaceo", addressRegion: "Azuay", addressCountry: "EC" },
   sameAs: ["https://instagram.com/advibe.agencia","https://www.facebook.com/share/1DT1TqhpjU/"],

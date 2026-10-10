@@ -76,7 +76,7 @@ function DiagnosticBar() {
           leadOnClick
           className="inline-flex items-center justify-center rounded-full bg-lime-400 px-5 py-3 text-sm font-semibold text-[#07101a] hover:bg-lime-300"
         >
-          Analizar mi negocio
+          Diagnóstico gratis
         </EventButton>
       </div>
     </div>

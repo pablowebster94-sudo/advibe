@@ -96,3 +96,19 @@ export function options(values:Array<string|number|undefined|null>){
 export function activeFilterCount(f:Record<string,unknown>){
   return Object.entries(f).filter(([k,v])=>k!=="orden"&&v!==undefined&&v!=="").length;
 }
+
+// "Otras propiedades" en las fichas: mismo tipo o cantón (vehículos: misma marca, ciudad o
+// precio parecido), excluyendo la actual. Disponibles primero y luego la más cercana en precio.
+const unavailable=(x:{availability?:string})=>Boolean(x.availability&&x.availability!=="disponible");
+function rank<T extends {id:string;price:number;availability?:string}>(items:T[],current:T,score:(x:T)=>number,n:number){
+  return items.filter(x=>x.id!==current.id).map(x=>({x,s:score(x)})).filter(r=>r.s>=1)
+    .sort((a,b)=>Number(unavailable(a.x))-Number(unavailable(b.x))||b.s-a.s||Math.abs(a.x.price-current.price)-Math.abs(b.x.price-current.price))
+    .slice(0,n).map(r=>r.x);
+}
+export function similarProperties(items:Property[],current:Property,n=3){
+  return rank(items,current,x=>(norm(x.type)===norm(current.type)?2:0)+(norm(x.city)===norm(current.city)?1:0)+(x.operation===current.operation?0.5:0),n);
+}
+export function similarVehicles(items:Vehicle[],current:Vehicle,n=3){
+  const near=(p:number)=>current.price>0&&Math.abs(p-current.price)/current.price<=0.3;
+  return rank(items,current,x=>(norm(x.brand)===norm(current.brand)?2:0)+(current.city&&norm(x.city)===norm(current.city)?1:0)+(near(x.price)?1:0),n);
+}

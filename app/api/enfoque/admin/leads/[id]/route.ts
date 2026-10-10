@@ -1,9 +1,9 @@
 import type {IdRow} from "@/lib/enfoque-types";
 import {NextResponse} from "next/server";
+import {LEAD_STATUSES as STATUSES} from "@/lib/enfoque-leads-filter";
 import {getAdminSession} from "@/lib/enfoque-admin";
 import {supabaseAdmin} from "@/lib/enfoque-supabase";
 
-const STATUSES=["nuevo","contactado","calificado","visita_agendada","negociacion","cerrado","descartado"];
 
 export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
   const s=await getAdminSession();if(!s)return NextResponse.json({error:"No autorizado"},{status:401});

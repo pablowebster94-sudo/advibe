@@ -1,4 +1,4 @@
-import { services } from "@/lib/content";
+import { otherServices, services } from "@/lib/content";
 
 export default function Services() {
   return (
@@ -12,15 +12,15 @@ export default function Services() {
               <span className="h-px w-8 bg-lime-600" /> 01 / Capacidades
             </p>
             <h2 className="mt-6 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.065em] sm:text-6xl lg:text-8xl">
-              Lo que tu marca necesita para avanzar.
+              Tres cosas que hacemos muy bien.
             </h2>
           </div>
           <div className="lg:pb-2 lg:pl-10">
             <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              No vendemos una lista de servicios por separado. Combinamos creatividad, performance y tecnología según el problema que necesita resolver tu negocio.
+              Anuncios, contenido y web trabajando juntos para que más clientes te escriban. Si tu proyecto necesita algo más, también lo cubrimos.
             </p>
             <div className="mt-7 flex items-center gap-4 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-              <span className="text-slate-950">13 capacidades</span>
+              <span className="text-slate-950">3 servicios principales</span>
               <span className="h-px w-10 bg-slate-300" />
               <span>Un solo equipo</span>
             </div>
@@ -43,7 +43,7 @@ export default function Services() {
         </div>
 
         <div className="mt-5 flex flex-col gap-3 pt-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>01—13 / Capacidades AdVibe</span>
+          <span>También hacemos: {otherServices.join(" · ")}</span>
           <span>Seleccionamos solo lo que aporta al objetivo.</span>
         </div>
       </div>

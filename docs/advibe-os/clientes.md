@@ -20,7 +20,7 @@ Si no se puede consultar la página, usa como respaldo el patrón de nombre y m�
 | Slug | Cliente | Página de Facebook (page_id) en Enfoque Visual ADS | Notas |
 |---|---|---|---|
 | `kamauto` | KAMAUTO | ❓ "Komauto Importadora" (106355732206742), sin anuncios | ¿Es la misma marca con otra ortografía? Confirmar |
-| `muebles-ideal` | MUEBLES IDEAL | Paola Miguitama (1226660540522114): la página de su contacto (ver nota) | **Dos ubicaciones: Gualaceo y Montecristi** (confirmado por Pablo). "Pendiente prod. Manta" = Montecristi. También tiene anuncios propios activos fuera de esta cuenta |
+| `muebles-ideal` | MUEBLES IDEAL | Muebles Ideal (201588683278071, campaña "MI Libertad"), Muebles Ideal Montecristi (109810038381949, campaña "MI Montecristi") y Paola Miguitama (1226660540522114) | **Dos ubicaciones: Gualaceo y Montecristi** (confirmado por Pablo). "Pendiente prod. Manta" = Montecristi. También tiene anuncios propios activos fuera de esta cuenta |
 | `paola-miguitama` | PAOLA MIGUITAMA | Paola Miguitama (1226660540522114) | **Mismo negocio que Muebles Ideal** (confirmado por Pablo, 2026-09-27). Campañas: MENSAJES PM, PM ago, Dormitorios |
 | `sb-cuenca` | CLUB SANTA BÁRBARA CUENCA | ❓ Sus campañas salen de la página de Gualaceo | CONFLICTO: ¿no tiene página propia? |
 | `sb-gualaceo` | CLUB SANTA BÁRBARA GUALACEO | Club Formativo Santa Bárbara "Gualaceo" (502746606252797) | También publica las campañas llamadas "Cuenca" |
@@ -48,8 +48,9 @@ Mientras Pablo no las clasifique, no se mezclan con ningún cliente de la hoja.
 | Multiservices A&N Latino Corp | Página 911320888728139, "venta eeuu" |
 | Roxy's Joyería | Página 101351141775273, "Mensajes FB Joyeria" ACTIVA |
 | Constructora Peralta | Página 220405694491935, "Venta Peralta" y "constructora" |
-| Enfoque Visual | Página 531199800087373. Publica Chemu, terrenos, casa, bus y venta local. Según `docs/enfoque-visual.md` es la plataforma de propiedades y vehículos de AdVibe (hipótesis: la pauta la paga el anunciante de cada propiedad) |
+| Enfoque Visual | Página 531199800087373. **Pertenece a AdVibe** (confirmado por Pablo, 10-10-2026). Modelo actual: AdVibe crea la campaña en la página Enfoque Visual, el dueño de la propiedad o vehículo paga la inversión publicitaria y se conecta su número para que las conversaciones le lleguen directo. Casi no hay publicaciones en el feed: los anuncios se cargan solo como anuncios. Llegan consultas de compradores que preguntan por otras casas disponibles: Pablo quiere convertirla en una plataforma más grande (web de inventario ya iniciada en app/enfoque-visual) |
 | Bocabel(l), Cardagali/Cardagal, Kueva, Panera, La Trinidad Restaurant | Publicaciones recurrentes mar/jue 09:00 en Calendar. Bocabell, Cardagal y La Trinidad también están en la web de AdVibe |
+| Grupo Galarza Tienda Online | Página 100602321787459, campaña "Bayron" activa desde el 30-09 (81 conversaciones a $0,13 en 7 días) |
 | G3L, Verónica López (Arquitectura), Carla Molina | El CRM de portafolio los marca como clientes activos |
 
 ## Carpetas de Drive
