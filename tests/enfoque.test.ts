@@ -12,6 +12,7 @@ import {createHash} from "node:crypto";
 import {orderImages} from "../lib/enfoque-supabase";
 import {runHealthChecks} from "../lib/enfoque-health";
 import {properties,vehicles} from "../lib/enfoque-data";
+import {leadWebhookPayload,leadWebhookUrl,notifyNewLead} from "../lib/enfoque-notify";
 
 test("video: YouTube, Shorts, youtu.be y Vimeo se convierten en embed", () => {
   const yt="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&playsinline=1";
@@ -189,4 +190,48 @@ test("sendMetaEvent: payload CAPI con hashes correctos, dedup y errores sin lanz
     const down=await sendMetaEvent({event_name:"Contact",event_id:"e3"});
     assert.deepEqual(down,{sent:false,reason:"network_error"});
   }finally{globalThis.fetch=realFetch;process.env=env;}
+});
+
+test("webhook de lead: payload con resumen, sin secretos, y URL solo https", () => {
+  const env={NEXT_PUBLIC_SITE_URL:"https://enfoque.example.com/",META_ENFOQUE_ACCESS_TOKEN:"token-secreto",SUPABASE_SERVICE_ROLE_KEY:"service-secreta",ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/abc"};
+  const p=leadWebhookPayload({id:"l1",name:"Ana Prueba",phone:"+593991234567",email:null,interest_type:"busco_propiedad",channel:"formulario",
+    search_criteria:{what:"casa",operation:"comprar",canton:"Gualaceo",budget_max:90000,from_abroad:true,country:"Estados Unidos",timeframe:"3 meses"},utm_campaign:"camp-test"},env,new Date("2026-10-10T12:00:00Z"));
+  assert.equal(p.event,"lead.created");
+  assert.equal(p.created_at,"2026-10-10T12:00:00.000Z");
+  assert.equal(p.lead.whatsapp_url,"https://wa.me/593991234567");
+  assert.equal(p.admin_url,"https://enfoque.example.com/admin/leads");
+  assert.equal(p.lead.interest_label,"Busca propiedad");
+  assert.match(p.text,/casa · comprar · Gualaceo · hasta USD 90,000 · desde Estados Unidos · plazo: 3 meses/);
+  assert.match(p.text,/Origen: camp-test/);
+  const json=JSON.stringify(p);
+  for(const secret of ["token-secreto","service-secreta","hook.example.com"])assert.ok(!json.includes(secret));
+  assert.equal(leadWebhookUrl({}),null);
+  assert.equal(leadWebhookUrl({ENFOQUE_LEAD_WEBHOOK_URL:"http://inseguro.example.com"}),null);
+  assert.equal(leadWebhookUrl({ENFOQUE_LEAD_WEBHOOK_URL:"no es url"}),null);
+  assert.equal(leadWebhookUrl({ENFOQUE_LEAD_WEBHOOK_URL:" https://hook.example.com/x "}),"https://hook.example.com/x");
+});
+
+test("webhook de lead: no hace nada sin variable y nunca lanza", async () => {
+  const lead={id:"l1",name:"Ana",phone:"+593991234567",email:null,interest_type:"contacto",channel:"formulario"};
+  let calls=0;
+  const fake=(async()=>{calls++;return new Response("ok");}) as unknown as typeof fetch;
+  assert.deepEqual(await notifyNewLead(lead,{},fake),{sent:false,reason:"not_configured"});
+  assert.equal(calls,0);
+  let sentBody="";
+  const capture=(async(_u:string,init:RequestInit)=>{sentBody=String(init.body);return new Response("ok");}) as unknown as typeof fetch;
+  assert.deepEqual(await notifyNewLead(lead,{ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/x"},capture),{sent:true,status:200});
+  assert.equal(JSON.parse(sentBody).lead.name,"Ana");
+  const boom=(async()=>{throw new Error("red caída");}) as unknown as typeof fetch;
+  const origError=console.error;console.error=()=>{};
+  try{assert.deepEqual(await notifyNewLead(lead,{ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/x"},boom),{sent:false,reason:"network_error"});}
+  finally{console.error=origError;}
+});
+
+test("health: avisa si falta el webhook de leads y no muestra su URL completa", async () => {
+  const missing=await runHealthChecks({},{remote:false});
+  assert.equal(missing.find(c=>c.id==="lead_webhook")?.status,"warn");
+  const ok=await runHealthChecks({ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/bot123:token"},{remote:false});
+  const c=ok.find(x=>x.id==="lead_webhook");
+  assert.equal(c?.status,"ok");
+  assert.ok(!JSON.stringify(ok).includes("token"));
 });

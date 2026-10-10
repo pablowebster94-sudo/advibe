@@ -4,6 +4,7 @@ import {getAttribution} from "@/lib/enfoque-attribution";
 import {supabaseAdmin,supabaseAdminConfigured} from "@/lib/enfoque-supabase";
 import {capiFields,clientIp,isValidPhone,normalizePhone,resolveFbc,resolveFbp,sendMetaEvent} from "@/lib/enfoque-meta";
 import {asUuid,resolveListing} from "@/lib/enfoque-listing-lookup";
+import {notifyNewLead} from "@/lib/enfoque-notify";
 
 const INTERESTS=["publicar_propiedad","publicar_vehiculo","comprar_propiedad","alquilar_propiedad","comprar_vehiculo","informacion_general"];
 const SITE=process.env.NEXT_PUBLIC_SITE_URL||"https://enfoque.advibeagencia.com";
@@ -46,8 +47,11 @@ export async function POST(req:Request){
     const rows=await supabaseAdmin<IdRow[]>("leads",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify(lead)});
     const leadId=rows?.[0]?.id||null;
     const ip=clientIp(req),ua=req.headers.get("user-agent");
-    // CAPI y registro del evento después de responder: si Meta falla o tarda, el lead ya está guardado.
+    // Aviso, CAPI y registro del evento después de responder: si algo falla o tarda, el lead ya está guardado.
     after(async()=>{
+      const listingRef=listing.property_id?{type:"property" as const,id:listing.property_id}:listing.vehicle_id?{type:"vehicle" as const,id:listing.vehicle_id}:null;
+      const notice=notifyNewLead({id:leadId,name,phone:lead.phone,email:lead.email,interest_type:interest,channel:"formulario",message:lead.message,
+        listing:listingRef&&{...listingRef,title:listing.label,price:listing.price},utm_source:lead.utm_source,utm_campaign:lead.utm_campaign});
       const meta=await sendMetaEvent({
         event_name:"Lead",event_id:eventId,email,phone,fbp,fbc,external_id:lead.visitor_id,
         content_id:listing.property_id||listing.vehicle_id||undefined,content_type:listing.property_id?"home_listing":listing.vehicle_id?"vehicle":interest,
@@ -60,6 +64,7 @@ export async function POST(req:Request){
         utm_campaign:lead.utm_campaign,utm_content:lead.utm_content,utm_term:lead.utm_term,
         fbclid:lead.fbclid,gclid:lead.gclid,fbp,fbc,event_source_url:sourceUrl,...capiFields(meta)
       })}).catch(error=>console.error("[enfoque] No se registró conversion_event Lead:",error));
+      await notice;
     });
     return NextResponse.json({ok:true,lead_id:leadId,event_id:eventId});
   }catch(error){

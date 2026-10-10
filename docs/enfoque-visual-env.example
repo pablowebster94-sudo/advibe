@@ -21,6 +21,9 @@ META_ENFOQUE_GRAPH_API_VERSION=v26.0
 # META_ENFOQUE_TEST_EVENT_CODE=TEST12345
 
 NEXT_PUBLIC_ENFOQUE_GA_ID=
+# Aviso inmediato de lead nuevo: POST JSON a esta URL https (Make, Zapier, n8n, bot de Telegram/WhatsApp).
+# Opcional: sin ella los leads solo aparecen en el panel. Puede llevar un token: trátala como secreto.
+ENFOQUE_LEAD_WEBHOOK_URL=
 
 # Datos demo de lib/enfoque-data.ts. Por defecto: activos en desarrollo, NUNCA en producción.
 # ENFOQUE_ALLOW_DEMO=false
