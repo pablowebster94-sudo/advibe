@@ -1,8 +1,8 @@
 "use client";
 import {useState} from "react";
 import {label} from "@/lib/enfoque-filters";
+import {LEAD_STATUSES as STATUSES} from "@/lib/enfoque-leads-filter";
 
-const STATUSES=["nuevo","contactado","calificado","visita_agendada","negociacion","cerrado","descartado"];
 
 export function LeadStatus({id,initial}:{id:string;initial:string}){
   const [status,setStatus]=useState(initial);

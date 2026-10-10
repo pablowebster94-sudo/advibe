@@ -13,6 +13,9 @@ import {orderImages} from "../lib/enfoque-supabase";
 import {runHealthChecks} from "../lib/enfoque-health";
 import {properties,vehicles} from "../lib/enfoque-data";
 import {describeCriteria,parseBuscoPropiedad} from "../lib/enfoque-demand";
+import {LEAD_CSV_COLUMNS,csvCell,leadsToCsv} from "../lib/enfoque-leads-csv";
+import {leadFilterQuery} from "../lib/enfoque-leads-filter";
+import type {LeadRow} from "../lib/enfoque-types";
 import {leadWebhookPayload,leadWebhookUrl,notifyNewLead} from "../lib/enfoque-notify";
 
 test("video: YouTube, Shorts, youtu.be y Vimeo se convierten en embed", () => {
@@ -299,4 +302,44 @@ test("otros vehículos: misma marca, ciudad o precio parecido", () => {
   const near={...v2,id:"v3",slug:"v3",brand:"Kia",price:v1.price*1.2};
   const sameBrand={...v1,id:"v4",slug:"v4",price:90000};
   assert.deepEqual(similarVehicles([v1,v2,near,sameBrand],v1).map(x=>x.id),["v4","v3"]);
+});
+
+test("CSV de leads: escapa comillas/saltos y neutraliza fórmulas sin romper teléfonos", () => {
+  assert.equal(csvCell(null),"");
+  assert.equal(csvCell("Hola, \"mundo\""),'"Hola, ""mundo"""');
+  assert.equal(csvCell("a\nb"),'"a\nb"');
+  assert.equal(csvCell("=HYPERLINK(\"x\")"),`"'=HYPERLINK(""x"")"`);
+  assert.equal(csvCell("@SUM(A1)"),"'@SUM(A1)");
+  assert.equal(csvCell("-2+3+cmd"),"'-2+3+cmd");
+  assert.equal(csvCell("+593991234567"),"+593991234567");
+  assert.equal(csvCell(85000),"85000");
+});
+
+test("CSV de leads: cabecera, BOM y columnas de búsqueda", () => {
+  const base={id:"1",name:"Ana",phone:"+593991234567",email:null,status:"nuevo",channel:"formulario",message:null,notes:null,ref_code:null,
+    utm_source:"facebook",utm_campaign:"camp",fbclid:null,gclid:null,created_at:"2026-10-10T12:00:00Z",properties:null,vehicles:null};
+  const rows=[
+    {...base,interest_type:"busco_propiedad",consent_at:"2026-10-10T12:00:00Z",search_criteria:{what:"terreno",operation:"comprar",canton:"paute",canton_other:null,budget_max:40000,from_abroad:true,country:"España",timeframe:"6_meses",notes:null}},
+    {...base,id:"2",name:"Luis",interest_type:"comprar_propiedad",properties:{title:"Casa demo",slug:"casa-demo"}}
+  ] as LeadRow[];
+  const csv=leadsToCsv(rows);
+  assert.ok(csv.startsWith("\uFEFF"+LEAD_CSV_COLUMNS.join(",")));
+  const lines=csv.slice(1).trim().split("\r\n");
+  assert.equal(lines.length,3);
+  const parse=(line:string)=>[...line.matchAll(/("(?:[^"]|"")*"|[^,]*)(,|$)/g)].slice(0,LEAD_CSV_COLUMNS.length).map(m=>m[1].startsWith('"')?m[1].slice(1,-1).replace(/""/g,'"'):m[1]);
+  const cols=(i:number)=>Object.fromEntries(LEAD_CSV_COLUMNS.map((k,j)=>[k,parse(lines[i])[j]]));
+  assert.equal(cols(1).busqueda,"Terreno · comprar · Paute · hasta USD 40,000 · compra desde España · en 3 a 6 meses");
+  assert.equal(cols(1).que,"terreno");
+  assert.equal(cols(1).canton,"paute");
+  assert.equal(cols(1).presupuesto_max_usd,"40000");
+  assert.equal(cols(1).desde_exterior,"si");
+  assert.equal(cols(1).pais,"España");
+  assert.equal(cols(2).publicacion,"Casa demo");
+  assert.equal(cols(2).desde_exterior,"");
+});
+
+test("filtro de leads: solo valores conocidos llegan a PostgREST", () => {
+  assert.equal(leadFilterQuery("nuevo","buscadores"),"&status=eq.nuevo&interest_type=eq.busco_propiedad");
+  assert.equal(leadFilterQuery("x&id=eq.1",null),"");
+  assert.equal(leadFilterQuery(null,"otro"),"");
 });
