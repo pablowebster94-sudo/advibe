@@ -48,7 +48,7 @@ Mientras Pablo no las clasifique, no se mezclan con ningún cliente de la hoja.
 | Multiservices A&N Latino Corp | Página 911320888728139, "venta eeuu" |
 | Roxy's Joyería | Página 101351141775273, "Mensajes FB Joyeria" ACTIVA |
 | Constructora Peralta | Página 220405694491935, "Venta Peralta" y "constructora" |
-| Enfoque Visual | Página 531199800087373. Publica Chemu, terrenos, casa, bus y venta local. Según `docs/enfoque-visual.md` es la plataforma de propiedades y vehículos de AdVibe (hipótesis: la pauta la paga el anunciante de cada propiedad) |
+| Enfoque Visual | Página 531199800087373. **Pertenece a AdVibe** (confirmado por Pablo, 10-10-2026). Modelo actual: AdVibe crea la campaña en la página Enfoque Visual, el dueño de la propiedad o vehículo paga la inversión publicitaria y se conecta su número para que las conversaciones le lleguen directo. Casi no hay publicaciones en el feed: los anuncios se cargan solo como anuncios. Llegan consultas de compradores que preguntan por otras casas disponibles: Pablo quiere convertirla en una plataforma más grande (web de inventario ya iniciada en app/enfoque-visual) |
 | Bocabel(l), Cardagali/Cardagal, Kueva, Panera, La Trinidad Restaurant | Publicaciones recurrentes mar/jue 09:00 en Calendar. Bocabell, Cardagal y La Trinidad también están en la web de AdVibe |
 | Grupo Galarza Tienda Online | Página 100602321787459, campaña "Bayron" activa desde el 30-09 (81 conversaciones a $0,13 en 7 días) |
 | G3L, Verónica López (Arquitectura), Carla Molina | El CRM de portafolio los marca como clientes activos |
