@@ -10,6 +10,7 @@ export function Header(){
         <Link href="/enfoque-visual/propiedades" className="hover:opacity-60">Propiedades</Link>
         <Link href="/enfoque-visual/alquiler" className="hover:opacity-60">Alquiler</Link>
         <Link href="/enfoque-visual/vehiculos" className="hover:opacity-60">Vehículos</Link>
+        <Link href="/enfoque-visual/busco-propiedad" className="hover:opacity-60">Busco propiedad</Link>
         <Link href="/enfoque-visual/contacto" className="hover:opacity-60">Contacto</Link>
       </nav>
       <div className="flex items-center gap-2">
@@ -19,6 +20,7 @@ export function Header(){
             <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/propiedades">Propiedades</Link>
             <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/alquiler">Alquiler</Link>
             <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/vehiculos">Vehículos</Link>
+            <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/busco-propiedad">Busco propiedad</Link>
             <Link className="block rounded-xl px-3 py-3 text-sm font-bold hover:bg-black/5" href="/enfoque-visual/contacto">Contacto</Link>
           </nav>
         </details>

@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {parseVideoUrl} from "../lib/enfoque-video";
-import {filterProperties,filterVehicles,options,readPropertyFilters,readVehicleFilters,activeFilterCount} from "../lib/enfoque-filters";
+import {filterProperties,filterVehicles,options,readPropertyFilters,readVehicleFilters,activeFilterCount,similarProperties,similarVehicles} from "../lib/enfoque-filters";
 import {features,propertyPayload,slugify,vehiclePayload} from "../lib/enfoque-listing";
 import {demoAllowed} from "../lib/enfoque-catalog";
 import {capiFields,isE164,isValidPhone,normalizePhone,resolveFbc,resolveFbp,sendMetaEvent} from "../lib/enfoque-meta";
@@ -279,4 +279,24 @@ test("busco_propiedad: opciones cerradas, país si compra desde el exterior y ca
     assert.equal(describeCriteria(r.criteria),"Casa · comprar · Santa Isabel · en los próximos 3 meses");
   }
   const t=busco({timeframe:"ayer"});assert.ok(t.ok&&t.criteria.timeframe===null);
+});
+
+test("otras propiedades: mismo tipo o cantón, sin la actual, disponibles primero", () => {
+  const byId=(id:string)=>properties.find(x=>x.id===id)!;
+  assert.deepEqual(similarProperties(properties,byId("p2")).map(x=>x.id),["p4","p3"]);
+  assert.deepEqual(similarProperties(properties,byId("p1")).map(x=>x.id),[]);
+  const base=byId("p2");
+  const extra=[0,1,2,3,4].map(i=>({...base,id:"x"+i,slug:"x"+i,price:base.price+i*1000,availability:i===0?"vendido":"disponible"}));
+  const r=similarProperties([base,...extra],base,3).map(x=>x.id);
+  assert.deepEqual(r,["x1","x2","x3"]);
+  assert.ok(!r.includes(base.id));
+  assert.equal(similarProperties([base,...extra],base,4).length,4);
+});
+
+test("otros vehículos: misma marca, ciudad o precio parecido", () => {
+  const [v1,v2]=vehicles;
+  assert.deepEqual(similarVehicles(vehicles,v1).map(x=>x.id),[]);
+  const near={...v2,id:"v3",slug:"v3",brand:"Kia",price:v1.price*1.2};
+  const sameBrand={...v1,id:"v4",slug:"v4",price:90000};
+  assert.deepEqual(similarVehicles([v1,v2,near,sameBrand],v1).map(x=>x.id),["v4","v3"]);
 });

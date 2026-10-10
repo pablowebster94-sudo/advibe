@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import {Header} from "@/components/enfoque/Header";
+import {Footer} from "@/components/enfoque/Footer";
 import {WhatsApp} from "@/components/enfoque/WhatsApp";
 import {BuscoForm} from "@/components/enfoque/BuscoForm";
 import {norm} from "@/lib/enfoque-filters";
@@ -27,5 +28,5 @@ export default async function BuscoPropiedad({searchParams}:{searchParams:Promis
       </ul>
       <div className="mt-8 max-w-xs"><WhatsApp type="general" ctaSource="busco_propiedad" message="Hola, estoy buscando una propiedad o vehículo y quiero que me avisen de opciones."/></div>
     </section>
-    <BuscoForm initial={initial}/></div></main></>;
+    <BuscoForm initial={initial}/></div></main><Footer buscoCta={false}/></>;
 }
