@@ -22,7 +22,7 @@ export default function Page(){
     <div className="mx-auto max-w-7xl space-y-6 px-5 py-10">
       {OPORTUNIDADES.map(o=><article key={o.id} id={o.id} className="ev-card grid scroll-mt-24 md:grid-cols-[1.1fr_1fr]">
         <div className="relative aspect-[4/3] bg-[#e8e5dd] md:aspect-auto md:min-h-[360px]">
-          {o.images.length?<div className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto">{o.images.map((src,i)=><div key={src} className="relative h-full w-full shrink-0 snap-center"><Image src={src} alt={`${o.title} · foto ${i+1}`} fill sizes="(min-width:768px) 55vw, 100vw" className="object-cover" priority={i===0&&o===OPORTUNIDADES[0]}/></div>)}</div>:<div className="flex h-full min-h-[240px] items-center justify-center text-sm font-bold uppercase tracking-[.16em] text-black/35">Fotos por WhatsApp</div>}
+          {o.images.length?<div className="absolute inset-0 flex snap-x snap-mandatory overflow-x-auto">{o.images.map((src,i)=><div key={src} className="relative h-full w-full shrink-0 snap-center"><Image src={src} alt={`${o.title} · foto ${i+1}`} fill sizes="(min-width:768px) 55vw, 100vw" className="object-cover" priority={i===0&&o===OPORTUNIDADES[0]}/></div>)}</div>:<div className="flex h-full min-h-[240px] flex-col items-center justify-center gap-3 bg-black p-8 text-center text-white"><span className="text-5xl" aria-hidden="true">{o.kind==="negocio"?"🚌":"📷"}</span><span className="ev-display text-3xl font-black text-[#d9ff3f]">{o.title}</span><span className="text-sm text-white/55">{o.kind==="negocio"?o.place:"Pide las fotos por WhatsApp"}</span></div>}
           {o.images.length>1&&<span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1 text-[11px] font-bold text-white">{o.images.length} fotos · desliza →</span>}
           <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-black uppercase tracking-wide">{KIND[o.kind]}</span>
         </div>
@@ -33,7 +33,7 @@ export default function Page(){
           <ul className="mt-5 grid gap-2 sm:grid-cols-2">{o.specs.map(s=><li key={s} className="rounded-xl bg-[#f5f3ee] px-3 py-2 text-sm font-bold text-black/70">✓ {s}</li>)}</ul>
           <p className="mt-5 text-sm leading-6 text-black/60">{o.description}</p>
           <p className="mt-3 text-xs font-bold text-black/40">{o.seller}</p>
-          <div className="mt-auto pt-6"><OportunidadCta id={o.id} title={o.title} price={o.price} number={number}/></div>
+          <div className="mt-auto pt-6"><OportunidadCta id={o.id} title={o.title} price={o.price} number={(o.whatsapp||number).replace(/\D/g,"")}/></div>
         </div>
       </article>)}
     </div>

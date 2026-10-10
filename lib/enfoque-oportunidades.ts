@@ -2,9 +2,10 @@
 // Página estática: no depende de Supabase, así funciona aunque el catálogo esté vacío.
 // Datos tomados de los anuncios de Meta y de las fichas enviadas por Pablo (10-10-2026).
 
-export type Oportunidad={id:string;kind:"propiedad"|"vehiculo"|"negocio";title:string;price:number;place:string;images:string[];specs:string[];description:string;seller:string};
+export type Oportunidad={id:string;kind:"propiedad"|"vehiculo"|"negocio";title:string;price:number;place:string;images:string[];specs:string[];description:string;seller:string;whatsapp?:string};
 
-// WhatsApp que recibe los contactos de esta página (solo dígitos, con 593). Vacío = se usa NEXT_PUBLIC_WHATSAPP_NUMBER.
+// Cada producto lleva el WhatsApp de su vendedor (solo dígitos, con 593).
+// Si un producto no tiene número se usa OPORTUNIDADES_WHATSAPP y, si está vacío, NEXT_PUBLIC_WHATSAPP_NUMBER.
 export const OPORTUNIDADES_WHATSAPP="";
 
 export const OPORTUNIDADES:Oportunidad[]=[
@@ -12,7 +13,7 @@ export const OPORTUNIDADES:Oportunidad[]=[
     images:[1,2].map(n=>`/enfoque-visual/oportunidades/gualaceo-dron-${n}.jpg`),
     specs:["223,96 m² de terreno","223,04 m² de construcción","Garaje para 2–3 vehículos","Habitación máster con walk-in clóset"],
     description:"A media cuadra de la iglesia Divina Misericordia. Planta baja: garaje, sala, cocina, comedor, 1 habitación y baño social; atrás, lavandería, zona de barbacoa, patio y cuarto adicional. Planta alta: habitación máster con baño privado, hall amplio y 1 habitación más con baño compartido. Losa de hormigón armado, recién remodelada y lista para habitar."},
-  {id:"casa-tasqui",kind:"propiedad",title:"Casa de campo en Tasqui",price:165000,place:"Tasqui · a 5 min de Sígsig",seller:"Constructora Peralta",
+  {id:"casa-tasqui",kind:"propiedad",title:"Casa de campo en Tasqui",price:165000,place:"Tasqui · a 5 min de Sígsig",seller:"Constructora Peralta",whatsapp:"593979211044",
     images:[6,1,7,8,9,2,3,4,5].map(n=>`/enfoque-visual/oportunidades/casa-tasqui-${n}.jpg`),
     specs:["3.189 m² de terreno","Aprox. 100 m² de construcción","4 dormitorios · 1 baño","Garaje"],
     description:"Rodeada de naturaleza, con espacio para tu familia, tu huerto y tus animales. Ideal para vivir tranquilo, para fines de semana o como inversión. Precio negociable según la forma de pago."},
