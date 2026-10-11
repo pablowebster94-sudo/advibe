@@ -183,8 +183,13 @@ jobs:
           tproduct=$(python3 -c 'import json;print(json.load(open("out.json"))["product"]["id"])')
           call POST /api/campaigns "{\"productId\":\"$tproduct\",\"objective\":\"VENDER\",\"style\":\"COMERCIAL\",\"templateId\":\"poster-elegante\"}"
           tcampaign=$(python3 -c 'import json;print(json.load(open("out.json"))["campaign"]["id"])')
+          echo "template campaign: $tcampaign"
           for i in $(seq 1 60); do
-            tstate=$(curl -sS -m 30 "${auth[@]}" "$APP/api/campaigns/$tcampaign" | python3 -c 'import sys,json;c=json.load(sys.stdin)["campaign"];cr=[x["status"] for k in c["concepts"] for x in k["creatives"]];print(c["status"],cr.count("COMPLETED"),len(cr),cr.count("FAILED"))')
+            tstate=$(curl -sS -m 30 "${auth[@]}" "$APP/api/campaigns/$tcampaign" | python3 -c 'import sys,json
+          raw=sys.stdin.read()
+          try: c=json.loads(raw)["campaign"]
+          except Exception: print("ERROR", raw[:400].replace("\n"," ")); sys.exit(0)
+          cr=[x["status"] for k in c["concepts"] for x in k["creatives"]];print(c["status"],cr.count("COMPLETED"),len(cr),cr.count("FAILED"))')
             echo "template poll $i: $tstate"
             case "$tstate" in READY*|FAILED*) break;; esac
             sleep 4
