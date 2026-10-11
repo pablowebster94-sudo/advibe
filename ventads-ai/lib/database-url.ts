@@ -31,3 +31,40 @@ export function withDatabaseSchema(connectionString: string | undefined): string
     return connectionString;
   }
 }
+
+/**
+ * Connection string the serverless runtime uses. Supabase's Session pooler
+ * (port 5432) pins one server connection per client for the whole session,
+ * and serverless instances keep their sessions while idle or frozen, so a
+ * handful of workers exhausted it in production (EMAXCONNSESSION). The
+ * Transaction pooler on the same host (port 6543) only holds a server
+ * connection during each transaction, which is what serverless needs.
+ * Prisma's pg adapter is compatible: unnamed statements, schema-qualified
+ * SQL, no session state. Migrations keep using DATABASE_URL as is (they
+ * need the session pooler). DATABASE_POOL_MODE=session opts out.
+ */
+export function runtimeConnectionString(connectionString: string): string {
+  if (process.env.DATABASE_POOL_MODE?.trim().toLowerCase() === "session") return connectionString;
+  try {
+    const url = new URL(connectionString);
+    if (url.hostname.endsWith(".pooler.supabase.com") && (url.port || "5432") === "5432") {
+      url.port = "6543";
+      return url.toString();
+    }
+  } catch {
+    // Not a URL we understand: use it unchanged.
+  }
+  return connectionString;
+}
+
+/** "transaction" | "session" | "direct", for /api/health (never the URL itself). */
+export function runtimePoolerMode(connectionString: string | undefined): string {
+  if (!connectionString) return "missing";
+  try {
+    const url = new URL(runtimeConnectionString(connectionString));
+    if (!url.hostname.endsWith(".pooler.supabase.com")) return "direct";
+    return url.port === "6543" ? "transaction" : "session";
+  } catch {
+    return "unknown";
+  }
+}

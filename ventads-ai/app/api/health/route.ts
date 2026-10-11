@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { databaseSchema } from "@/lib/database-url";
+import { databaseSchema, runtimePoolerMode } from "@/lib/database-url";
 import { errorCode } from "@/lib/error-code";
 import { ensureFontsConfigured } from "@/lib/fonts";
 import { resolveStorageProvider } from "@/lib/services/storage";
@@ -35,6 +35,7 @@ function databaseUrlShape() {
       supabaseTransactionPooler: isSupabasePooler && url.port === "6543",
       supabaseDirectConnection: /^db\..+\.supabase\.co$/.test(url.hostname),
       poolerUserFormatOk: !isSupabasePooler || url.username.startsWith("postgres."),
+      runtimePooler: runtimePoolerMode(raw),
     };
   } catch {
     return { configured: true, parseable: false };
