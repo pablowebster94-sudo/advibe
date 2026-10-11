@@ -69,6 +69,15 @@ When in doubt about a pinned dependency's current API, check
   `lib/services/`, from `process.env`. Never in a client component, never
   hard-coded, never logged.
 
+## Deployment
+
+Vercel project **advibe-ai** must have **Root Directory = `ventads-ai`**
+(Settings → Build and Deployment). With `./` it builds the AdVibe site at
+the repo root and every VentAds URL returns that site's 404 — this happened
+on 2026-10-10. `/api/health` and the "Verify VentAds production" workflow
+catch it; `.github/workflows/vercel-fix-ventads.yml` resets it (needs the
+`VERCEL_TOKEN` repository secret).
+
 ## Commands
 
 ```bash
