@@ -3,6 +3,8 @@ import {evMetadata} from "@/lib/enfoque-seo";
 import {Header} from "@/components/enfoque/Header";
 import {VehicleCard,EmptyResults} from "@/components/enfoque/Cards";
 import {VehicleFiltersForm} from "@/components/enfoque/Filters";
+import {BuscoCta} from "@/components/enfoque/BuscoCta";
+import {Footer} from "@/components/enfoque/Footer";
 import {loadVehicles} from "@/lib/enfoque-catalog";
 import {activeFilterCount,filterVehicles,options,readVehicleFilters} from "@/lib/enfoque-filters";
 export const dynamic="force-dynamic";
@@ -19,5 +21,6 @@ export default async function Page({searchParams}:{searchParams:Promise<{[key:st
     <p className="mt-3 max-w-2xl text-black/55">Autos, SUVs y camionetas con fotografía, video y ficha técnica.</p>
     <VehicleFiltersForm action={action} f={f} brands={options(all.map(x=>x.brand))} years={options(all.map(x=>x.year)).reverse()} fuels={options(all.map(x=>x.fuel))} transmissions={options(all.map(x=>x.transmission))} count={items.length} total={all.length} active={active}/>
     {items.length?<div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{items.map(x=><VehicleCard key={x.id} x={x}/>)}</div>:<EmptyResults href={action} filtered={active>0}/>}
-  </main></>;
+    {items.length>0&&<BuscoCta prefill={{tipo:"vehiculo"}}/>}
+  </main><Footer/></>;
 }

@@ -10,6 +10,7 @@ export default async function sitemap():Promise<MetadataRoute.Sitemap>{
   return [
     {url:base,lastModified:now,changeFrequency:"daily",priority:1},
     ...["propiedades","alquiler","vehiculos"].map(p=>({url:`${base}/${p}`,lastModified:now,changeFrequency:"daily" as const,priority:0.9})),
+    {url:`${base}/busco-propiedad`,changeFrequency:"monthly",priority:0.7},
     {url:`${base}/contacto`,changeFrequency:"monthly",priority:0.5},
     {url:`${base}/publicar`,changeFrequency:"monthly",priority:0.5},
     ...properties.map(x=>({url:`${base}/propiedades/${x.slug}`,changeFrequency:"weekly" as const,priority:0.8,images:x.images.slice(0,3)})),

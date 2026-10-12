@@ -3,15 +3,20 @@ import {getAttribution} from "@/lib/enfoque-attribution";
 import {supabaseAdmin,supabaseAdminConfigured} from "@/lib/enfoque-supabase";
 import {capiFields,clientIp,resolveFbc,resolveFbp,sendMetaEvent} from "@/lib/enfoque-meta";
 import {asUuid,resolveListing} from "@/lib/enfoque-listing-lookup";
+import {RATE_LIMITS,createRateLimiter,tooManyRequests} from "@/lib/enfoque-rate-limit";
 
 const text=(v:unknown,max=255)=>typeof v==="string"&&v?v.slice(0,max):null;
 const SITE=process.env.NEXT_PUBLIC_SITE_URL||"https://enfoque.advibeagencia.com";
+// Por IP y por instancia (ver la limitación en serverless en lib/enfoque-rate-limit.ts).
+const limiter=createRateLimiter(RATE_LIMITS.track);
 
 // Eventos de navegador que se replican por CAPI con el mismo event_id (deduplicación):
 //  · ViewContent: al abrir una ficha (solo CAPI, no se guarda).
 //  · Contact: clic en WhatsApp → CAPI + conversion_events con el código de referencia.
 // Los Lead van por /api/enfoque/leads.
 export async function POST(req:Request){
+  const limit=limiter(clientIp(req)||"sin-ip");
+  if(!limit.ok)return tooManyRequests(limit);
   let body:Record<string,unknown>;
   try{body=await req.json();}catch{return NextResponse.json({ok:false,error:"Solicitud inválida."},{status:400});}
   if(body.event_name!=="Contact"&&body.event_name!=="ViewContent")return NextResponse.json({ok:false,error:"Evento no permitido"},{status:400});

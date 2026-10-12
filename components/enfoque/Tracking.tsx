@@ -16,9 +16,13 @@ function whenReady(name:"fbq"|"gtag",call:(fn:(...args:unknown[])=>void)=>void,t
   if(tries<40)setTimeout(()=>whenReady(name,call,tries+1),150);
 }
 
+// trackSingle: los eventos de Enfoque solo van a su pixel, aunque en la pestaña se haya
+// iniciado también el de AdVibe (navegación interna desde el sitio principal).
+const EV_PIXEL=process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID;
+
 export function track(name:string,params:Record<string,unknown>={}) {
   const {event_id,...metaParams}=params;
-  whenReady("fbq",fbq=>event_id?fbq("track",name,metaParams,{eventID:String(event_id)}):fbq("track",name,metaParams));
+  if(EV_PIXEL)whenReady("fbq",fbq=>event_id?fbq("trackSingle",EV_PIXEL,name,metaParams,{eventID:String(event_id)}):fbq("trackSingle",EV_PIXEL,name,metaParams));
   whenReady("gtag",gtag=>gtag("event",name,metaParams));
 }
 

@@ -3,7 +3,11 @@
 ## 1. Qué hay que configurar (una sola vez)
 
 ### Supabase
-1. Aplicar `supabase/schema.sql` y luego `supabase/migrations/*.sql` (SQL Editor o `psql`).
+1. Aplicar `supabase/schema.sql` y luego `supabase/migrations/*.sql` en orden (SQL Editor o `psql`).
+   Si la base ya existía, basta con las migraciones que falten. **003** (`003_busco_propiedad.sql`)
+   añade `busco_propiedad` al enum `interest_type` y las columnas `leads.search_criteria` (jsonb) y
+   `leads.consent_at`; es idempotente. Sin ella, el formulario *Busco propiedad* responde error 500 y
+   el panel de leads no puede leer los criterios.
    Crea tablas, RLS, triggers (portada, historial de leads) y el bucket público `listing-media`.
 2. Crear el usuario del panel en **Authentication → Users** (email + contraseña, confirmado).
 3. Darle acceso al panel (sin fila en `profiles` no entra):
@@ -26,6 +30,7 @@
 | `META_ENFOQUE_ACCESS_TOKEN` | Token de CAPI del dataset | Sí |
 | `META_ENFOQUE_GRAPH_API_VERSION` | Por defecto `v26.0` | No |
 | `NEXT_PUBLIC_ENFOQUE_GA_ID` | GA4 de Enfoque | No |
+| `ENFOQUE_LEAD_WEBHOOK_URL` | URL **https** que recibe un POST JSON por cada lead nuevo (Make, Zapier, n8n, bot). Puede llevar un token: trátala como secreto. Sin ella no hay aviso inmediato | Recomendada |
 | `META_ENFOQUE_TEST_EVENT_CODE` | Solo mientras se valida en “Probar eventos” | No |
 | `ENFOQUE_ALLOW_DEMO` | Nunca en producción | No |
 
@@ -49,16 +54,27 @@ Dominio: `enfoque.advibeagencia.com` apunta al mismo proyecto de Vercel; `middle
    - Formulario: aparece en /admin/leads vinculado a la publicación y con la campaña.
    - /admin/estado → *Últimos eventos*: `Contact` y `Lead` con CAPI `enviado`.
    - Pixel Helper: `ViewContent`, `Contact` y `Lead` con `eventID`; en Meta salen deduplicados.
-5. Search Console: enviar `https://enfoque.advibeagencia.com/sitemap.xml`.
-6. Quitar `META_ENFOQUE_TEST_EVENT_CODE` si se usó y volver a desplegar.
+5. **Busco propiedad y aviso de lead** (requiere la migración 003 y `ENFOQUE_LEAD_WEBHOOK_URL`):
+   - /admin/estado → *Aviso de lead nuevo (webhook)* en ✓ (muestra solo el host).
+   - Abrir `/busco-propiedad?utm_source=test&utm_campaign=verificacion`, enviar sin marcar el
+     consentimiento (debe pedirlo) y luego completo.
+   - El webhook recibe `lead.created` con `search_criteria` en segundos (ver el historial de Make/Zapier/n8n).
+   - /admin/leads → *Buscadores*: aparece con los criterios, la campaña y la fecha de consentimiento.
+   - *Exportar CSV* descarga el archivo con las columnas de búsqueda.
+   - Pixel Helper: `Lead` con `eventID`; en /admin/estado el Lead sale con CAPI `enviado`.
+   - En una ficha: sección *Otras propiedades* y el CTA lleva al formulario prellenado.
+   - Pixel Helper al navegar entre páginas: un `PageView` por cambio de ruta, solo al pixel de Enfoque.
+6. Search Console: enviar `https://enfoque.advibeagencia.com/sitemap.xml` (incluye `/busco-propiedad`).
+7. Quitar `META_ENFOQUE_TEST_EVENT_CODE` si se usó y volver a desplegar.
 
 ## 3. Cómo funciona el tracking
 
 | Evento | Navegador (Pixel) | Servidor (CAPI) | Se guarda en |
 |---|---|---|---|
+| PageView | carga inicial y cada cambio de ruta (`components/MetaPixel.tsx`, solo pixel de Enfoque) | — | — |
 | ViewContent | al abrir una ficha | `/api/enfoque/track` (mismo `event_id`) | — |
 | Contact | clic en WhatsApp | `/api/enfoque/track` (mismo `event_id`) | `conversion_events` con `ref_code` |
-| Lead | tras guardar el formulario | `/api/enfoque/leads` (mismo `event_id`) | `leads` + `conversion_events` |
+| Lead | tras guardar el formulario (contacto, ficha o *Busco propiedad*) | `/api/enfoque/leads` (mismo `event_id`) | `leads` + `conversion_events` |
 
 - UTM, `fbclid` y `gclid` los captura `middleware.ts` en la cookie `ev_attr` (first y last touch).
 - `_fbp`/`_fbc` se leen de las cookies del Pixel; si no hay `_fbc` (Pixel bloqueado) se construye desde
@@ -67,6 +83,12 @@ Dominio: `enfoque.advibeagencia.com` apunta al mismo proyecto de Vercel; `middle
   `external_id` (visitante). Se ejecuta después de responder: si Meta falla o no está configurado, el
   lead ya está guardado y el evento queda como `fallido`/`omitido` con el error.
 - Precio y publicación se validan contra la base de datos, no se confía en el navegador.
+- Los eventos de Enfoque usan `fbq('trackSingle', <pixel de Enfoque>, …)`: nunca llegan al pixel de AdVibe.
+- **Límite de peticiones** (`lib/enfoque-rate-limit.ts`): `/api/enfoque/leads` 5 envíos cada 10 min por
+  IP y `/api/enfoque/track` 60 eventos por minuto por IP (429 + `Retry-After`). En Vercel es **por
+  instancia y en memoria**: se reinicia en cada arranque en frío y no se comparte entre instancias, así
+  que solo frena ráfagas de un mismo cliente. Para un límite global, añadir una regla de rate limiting
+  en Vercel Firewall o un almacén compartido (Upstash Redis).
 
 ## 4. Pruebas
 

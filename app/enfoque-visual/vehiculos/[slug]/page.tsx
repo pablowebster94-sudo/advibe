@@ -1,14 +1,16 @@
 import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 import {money} from "@/lib/enfoque-data";
-import {loadVehicle} from "@/lib/enfoque-catalog";
-import {label} from "@/lib/enfoque-filters";
+import {loadVehicle,loadVehicles} from "@/lib/enfoque-catalog";
+import {label,similarVehicles} from "@/lib/enfoque-filters";
 import {EV_SITE,breadcrumbs,evMetadata,jsonLd} from "@/lib/enfoque-seo";
 import {Header} from "@/components/enfoque/Header";
 import {Tracking} from "@/components/enfoque/Tracking";
 import {ListingVideo} from "@/components/enfoque/Video";
 import {Gallery} from "@/components/enfoque/Gallery";
 import {ContactBox,MobileCta} from "@/components/enfoque/ContactBox";
+import {SimilarVehicles} from "@/components/enfoque/SimilarListings";
+import {Footer} from "@/components/enfoque/Footer";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{slug:string}>};
@@ -26,6 +28,7 @@ export default async function Page({params}:Props){
   const {slug}=await params;
   const item=await loadVehicle(slug);
   if(!item)return notFound();
+  const similar=similarVehicles(await loadVehicles(),item,3);
   const name=item.brand+" "+item.model;
   const unavailable=item.availability&&item.availability!=="disponible"?label(item.availability):undefined;
   const stats:[unknown,string][]=[[item.year,"Año"],[item.mileage.toLocaleString("es-EC")+" km","Kilometraje"],[label(item.fuel),"Combustible"],[label(item.transmission),"Transmisión"],[item.engine,"Motor"]];
@@ -52,5 +55,6 @@ export default async function Page({params}:Props){
     <ContactBox id={item.id} type="vehicle" value={item.price} city={item.city} title={`${name} ${item.year}`} unavailable={unavailable} interest="comprar_vehiculo"
       message={"Hola, estoy interesado en el "+name+" "+item.year+" de "+money(item.price)+" que vi en Enfoque Visual: "+url}/>
     </div>
-  </main><MobileCta/></>;
+    <SimilarVehicles items={similar} current={item}/>
+  </main><Footer mobileCtaSpace/><MobileCta/></>;
 }

@@ -1,14 +1,16 @@
 import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 import {money} from "@/lib/enfoque-data";
-import {loadProperty} from "@/lib/enfoque-catalog";
-import {label} from "@/lib/enfoque-filters";
+import {loadProperties,loadProperty} from "@/lib/enfoque-catalog";
+import {label,similarProperties} from "@/lib/enfoque-filters";
 import {EV_SITE,breadcrumbs,evMetadata,jsonLd} from "@/lib/enfoque-seo";
 import {Header} from "@/components/enfoque/Header";
 import {Tracking} from "@/components/enfoque/Tracking";
 import {ListingVideo} from "@/components/enfoque/Video";
 import {Gallery} from "@/components/enfoque/Gallery";
 import {ContactBox,MobileCta} from "@/components/enfoque/ContactBox";
+import {SimilarProperties} from "@/components/enfoque/SimilarListings";
+import {Footer} from "@/components/enfoque/Footer";
 
 export const dynamic="force-dynamic";
 type Props={params:Promise<{slug:string}>};
@@ -25,6 +27,7 @@ export default async function Page({params}:Props){
   const {slug}=await params;
   const item=await loadProperty(slug);
   if(!item)return notFound();
+  const similar=similarProperties(await loadProperties(),item,3);
   const unavailable=item.availability&&item.availability!=="disponible"?label(item.availability):undefined;
   const stats:[unknown,string][]=[[item.buildM2,"m² construcción"],[item.landM2,"m² terreno"],[item.rooms,"dormitorios"],[item.baths,"baños"],[item.parking,"parqueaderos"]];
   const url=`${EV_SITE}/propiedades/${item.slug}`;
@@ -52,5 +55,6 @@ export default async function Page({params}:Props){
       interest={item.operation==="alquiler"?"alquilar_propiedad":"comprar_propiedad"}
       message={"Hola, estoy interesado en "+item.title+" de "+money(item.price)+(item.operation==="alquiler"?" al mes":"")+" que vi en Enfoque Visual: "+url}/>
     </div>
-  </main><MobileCta/></>;
+    <SimilarProperties items={similar} current={item}/>
+  </main><Footer mobileCtaSpace/><MobileCta/></>;
 }

@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {parseVideoUrl} from "../lib/enfoque-video";
-import {filterProperties,filterVehicles,options,readPropertyFilters,readVehicleFilters,activeFilterCount} from "../lib/enfoque-filters";
+import {filterProperties,filterVehicles,options,readPropertyFilters,readVehicleFilters,activeFilterCount,similarProperties,similarVehicles} from "../lib/enfoque-filters";
 import {features,propertyPayload,slugify,vehiclePayload} from "../lib/enfoque-listing";
 import {demoAllowed} from "../lib/enfoque-catalog";
 import {capiFields,isE164,isValidPhone,normalizePhone,resolveFbc,resolveFbp,sendMetaEvent} from "../lib/enfoque-meta";
@@ -12,6 +12,12 @@ import {createHash} from "node:crypto";
 import {orderImages} from "../lib/enfoque-supabase";
 import {runHealthChecks} from "../lib/enfoque-health";
 import {properties,vehicles} from "../lib/enfoque-data";
+import {describeCriteria,parseBuscoPropiedad} from "../lib/enfoque-demand";
+import {LEAD_CSV_COLUMNS,csvCell,leadsToCsv} from "../lib/enfoque-leads-csv";
+import {leadFilterQuery} from "../lib/enfoque-leads-filter";
+import type {LeadRow} from "../lib/enfoque-types";
+import {RATE_LIMITS,createRateLimiter,tooManyRequests} from "../lib/enfoque-rate-limit";
+import {leadWebhookPayload,leadWebhookUrl,notifyNewLead} from "../lib/enfoque-notify";
 
 test("video: YouTube, Shorts, youtu.be y Vimeo se convierten en embed", () => {
   const yt="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1&playsinline=1";
@@ -189,4 +195,176 @@ test("sendMetaEvent: payload CAPI con hashes correctos, dedup y errores sin lanz
     const down=await sendMetaEvent({event_name:"Contact",event_id:"e3"});
     assert.deepEqual(down,{sent:false,reason:"network_error"});
   }finally{globalThis.fetch=realFetch;process.env=env;}
+});
+
+test("webhook de lead: payload con resumen, sin secretos, y URL solo https", () => {
+  const env={NEXT_PUBLIC_SITE_URL:"https://enfoque.example.com/",META_ENFOQUE_ACCESS_TOKEN:"token-secreto",SUPABASE_SERVICE_ROLE_KEY:"service-secreta",ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/abc"};
+  const p=leadWebhookPayload({id:"l1",name:"Ana Prueba",phone:"+593991234567",email:null,interest_type:"busco_propiedad",channel:"formulario",
+    search_criteria:{what:"casa",operation:"comprar",canton:"Gualaceo",budget_max:90000,from_abroad:true,country:"Estados Unidos",timeframe:"3 meses"},utm_campaign:"camp-test"},env,new Date("2026-10-10T12:00:00Z"));
+  assert.equal(p.event,"lead.created");
+  assert.equal(p.created_at,"2026-10-10T12:00:00.000Z");
+  assert.equal(p.lead.whatsapp_url,"https://wa.me/593991234567");
+  assert.equal(p.admin_url,"https://enfoque.example.com/admin/leads");
+  assert.equal(p.lead.interest_label,"Busca propiedad");
+  assert.match(p.text,/casa · comprar · Gualaceo · hasta USD 90,000 · desde Estados Unidos · plazo: 3 meses/);
+  assert.match(p.text,/Origen: camp-test/);
+  const json=JSON.stringify(p);
+  for(const secret of ["token-secreto","service-secreta","hook.example.com"])assert.ok(!json.includes(secret));
+  assert.equal(leadWebhookUrl({}),null);
+  assert.equal(leadWebhookUrl({ENFOQUE_LEAD_WEBHOOK_URL:"http://inseguro.example.com"}),null);
+  assert.equal(leadWebhookUrl({ENFOQUE_LEAD_WEBHOOK_URL:"no es url"}),null);
+  assert.equal(leadWebhookUrl({ENFOQUE_LEAD_WEBHOOK_URL:" https://hook.example.com/x "}),"https://hook.example.com/x");
+});
+
+test("webhook de lead: no hace nada sin variable y nunca lanza", async () => {
+  const lead={id:"l1",name:"Ana",phone:"+593991234567",email:null,interest_type:"contacto",channel:"formulario"};
+  let calls=0;
+  const fake=(async()=>{calls++;return new Response("ok");}) as unknown as typeof fetch;
+  assert.deepEqual(await notifyNewLead(lead,{},fake),{sent:false,reason:"not_configured"});
+  assert.equal(calls,0);
+  let sentBody="";
+  const capture=(async(_u:string,init:RequestInit)=>{sentBody=String(init.body);return new Response("ok");}) as unknown as typeof fetch;
+  assert.deepEqual(await notifyNewLead(lead,{ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/x"},capture),{sent:true,status:200});
+  assert.equal(JSON.parse(sentBody).lead.name,"Ana");
+  const boom=(async()=>{throw new Error("red caída");}) as unknown as typeof fetch;
+  const origError=console.error;console.error=()=>{};
+  try{assert.deepEqual(await notifyNewLead(lead,{ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/x"},boom),{sent:false,reason:"network_error"});}
+  finally{console.error=origError;}
+});
+
+test("health: avisa si falta el webhook de leads y no muestra su URL completa", async () => {
+  const missing=await runHealthChecks({},{remote:false});
+  assert.equal(missing.find(c=>c.id==="lead_webhook")?.status,"warn");
+  const ok=await runHealthChecks({ENFOQUE_LEAD_WEBHOOK_URL:"https://hook.example.com/bot123:token"},{remote:false});
+  const c=ok.find(x=>x.id==="lead_webhook");
+  assert.equal(c?.status,"ok");
+  assert.ok(!JSON.stringify(ok).includes("token"));
+});
+
+const busco=(over:Record<string,unknown>={})=>parseBuscoPropiedad({what:"casa",operation:"comprar",canton:"gualaceo",name:"Ana Prueba",phone:"0991234567",consent:true,...over});
+
+test("busco_propiedad: consentimiento obligatorio (solo true explícito)", () => {
+  for(const consent of [undefined,false,"true","on",1,null])
+    assert.deepEqual(busco({consent}).ok,false,`consent=${String(consent)}`);
+  const ok=busco();
+  assert.equal(ok.ok,true);
+});
+
+test("busco_propiedad: WhatsApp en E.164 (Ecuador y exterior)", () => {
+  const r=busco();
+  assert.ok(r.ok&&r.phone==="+593991234567");
+  const usa=busco({phone:"+1 555 123 4567",from_abroad:true,country:"Estados Unidos"});
+  assert.ok(usa.ok&&usa.phone==="+15551234567"&&usa.criteria.country==="Estados Unidos");
+  for(const phone of ["","123","099123","+593 99 123 45","abc"])assert.equal(busco({phone}).ok,false,`phone=${phone}`);
+});
+
+test("busco_propiedad: presupuesto opcional y >= 0", () => {
+  const none=busco();assert.ok(none.ok&&none.criteria.budget_max===null);
+  const zero=busco({budget_max:0});assert.ok(zero.ok&&zero.criteria.budget_max===0);
+  const str=busco({budget_max:"85,000"});assert.ok(str.ok&&str.criteria.budget_max===85000);
+  for(const budget_max of [-1,"-500","mucho",Infinity])assert.equal(busco({budget_max}).ok,false,`budget=${String(budget_max)}`);
+});
+
+test("busco_propiedad: opciones cerradas, país si compra desde el exterior y campos limpios", () => {
+  assert.equal(busco({what:"castillo"}).ok,false);
+  assert.equal(busco({operation:"permutar"}).ok,false);
+  assert.equal(busco({canton:"quito"}).ok,false);
+  assert.equal(busco({from_abroad:true}).ok,false);
+  assert.equal(busco({name:" A "}).ok,false);
+  assert.equal(busco({email:"no-es-correo"}).ok,false);
+  const r=busco({canton:"otro",canton_other:"  Santa   Isabel ",timeframe:"3_meses",notes:"x".repeat(5000),email:" Ana@Example.COM ",extra:"<script>"});
+  assert.ok(r.ok);
+  if(r.ok){
+    assert.equal(r.criteria.canton_other,"Santa Isabel");
+    assert.equal(r.criteria.notes?.length,1000);
+    assert.equal(r.email,"ana@example.com");
+    assert.equal(r.criteria.country,null);
+    assert.deepEqual(Object.keys(r.criteria).sort(),["budget_max","canton","canton_other","country","from_abroad","notes","operation","timeframe","what"]);
+    assert.equal(describeCriteria(r.criteria),"Casa · comprar · Santa Isabel · en los próximos 3 meses");
+  }
+  const t=busco({timeframe:"ayer"});assert.ok(t.ok&&t.criteria.timeframe===null);
+});
+
+test("otras propiedades: mismo tipo o cantón, sin la actual, disponibles primero", () => {
+  const byId=(id:string)=>properties.find(x=>x.id===id)!;
+  assert.deepEqual(similarProperties(properties,byId("p2")).map(x=>x.id),["p4","p3"]);
+  assert.deepEqual(similarProperties(properties,byId("p1")).map(x=>x.id),[]);
+  const base=byId("p2");
+  const extra=[0,1,2,3,4].map(i=>({...base,id:"x"+i,slug:"x"+i,price:base.price+i*1000,availability:i===0?"vendido":"disponible"}));
+  const r=similarProperties([base,...extra],base,3).map(x=>x.id);
+  assert.deepEqual(r,["x1","x2","x3"]);
+  assert.ok(!r.includes(base.id));
+  assert.equal(similarProperties([base,...extra],base,4).length,4);
+});
+
+test("otros vehículos: misma marca, ciudad o precio parecido", () => {
+  const [v1,v2]=vehicles;
+  assert.deepEqual(similarVehicles(vehicles,v1).map(x=>x.id),[]);
+  const near={...v2,id:"v3",slug:"v3",brand:"Kia",price:v1.price*1.2};
+  const sameBrand={...v1,id:"v4",slug:"v4",price:90000};
+  assert.deepEqual(similarVehicles([v1,v2,near,sameBrand],v1).map(x=>x.id),["v4","v3"]);
+});
+
+test("CSV de leads: escapa comillas/saltos y neutraliza fórmulas sin romper teléfonos", () => {
+  assert.equal(csvCell(null),"");
+  assert.equal(csvCell("Hola, \"mundo\""),'"Hola, ""mundo"""');
+  assert.equal(csvCell("a\nb"),'"a\nb"');
+  assert.equal(csvCell("=HYPERLINK(\"x\")"),`"'=HYPERLINK(""x"")"`);
+  assert.equal(csvCell("@SUM(A1)"),"'@SUM(A1)");
+  assert.equal(csvCell("-2+3+cmd"),"'-2+3+cmd");
+  assert.equal(csvCell("+593991234567"),"+593991234567");
+  assert.equal(csvCell(85000),"85000");
+});
+
+test("CSV de leads: cabecera, BOM y columnas de búsqueda", () => {
+  const base={id:"1",name:"Ana",phone:"+593991234567",email:null,status:"nuevo",channel:"formulario",message:null,notes:null,ref_code:null,
+    utm_source:"facebook",utm_campaign:"camp",fbclid:null,gclid:null,created_at:"2026-10-10T12:00:00Z",properties:null,vehicles:null};
+  const rows=[
+    {...base,interest_type:"busco_propiedad",consent_at:"2026-10-10T12:00:00Z",search_criteria:{what:"terreno",operation:"comprar",canton:"paute",canton_other:null,budget_max:40000,from_abroad:true,country:"España",timeframe:"6_meses",notes:null}},
+    {...base,id:"2",name:"Luis",interest_type:"comprar_propiedad",properties:{title:"Casa demo",slug:"casa-demo"}}
+  ] as LeadRow[];
+  const csv=leadsToCsv(rows);
+  assert.ok(csv.startsWith("\uFEFF"+LEAD_CSV_COLUMNS.join(",")));
+  const lines=csv.slice(1).trim().split("\r\n");
+  assert.equal(lines.length,3);
+  const parse=(line:string)=>[...line.matchAll(/("(?:[^"]|"")*"|[^,]*)(,|$)/g)].slice(0,LEAD_CSV_COLUMNS.length).map(m=>m[1].startsWith('"')?m[1].slice(1,-1).replace(/""/g,'"'):m[1]);
+  const cols=(i:number)=>Object.fromEntries(LEAD_CSV_COLUMNS.map((k,j)=>[k,parse(lines[i])[j]]));
+  assert.equal(cols(1).busqueda,"Terreno · comprar · Paute · hasta USD 40,000 · compra desde España · en 3 a 6 meses");
+  assert.equal(cols(1).que,"terreno");
+  assert.equal(cols(1).canton,"paute");
+  assert.equal(cols(1).presupuesto_max_usd,"40000");
+  assert.equal(cols(1).desde_exterior,"si");
+  assert.equal(cols(1).pais,"España");
+  assert.equal(cols(2).publicacion,"Casa demo");
+  assert.equal(cols(2).desde_exterior,"");
+});
+
+test("filtro de leads: solo valores conocidos llegan a PostgREST", () => {
+  assert.equal(leadFilterQuery("nuevo","buscadores"),"&status=eq.nuevo&interest_type=eq.busco_propiedad");
+  assert.equal(leadFilterQuery("x&id=eq.1",null),"");
+  assert.equal(leadFilterQuery(null,"otro"),"");
+});
+
+test("límite de peticiones: ventana fija por IP, independiente entre IPs y con Retry-After", async () => {
+  const check=createRateLimiter({limit:3,windowMs:60_000});
+  const t0=1_000_000;
+  assert.deepEqual([1,2,3].map(()=>check("1.1.1.1",t0).ok),[true,true,true]);
+  const blocked=check("1.1.1.1",t0+10_000);
+  assert.equal(blocked.ok,false);
+  assert.equal(blocked.retryAfter,50);
+  assert.equal(check("2.2.2.2",t0+10_000).ok,true);
+  assert.equal(check("1.1.1.1",t0+60_000).ok,true);
+  const r=tooManyRequests(blocked);
+  assert.equal(r.status,429);
+  assert.equal(r.headers.get("Retry-After"),"50");
+  assert.equal((await r.json()).ok,false);
+  assert.ok(RATE_LIMITS.leads.limit>=3&&RATE_LIMITS.track.limit>RATE_LIMITS.leads.limit);
+});
+
+test("límite de peticiones: la memoria no crece sin límite", () => {
+  const check=createRateLimiter({limit:1,windowMs:1000});
+  for(let i=0;i<12_000;i++)check("ip"+i,0);
+  // Pasada la ventana, una IP nueva limpia las caducadas y las IPs viejas vuelven a empezar.
+  assert.equal(check("nueva",5000).ok,true);
+  assert.equal(check("ip1",5000).ok,true);
 });

@@ -1,6 +1,7 @@
 import {demoAllowed} from "@/lib/enfoque-catalog";
 import {supabaseHeaders,supabasePublic} from "@/lib/enfoque-supabase";
 import type {IdRow} from "@/lib/enfoque-types";
+import {leadWebhookUrl} from "@/lib/enfoque-notify";
 
 // Chequeo de configuración de producción. Nunca devuelve secretos, solo si existen.
 export type HealthCheck={id:string;label:string;status:"ok"|"warn"|"error";detail:string};
@@ -52,6 +53,11 @@ export async function runHealthChecks(env:Record<string,string|undefined>=proces
   }
   if(pixel&&browserPixel&&pixel!==browserPixel)add("dedup","Deduplicación Pixel/CAPI","error",`El pixel del navegador (${browserPixel}) y el de CAPI (${pixel}) son distintos: Meta no puede deduplicar.`);
   if(env.META_ENFOQUE_TEST_EVENT_CODE)add("test_code","Código de prueba de CAPI","warn","META_ENFOQUE_TEST_EVENT_CODE está activo: TODOS los eventos van a “Probar eventos”. Quítalo al terminar la verificación.");
+  // La URL del webhook puede llevar un token (bot de Telegram, Make…): solo se muestra el host.
+  const hook=leadWebhookUrl(env);
+  add("lead_webhook","Aviso de lead nuevo (webhook)",hook?"ok":"warn",hook?`Cada lead nuevo se envía a ${new URL(hook).host}.`
+    :env.ENFOQUE_LEAD_WEBHOOK_URL?"ENFOQUE_LEAD_WEBHOOK_URL no es una URL https válida: no se avisa de los leads nuevos."
+    :"ENFOQUE_LEAD_WEBHOOK_URL no está configurada: los leads solo aparecen en el panel, nadie recibe aviso inmediato.");
   add("site","URL del sitio",env.NEXT_PUBLIC_SITE_URL?"ok":"warn",env.NEXT_PUBLIC_SITE_URL?env.NEXT_PUBLIC_SITE_URL:"NEXT_PUBLIC_SITE_URL no está definida; se usa https://enfoque.advibeagencia.com.");
   add("ga","Google Analytics",env.NEXT_PUBLIC_ENFOQUE_GA_ID||env.NEXT_PUBLIC_GA_ID?"ok":"warn",env.NEXT_PUBLIC_ENFOQUE_GA_ID||env.NEXT_PUBLIC_GA_ID?"Configurado.":"Sin ID de GA (opcional).");
   return checks;

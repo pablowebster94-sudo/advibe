@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type {Metadata} from "next";
 import {Header} from "@/components/enfoque/Header";
+import {Footer} from "@/components/enfoque/Footer";
 import {evMetadata} from "@/lib/enfoque-seo";
 
 export const metadata:Metadata=evMetadata({title:"Publica tu propiedad o vehículo",description:"Fotografía, video, publicación y campañas de captación para vender o alquilar tu propiedad o vehículo en Ecuador.",path:"/publicar"});
@@ -26,5 +27,5 @@ export default function Publicar(){
         <p className="mt-7 text-sm leading-6 text-white/45">No publicamos automáticamente información sin revisión. El primer paso es registrar tu solicitud.</p>
       </div>
     </section>
-  </main></>;
+  </main><Footer/></>;
 }

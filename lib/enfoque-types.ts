@@ -16,7 +16,8 @@ export type VehicleRow=ListingBase&{brand:string;model:string;year:number;condit
 type ListingEmbed={properties:{title:string;slug:string}|null;vehicles:{brand:string;model:string;year:number;slug:string}|null};
 
 export type LeadRow=ListingEmbed&{id:string;name:string;phone:string|null;email:string|null;status:string;channel:string;interest_type:string;message:string|null;notes:string|null;
-  ref_code:string|null;utm_source:string|null;utm_campaign:string|null;fbclid:string|null;gclid:string|null;created_at:string};
+  ref_code:string|null;utm_source:string|null;utm_campaign:string|null;fbclid:string|null;gclid:string|null;created_at:string;
+  utm_medium?:string|null;utm_content?:string|null;search_criteria?:Record<string,unknown>|null;consent_at?:string|null};
 
 export type EventRow=ListingEmbed&{id:string;event_id:string;event_name:"Contact"|"Lead";ref_code:string|null;lead_id:string|null;property_id:string|null;vehicle_id:string|null;
   visitor_id:string|null;utm_source:string|null;utm_medium:string|null;utm_campaign:string|null;utm_content:string|null;utm_term:string|null;
