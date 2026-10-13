@@ -7,19 +7,24 @@ type Charge = { id:string; clientId:string; period:string; amount:number; paid:n
 type Production = { id:string; clientId:string; title:string; type:string; status:string; due:string; recordDate?:string; publishDate?:string };
 
 const initialClients:Client[] = [
-  {id:"CLI-0001",name:"Kamauto",monthly:200,day:2,status:"ACTIVO",production:8,notes:"4 Reels + 15 respuestas; editable"},
-  {id:"CLI-0002",name:"Muebles Ideal",monthly:200,day:2,status:"ACTIVO",production:8},
-  {id:"CLI-0003",name:"Paola Miguitama",monthly:150,day:5,status:"ACTIVO",production:5},
-  {id:"CLI-0004",name:"Club Santa Bárbara",monthly:200,day:"9/10",status:"ACTIVO",production:5,notes:"$100 Cuenca día 9 + $100 Gualaceo día 10"},
-  {id:"CLI-0005",name:"AM Motorsport",monthly:150,day:14,status:"ACTIVO",production:0},
-  {id:"CLI-0006",name:"CETAD San Lucas",monthly:200,day:"—",status:"PENDIENTE_DEFINICION",production:0,notes:"Confirmar configuración"},
+  {id:"CLI-0001",name:"Kamauto",monthly:200,day:2,status:"ACTIVO",production:8,notes:"Próximo pago: $200 el 2 de noviembre de 2026."},
+  {id:"CLI-0002",name:"Muebles Ideal",monthly:200,day:"15 y 30",status:"ACTIVO",production:8,notes:"Octubre: $100 el 15 y $100 el 30."},
+  {id:"CLI-0003",name:"Paola Miguitama",monthly:100,day:5,status:"ACTIVO",production:5,notes:"Octubre: abonó $50; falta cobrar $50."},
+  {id:"CLI-0004",name:"Club Santa Bárbara",monthly:200,day:"9/10",status:"ACTIVO",production:5,notes:"Pendiente entregar contenido. Ya pagó $100; faltan $50 de SB Cuenca y $50 de SB Gualaceo."},
+  {id:"CLI-0005",name:"AM Motorsport",monthly:150,day:14,status:"ACTIVO",production:0,notes:"Cobro de octubre: 14 de octubre de 2026."},
+  {id:"CLI-0006",name:"CETAD San Lucas",monthly:150,day:"Por definir",status:"ACTIVO",production:0,notes:"Octubre: abonó $75; falta cobrar $75."},
+  {id:"CLI-0007",name:"Roxis Joyería",monthly:150,day:28,status:"ACTIVO",production:0,notes:"Octubre: abonó $75; falta cobrar $75."},
 ];
 const initialCharges:Charge[] = [
-  {id:"COB-0001",clientId:"CLI-0001",period:"2026-09",amount:200,paid:200,due:"2026-09-02"},
-  {id:"COB-0002",clientId:"CLI-0002",period:"2026-09",amount:200,paid:100,due:"2026-09-02"},
-  {id:"COB-0003",clientId:"CLI-0003",period:"2026-09",amount:150,paid:0,due:"2026-09-05"},
-  {id:"COB-0004",clientId:"CLI-0004",period:"2026-09",amount:200,paid:0,due:"2026-09-09"},
-  {id:"COB-0005",clientId:"CLI-0005",period:"2026-09",amount:150,paid:0,due:"2026-09-14"},
+  {id:"COB-2026-11-01",clientId:"CLI-0001",period:"2026-11",amount:200,paid:0,due:"2026-11-02"},
+  {id:"COB-2026-10-02A",clientId:"CLI-0002",period:"2026-10",amount:100,paid:0,due:"2026-10-15"},
+  {id:"COB-2026-10-02B",clientId:"CLI-0002",period:"2026-10",amount:100,paid:0,due:"2026-10-30"},
+  {id:"COB-2026-10-03",clientId:"CLI-0003",period:"2026-10",amount:100,paid:50,due:"2026-10-05"},
+  {id:"COB-2026-10-04A",clientId:"CLI-0004",period:"2026-10",amount:100,paid:50,due:"2026-10-09"},
+  {id:"COB-2026-10-04B",clientId:"CLI-0004",period:"2026-10",amount:100,paid:50,due:"2026-10-10"},
+  {id:"COB-2026-10-06",clientId:"CLI-0006",period:"2026-10",amount:150,paid:75,due:"Por definir"},
+  {id:"COB-2026-10-05",clientId:"CLI-0005",period:"2026-10",amount:150,paid:0,due:"2026-10-14"},
+  {id:"COB-2026-10-07",clientId:"CLI-0007",period:"2026-10",amount:150,paid:75,due:"2026-10-28"},
 ];
 const initialProduction:Production[] = [
   {id:"PRD-0001",clientId:"CLI-0001",title:"Kamauto — Reel #1",type:"REEL",status:"PUBLICADO",due:"2026-09-02",publishDate:"2026-09-02"},
@@ -46,12 +51,12 @@ export default function ControlPage(){
 
   useEffect(()=>{
     try {
-      const saved=localStorage.getItem("advibe-control-v1");
+      const saved=localStorage.getItem("advibe-control-v2");
       if(saved){const x=JSON.parse(saved); if(x.clients)setClients(x.clients);if(x.charges)setCharges(x.charges);if(x.production)setProduction(x.production);}
     } catch {}
     setReady(true);
   },[]);
-  useEffect(()=>{if(ready)localStorage.setItem("advibe-control-v1",JSON.stringify({clients,charges,production,tasks:[]}));},[clients,charges,production,ready]);
+  useEffect(()=>{if(ready)localStorage.setItem("advibe-control-v2",JSON.stringify({clients,charges,production,tasks:[]}));},[clients,charges,production,ready]);
 
   const pending=useMemo(()=>charges.reduce((s,c)=>s+Math.max(0,c.amount-c.paid),0),[charges]);
   const collected=useMemo(()=>charges.reduce((s,c)=>s+c.paid,0),[charges]);
