@@ -7,13 +7,13 @@ type Charge = { id:string; clientId:string; period:string; amount:number; paid:n
 type Production = { id:string; clientId:string; title:string; type:string; status:string; due:string; recordDate?:string; publishDate?:string };
 
 const initialClients:Client[] = [
-  {id:"CLI-0001",name:"Kamauto",monthly:200,day:2,status:"ACTIVO",production:8,notes:"Próximo pago: $200 el 2 de noviembre de 2026."},
-  {id:"CLI-0002",name:"Muebles Ideal",monthly:200,day:"15 y 30",status:"ACTIVO",production:8,notes:"Octubre: $100 el 15 y $100 el 30."},
-  {id:"CLI-0003",name:"Paola Miguitama",monthly:100,day:5,status:"ACTIVO",production:5,notes:"Octubre: abonó $50; falta cobrar $50."},
-  {id:"CLI-0004",name:"Club Santa Bárbara",monthly:200,day:"9/10",status:"ACTIVO",production:5,notes:"Pendiente entregar contenido. Ya pagó $100; faltan $50 de SB Cuenca y $50 de SB Gualaceo."},
-  {id:"CLI-0005",name:"AM Motorsport",monthly:150,day:14,status:"ACTIVO",production:0,notes:"Cobro de octubre: 14 de octubre de 2026."},
-  {id:"CLI-0006",name:"CETAD San Lucas",monthly:150,day:"Por definir",status:"ACTIVO",production:0,notes:"Octubre: abonó $75; falta cobrar $75."},
-  {id:"CLI-0007",name:"Roxis Joyería",monthly:150,day:28,status:"ACTIVO",production:0,notes:"Octubre: abonó $75; falta cobrar $75."},
+  {id:"CLI-0001",name:"Kamauto",monthly:200,day:2,status:"ACTIVO",production:8,notes:"ENTREGABLES MENSUALES: 5 reels + 15 respuestas en TikTok (equivalen a 8 reels). Visitas a Cuenca: 2 veces por semana. Próximo cobro: $200 el 2 de noviembre."},
+  {id:"CLI-0002",name:"Muebles Ideal",monthly:200,day:"15 y 30",status:"ACTIVO",production:8,notes:"ENTREGABLES MENSUALES: 8 videos. Octubre: $100 el 15 y $100 el 30."},
+  {id:"CLI-0003",name:"Paola Miguitama",monthly:100,day:5,status:"ACTIVO",production:5,notes:"ENTREGABLES MENSUALES: 5 reels. Mensualidad actual $100. Octubre: abonó $50; faltan $50."},
+  {id:"CLI-0004",name:"Club Santa Bárbara",monthly:200,day:"9/10",status:"ACTIVO",production:8,notes:"ENTREGABLES MENSUALES: 4 reels para Cuenca y 4 reels para Gualaceo (8 en total). Octubre: abonó $100; faltan $50 de Cuenca y $50 de Gualaceo. Quedan entregas pendientes."},
+  {id:"CLI-0005",name:"AM Motorsport",monthly:150,day:14,status:"ACTIVO",production:6,notes:"ENTREGABLES MENSUALES: 6 reels/videos. Mensualidad $150; cobro de octubre: 14 de octubre."},
+  {id:"CLI-0006",name:"CETAD San Lucas",monthly:150,day:"Por definir",status:"ACTIVO",production:6,notes:"ENTREGABLES MENSUALES: 6 videos. Mensualidad actual $150. Octubre: abonó $75; faltan $75."},
+  {id:"CLI-0007",name:"Roxis Joyería",monthly:150,day:28,status:"ACTIVO",production:6,notes:"ENTREGABLES MENSUALES: 6 reels + gestión de campañas publicitarias. Mensualidad $150. Octubre: abonó $75; faltan $75. Pago habitual: día 28."},
 ];
 const initialCharges:Charge[] = [
   {id:"COB-2026-11-01",clientId:"CLI-0001",period:"2026-11",amount:200,paid:0,due:"2026-11-02"},
@@ -52,7 +52,7 @@ export default function ControlPage(){
   useEffect(()=>{
     try {
       const saved=localStorage.getItem("advibe-control-v2");
-      if(saved){const x=JSON.parse(saved); if(x.clients)setClients(x.clients);if(x.charges)setCharges(x.charges);if(x.production)setProduction(x.production);}
+      if(saved){const x=JSON.parse(saved); if(x.clients)setClients(x.clients.map((c:Client)=>{const seed=initialClients.find(s=>s.id===c.id);return seed?{...c,monthly:seed.monthly,day:seed.day,production:seed.production,notes:seed.notes}:c;}));if(x.charges)setCharges(x.charges);if(x.production)setProduction(x.production);}
     } catch {}
     setReady(true);
   },[]);
