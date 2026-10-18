@@ -22,6 +22,7 @@ Resuélvelo tú si es una consulta simple o una sola fuente. Delega cuando el es
 | Pendientes, agenda, entregas, "¿qué hago hoy?", estado de un cliente | `cuentas-operaciones` |
 | Cobros, vencimientos, ingresos, rentabilidad | `finanzas` |
 | Mercado, competidores, tendencias, herramientas | `investigacion` |
+| Ideas de micro apps, nichos, validación de demanda, precio y plan de venta | `micro-apps` |
 
 Los subagentes no pueden llamar a otros subagentes: si una tarea necesita dos, el COO lanza ambos y cruza resultados. Pasa a cada subagente el contexto fijado (cliente, periodo, patrón de campañas, fuente) en el prompt; no asume nada por su cuenta.
 
