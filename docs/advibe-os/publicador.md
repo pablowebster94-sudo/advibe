@@ -4,7 +4,7 @@ Memoria del skill `publicador-advibe`. Se actualiza después de cada publicació
 Herramienta: Zernio (zernio.com), conector `https://mcp.zernio.com/mcp`.
 
 ## Estado de la conexión
-- Conector Zernio en claude.ai: **PENDIENTE** (lo agrega Pablo en Ajustes → Conectores).
+- Conector Zernio en claude.ai: **CONECTADO** (verificado 2026-10-19). Perfil "Default" (ID 6ad590ecb3b6377ac845ff7b). Cuentas sociales conectadas: **0**. Gasto del ciclo: USD 0.
 - Plan de Zernio: **PENDIENTE** de confirmar en zernio.com/pricing. Las fuentes no coinciden en el límite de publicaciones del plan gratis (20 al mes o ilimitado) ni en si el conector MCP es de pago.
 
 ## Cuentas y permisos
