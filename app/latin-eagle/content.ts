@@ -70,12 +70,16 @@ export const GIROS_COUNTRIES = ["Ecuador", "Colombia", "Perú", "Venezuela", "M�
 type Label = { es: string; en: string };
 const same = (name: string): Label => ({ es: name, en: name });
 export const PRODUCT_GROUPS: { id: string; title: Label; items: { file: string; name: Label }[] }[] = [
-  { id: "bebidas", title: { es: "Bebidas", en: "Drinks" }, items: [
+  { id: "bebidas", title: { es: "Bebidas y lácteos", en: "Drinks and dairy" }, items: [
     { file: "pony-malta-coca-cola", name: same("Pony Malta y Coca-Cola") },
     { file: "vive100", name: same("Vive100") },
     { file: "220v-guitig", name: { es: "220V y agua Güitig", en: "220V and Güitig water" } },
     { file: "pulp", name: { es: "Néctar Pulp", en: "Pulp nectar" } },
+    { file: "te-hornimans", name: { es: "Aguas aromáticas Hornimans", en: "Hornimans herbal teas" } },
+    { file: "ricacao", name: same("Ricacao") },
+    { file: "la-vaquita", name: { es: "Leche La Vaquita", en: "La Vaquita milk" } },
     { file: "toni-yogurt", name: { es: "Bebida láctea Toni", en: "Toni dairy drink" } },
+    { file: "toni-mix", name: { es: "Yogur Toni Mix", en: "Toni Mix yogurt" } },
   ] },
   { id: "dulces", title: { es: "Galletas y dulces", en: "Cookies and sweets" }, items: [
     { file: "galletas-amor", name: { es: "Galletas Amor", en: "Amor cookies" } },
@@ -86,10 +90,21 @@ export const PRODUCT_GROUPS: { id: string; title: Label; items: { file: string; 
   { id: "despensa", title: { es: "Despensa", en: "Pantry" }, items: [
     { file: "panela-valdez", name: same("Panela Valdez") },
     { file: "chocolate-ambateno", name: same("Chocolate Ambateño") },
-    { file: "la-vaquita", name: { es: "Leche La Vaquita", en: "La Vaquita milk" } },
+    { file: "harina-ya", name: { es: "Harina YA", en: "YA flour" } },
     { file: "maicena-royal", name: same("Maicena Royal") },
+    { file: "rapidito", name: { es: "Fideos Rapidito", en: "Rapidito noodles" } },
+    { file: "alinos-condimensa", name: { es: "Aliños Condimensa", en: "Condimensa seasonings" } },
+    { file: "salsas-la-favorita", name: { es: "Salsas La Favorita y salsa china", en: "La Favorita and soy sauces" } },
     { file: "higos-chochos-harina", name: { es: "Higos, chochos y harina", en: "Figs, chochos and flour" } },
     { file: "sambolon", name: { es: "Bolones Sambolón", en: "Sambolón bolones" } },
+  ] },
+  { id: "congelados", title: { es: "Congelados", en: "Frozen" }, items: [
+    { file: "papa-criolla", name: { es: "Papa criolla Mi País", en: "Mi País yellow potato" } },
+    { file: "choclo-desgranado", name: { es: "Choclo desgranado", en: "Corn kernels (choclo)" } },
+    { file: "empanadas-verde", name: { es: "Empanadas de verde", en: "Green plantain empanadas" } },
+    { file: "babaco", name: same("Babaco") },
+    { file: "sambo-mama-tere", name: { es: "Sambo Mama Tere", en: "Mama Tere sambo squash" } },
+    { file: "conchas-negras", name: { es: "Conchas negras", en: "Black clams (conchas)" } },
   ] },
   { id: "hogar", title: { es: "Hogar y cuidado personal", en: "Home and personal care" }, items: [
     { file: "axion", name: same("Axion") },
