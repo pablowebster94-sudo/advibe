@@ -96,8 +96,8 @@ export default function DriveVehiclePage() {
       });
       if (!response.ok) throw new Error("No se pudo guardar");
       const result = await response.json();
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Lead", { content_name: vehicle.name, content_category: "vehicle" }, { eventID: result.eventId });
+      if (typeof window !== "undefined" && window.fbq) {
+        window.fbq("track", "Lead", { content_name: vehicle.name, content_category: "vehicle" }, { eventID: result.eventId });
       }
       setSubmitted(true);
     } catch {

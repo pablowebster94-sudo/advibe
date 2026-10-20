@@ -14,5 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/casos`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     ...cases,
+    { url: `${baseUrl}/latin-eagle`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
 }

@@ -17,11 +17,19 @@ export default function MetaPixel() {
     typeof window !== "undefined" &&
     window.location.pathname.startsWith("/drive/");
 
+  // Latin Eagle: solo su propio Pixel (si se configura), nunca el de AdVibe.
+  const isLatinEagle =
+    typeof window !== "undefined" &&
+    (window.location.pathname.startsWith("/latin-eagle") ||
+      (process.env.NEXT_PUBLIC_LATIN_EAGLE_HOSTS || "").split(",").map(h => h.trim()).filter(Boolean).includes(window.location.hostname));
+
   const pixelId = isAMMotorsport
     ? AM_MOTORSPORT_PIXEL_ID
-    : isEnfoque
-      ? process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID || ENFOQUE_PIXEL_ID
-      : process.env.NEXT_PUBLIC_META_PIXEL_ID;
+    : isLatinEagle
+      ? process.env.NEXT_PUBLIC_LATIN_EAGLE_META_PIXEL_ID
+      : isEnfoque
+        ? process.env.NEXT_PUBLIC_ENFOQUE_META_PIXEL_ID || ENFOQUE_PIXEL_ID
+        : process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
   if (!pixelId) return null;
 

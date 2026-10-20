@@ -52,6 +52,8 @@ export default function ControlPage(){
   useEffect(()=>{
     try {
       const saved=localStorage.getItem("advibe-control-v2");
+      // Cargar localStorage tras el montaje es intencional (evita desajustes de hidratación).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if(saved){const x=JSON.parse(saved); if(x.clients)setClients(x.clients.map((c:Client)=>{const seed=initialClients.find(s=>s.id===c.id);return seed?{...c,monthly:seed.monthly,day:seed.day,production:seed.production,notes:seed.notes}:c;}));if(x.charges)setCharges(x.charges);if(x.production)setProduction(x.production);}
     } catch {}
     setReady(true);
