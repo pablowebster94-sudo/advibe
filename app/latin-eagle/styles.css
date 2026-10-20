@@ -61,8 +61,18 @@ body:has(.le-root){background:#0a0a0a}
 .le-social{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--le-line);color:var(--le-gold)}
 .le-social:hover{background:var(--le-gold);color:#000}
 
-/* WhatsApp flotante: siempre a mano en el celular */
-.le-float{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:50;display:inline-flex;align-items:center;gap:8px;min-height:58px;padding:0 18px 0 16px;border-radius:999px;background:#25d366;color:#052e14;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 3px rgba(10,10,10,.6)}
+/* WhatsApp flotante: compacto en móvil para no tapar contenido ni CTA */
+.le-float{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:50;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:56px;height:56px;padding:0;border-radius:999px;background:#25d366;color:#052e14;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.42),0 0 0 3px rgba(10,10,10,.72)}
 .le-float:hover{background:#2ee673}
-@media (min-width:768px){.le-float{padding:0 16px;min-height:60px}.le-float-text{display:none}}
+.le-float .h-7{width:26px;height:26px}
+.le-float-text{display:none}
+@media (min-width:768px){.le-float{width:auto;height:56px;padding:0 18px}.le-float-text{display:inline}}
 @media (prefers-reduced-motion:reduce){.le-root *{transition:none!important;scroll-behavior:auto!important}}
+
+
+/* Vista de ubicación ligera y fiable: no depende de que el iframe de Maps cargue dentro del navegador. */
+.le-map-preview{position:relative;display:flex;min-height:320px;align-items:flex-end;isolation:isolate;padding:24px;background:radial-gradient(ellipse at 50% 25%,rgba(242,194,48,.17),transparent 35%),linear-gradient(145deg,#191919,#0b0b0b 70%);border-color:var(--le-line)}
+.le-map-grid{position:absolute;inset:0;z-index:-1;opacity:.42;background-image:linear-gradient(rgba(242,194,48,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(242,194,48,.12) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,black,transparent 88%)}
+.le-map-pin{position:absolute;top:22%;left:50%;display:grid;width:64px;height:64px;place-items:center;transform:translateX(-50%);border:1px solid rgba(242,194,48,.4);border-radius:50%;background:rgba(242,194,48,.12);color:var(--le-gold);box-shadow:0 0 0 12px rgba(242,194,48,.05)}
+.le-map-caption{position:relative;width:100%;padding:22px;border:1px solid var(--le-line);border-radius:18px;background:rgba(10,10,10,.88);backdrop-filter:blur(8px)}
+@media (min-width:768px){.le-map-preview{min-height:420px;padding:28px}.le-map-pin{top:24%;width:76px;height:76px}}
