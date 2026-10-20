@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root { color-scheme: light; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-height: 100vh; font-family: Arial, Helvetica, sans-serif; }
+* { box-sizing: border-box; }
+::selection { background: #e5b85c; color: #143f35; }
+a { text-decoration: none; }
+button, a { -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
