@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
-  BUSINESS, COMPRAS_ECUADOR, GIROS_COUNTRIES, PRODUCT_GROUPS, HOURS, INSTAGRAM_URL, FACEBOOK_URL, MAPS_DIRECTIONS, MAPS_EMBED, T, WA_MESSAGES, waLink,
+  BUSINESS, COMPRAS_ECUADOR, GIROS_COUNTRIES, PRODUCT_GROUPS, HOURS, INSTAGRAM_URL, FACEBOOK_URL, MAPS_DIRECTIONS, T, WA_MESSAGES, waLink,
   type Copy, type Lang, type ServiceId,
 } from "./content";
 
@@ -173,8 +173,15 @@ function Location({ t, lang }: { t: Copy; lang: Lang }) {
     <div className="le-wrap">
       <h2 id="le-location-title" className="le-display text-center text-3xl md:text-5xl">{t.locationTitle}</h2>
       <div className="mt-9 grid gap-5 md:grid-cols-[1.4fr_1fr]">
-        <div className="le-map">
-          <iframe src={MAPS_EMBED} title={t.mapTitle} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen className="h-full w-full border-0" />
+        <div className="le-map le-map-preview">
+          <div className="le-map-grid" aria-hidden="true" />
+          <div className="le-map-pin" aria-hidden="true"><PinIcon className="h-8 w-8" /></div>
+          <div className="le-map-caption">
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--le-gold)]">Latin Eagle Multiservices</p>
+            <p className="mt-2 text-xl font-black">{BUSINESS.street}</p>
+            <p className="text-sm text-white/75">{BUSINESS.city}, {BUSINESS.region} {BUSINESS.postalCode}</p>
+            <a href={MAPS_DIRECTIONS} target="_blank" rel="noopener noreferrer" className="le-btn le-btn-gold mt-5"><PinIcon className="h-5 w-5" />{t.openMaps}</a>
+          </div>
         </div>
         <div className="le-card gap-5">
           <InfoRow icon={<PinIcon className="h-5 w-5" />} label={t.addressLabel}>
