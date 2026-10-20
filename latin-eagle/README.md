@@ -1,16 +1,29 @@
-# Latin Eagle Multiservices — Landing page
+# Latin Eagle Multiservices
 
-Landing page for Latin Eagle Multiservices, aimed at the Latino community in Long Island.
+Landing page en español para Latin Eagle Multiservices, orientada a la comunidad latina de Long Island.
 
-## Included
-- Responsive Spanish-language landing page
-- Service cards for money transfers, international parcels, airline tickets, bill payments, phone top-ups, and copies/printing
-- Featured Ecuador parcel promotion ($28 for 8 lb) with terms and availability to be confirmed
-- FAQ accordion
-- WhatsApp CTAs configured via environment variable
+## Ejecutar localmente
 
-## Configure WhatsApp
-Set `NEXT_PUBLIC_LATIN_EAGLE_WHATSAPP` to the business number in international format, digits only (example format: 16315551234, replace with the real number). Until set, buttons point to the contact section.
+```bash
+npm install
+npm run dev
+```
 
-## Integration
-This page is added under `latin-eagle/app/page.tsx` so it does not replace the existing AdVibe homepage. To deploy as a standalone site, create a new Next.js project and move this page to `app/page.tsx`, or create a separate repository.
+## Configurar WhatsApp
+
+Crea un archivo `.env.local` y define `NEXT_PUBLIC_LATIN_EAGLE_WHATSAPP` con el número real del negocio en formato internacional, solo dígitos. Hasta configurarlo, los CTA redirigen a la sección de contacto.
+
+## Contenido
+
+- Envío de dinero
+- Paquetería internacional
+- Boletos de avión
+- Pago de facturas
+- Recargas telefónicas
+- Copias e impresiones
+- Promoción referencial de 8 lb por $28 para Ecuador; consultar condiciones y vigencia
+- Preguntas frecuentes y CTAs de contacto
+
+## Antes de publicar
+
+Confirmar número de WhatsApp, dirección, horario, canales sociales, condiciones actuales de la promoción y dominio. Las referencias visuales externas pueden sustituirse por fotos aprobadas de la marca.
