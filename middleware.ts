@@ -44,8 +44,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Dominio propio de Latin Eagle (si lo compran): NEXT_PUBLIC_LATIN_EAGLE_HOSTS="latineagle.com,www.latineagle.com".
+  const isLatinEagle = (process.env.NEXT_PUBLIC_LATIN_EAGLE_HOSTS || "").split(",").map(h => h.trim()).filter(Boolean).includes(host);
+
   let response: NextResponse;
-  if (isEV && !path.startsWith("/enfoque-visual") && !path.startsWith("/api/") && !path.startsWith("/_next/")) {
+  if (isLatinEagle && !path.startsWith("/latin-eagle") && !path.startsWith("/_next/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/latin-eagle" + (path === "/" ? "" : path);
+    response = NextResponse.rewrite(url,{request:{headers:requestHeaders}});
+  } else if (isEV &&!path.startsWith("/enfoque-visual") && !path.startsWith("/api/") && !path.startsWith("/_next/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/enfoque-visual" + (path === "/" ? "" : path);
     response = NextResponse.rewrite(url,{request:{headers:requestHeaders}});

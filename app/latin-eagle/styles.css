@@ -1,0 +1,62 @@
+/* Identidad de Latin Eagle: negro, dorado y blanco, como su logo. Todo va bajo .le-root. */
+body:has(.le-root){background:#0a0a0a}
+.le-root{--le-black:#0a0a0a;--le-panel:#141414;--le-line:rgba(242,194,48,.22);--le-gold:#f2c230;--le-gold-deep:#c8950f;--le-white:#fff;
+  min-height:100vh;background:var(--le-black);color:var(--le-white);font-family:var(--font-le),system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.le-root a,.le-root button{transition:background-color .2s ease,color .2s ease,border-color .2s ease,transform .2s ease}
+.le-root :focus-visible{outline:3px solid var(--le-gold);outline-offset:3px;border-radius:10px}
+.le-wrap{width:100%;max-width:1160px;margin:0 auto;padding-inline:16px}
+@media (min-width:768px){.le-wrap{padding-inline:28px}}
+.le-display{font-weight:900;letter-spacing:-.02em}
+.le-skip{position:absolute;left:-9999px;top:8px;z-index:60;background:var(--le-gold);color:#000;padding:10px 16px;border-radius:10px;font-weight:800}
+.le-skip:focus{left:8px}
+
+.le-header{position:sticky;top:0;z-index:40;background:rgba(10,10,10,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--le-line)}
+.le-navlink{padding:8px 12px;border-radius:999px;font-size:14px;font-weight:700;color:rgba(255,255,255,.85)}
+.le-navlink:hover{color:var(--le-gold)}
+.le-lang{min-width:48px;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--le-gold);color:var(--le-gold);font-weight:800;font-size:14px;letter-spacing:.06em}
+.le-lang:hover{background:var(--le-gold);color:#000}
+
+.le-hero{position:relative;overflow:hidden;background:
+  radial-gradient(60% 55% at 85% 20%,rgba(242,194,48,.16),transparent 70%),
+  radial-gradient(50% 45% at 0% 100%,rgba(242,194,48,.08),transparent 70%),var(--le-black);border-bottom:1px solid var(--le-line)}
+.le-logo{border-radius:50%;box-shadow:0 0 0 4px rgba(242,194,48,.35),0 24px 60px rgba(242,194,48,.18)}
+.le-eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--le-gold)}
+.le-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--le-line);background:rgba(255,255,255,.04);font-size:13px;font-weight:700}
+
+.le-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border-radius:14px;font-weight:800;font-size:16px;line-height:1.1;text-align:center}
+.le-btn:active{transform:scale(.98)}
+.le-btn-gold{background:linear-gradient(180deg,#f7cf4a,var(--le-gold) 55%,var(--le-gold-deep));color:#000;box-shadow:0 10px 30px rgba(242,194,48,.25)}
+.le-btn-gold:hover{background:#ffd95a}
+.le-btn-ghost{border:1.5px solid rgba(255,255,255,.7);color:#fff}
+.le-btn-ghost:hover{border-color:var(--le-gold);color:var(--le-gold)}
+.le-btn-outline{border:1.5px solid var(--le-gold);color:var(--le-gold)}
+.le-btn-outline:hover{background:var(--le-gold);color:#000}
+.le-btn-black{background:#000;color:var(--le-gold)}
+.le-btn-black:hover{background:#1c1c1c}
+
+.le-promo{padding:20px;border-radius:24px;background:linear-gradient(135deg,#ffd95a,var(--le-gold) 45%,var(--le-gold-deep))}
+@media (min-width:768px){.le-promo{padding:28px}}
+.le-badge{display:inline-block;padding:5px 12px;border-radius:999px;background:#000;color:var(--le-gold);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+
+.le-section{padding:64px 0}
+@media (min-width:768px){.le-section{padding:96px 0}}
+.le-section-alt{background:linear-gradient(180deg,#0f0f0f,#151208);border-block:1px solid var(--le-line)}
+.le-card{display:flex;flex-direction:column;padding:22px;border-radius:20px;background:var(--le-panel);border:1px solid var(--le-line)}
+.le-icon{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:rgba(242,194,48,.12);color:var(--le-gold);flex-shrink:0}
+.le-icon-sm{width:40px;height:40px;border-radius:12px}
+.le-highlight{margin-top:12px;padding:8px 12px;border-radius:10px;background:var(--le-gold);color:#000;font-weight:800;font-size:14px}
+.le-quote{margin-top:12px;font-weight:800;font-size:14px;color:var(--le-gold)}
+.le-country{padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;font-weight:600}
+
+.le-map{min-height:320px;border-radius:20px;overflow:hidden;border:1px solid var(--le-line);background:var(--le-panel)}
+@media (min-width:768px){.le-map{min-height:420px}}
+
+.le-footer{border-top:1px solid var(--le-line);background:#070707}
+.le-social{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:1px solid var(--le-line);color:var(--le-gold)}
+.le-social:hover{background:var(--le-gold);color:#000}
+
+/* WhatsApp flotante: siempre a mano en el celular */
+.le-float{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:50;display:inline-flex;align-items:center;gap:8px;min-height:58px;padding:0 18px 0 16px;border-radius:999px;background:#25d366;color:#052e14;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 3px rgba(10,10,10,.6)}
+.le-float:hover{background:#2ee673}
+@media (min-width:768px){.le-float{padding:0 16px;min-height:60px}.le-float-text{display:none}}
+@media (prefers-reduced-motion:reduce){.le-root *{transition:none!important;scroll-behavior:auto!important}}
