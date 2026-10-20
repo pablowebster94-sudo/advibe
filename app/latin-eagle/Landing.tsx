@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
-  BUSINESS, COMPRAS_ECUADOR, GIROS_COUNTRIES, HOURS, INSTAGRAM_URL, FACEBOOK_URL, MAPS_DIRECTIONS, MAPS_EMBED, T, WA_MESSAGES, waLink,
+  BUSINESS, COMPRAS_ECUADOR, GIROS_COUNTRIES, PRODUCT_GROUPS, HOURS, INSTAGRAM_URL, FACEBOOK_URL, MAPS_DIRECTIONS, MAPS_EMBED, T, WA_MESSAGES, waLink,
   type Copy, type Lang, type ServiceId,
 } from "./content";
 
@@ -35,7 +35,7 @@ export default function Landing({ promoActive }: { promoActive: boolean }) {
       <Hero t={t} />
       {promoActive && <Promo t={t} />}
       <Services t={t} promoActive={promoActive} />
-      <Products t={t} />
+      <Products t={t} lang={lang} />
       <Location t={t} lang={lang} />
     </main>
     <Footer t={t} />
@@ -144,16 +144,26 @@ function Services({ t, promoActive }: { t: Copy; promoActive: boolean }) {
   </section>;
 }
 
-function Products({ t }: { t: Copy }) {
+function Products({ t, lang }: { t: Copy; lang: Lang }) {
   return <section className="le-section le-section-alt" aria-labelledby="le-products-title">
-    <div className="le-wrap grid items-center gap-8 md:grid-cols-2 md:gap-14">
-      <div className="order-2 text-center md:order-1 md:text-left">
+    <div className="le-wrap">
+      <div className="mx-auto max-w-2xl text-center">
         <h2 id="le-products-title" className="le-display text-3xl leading-tight md:text-5xl">{t.productsTitle}</h2>
         <p className="mt-4 text-white/75 md:text-lg">{t.productsText}</p>
-        <p className="mt-3 text-white/75">{t.services.productos.text}</p>
-        <WaLink service="productos" className="le-btn le-btn-gold mt-6"><WhatsAppIcon className="h-5 w-5" />{t.productsCta}</WaLink>
       </div>
-      <Image src="/latin-eagle/productos-ecuatorianos.webp" alt={t.productsAlt} width={800} height={1000} sizes="(min-width: 768px) 460px, calc(100vw - 32px)" className="order-1 mx-auto w-full max-w-[460px] rounded-3xl border border-[var(--le-gold)]/30 md:order-2" />
+      {PRODUCT_GROUPS.map(group => <div key={group.id} className="mt-10">
+        <h3 className="le-display text-xl text-[var(--le-gold)] md:text-2xl">{group.title[lang]}</h3>
+        <ul className="le-products mt-4">
+          {group.items.map(item => <li key={item.file} className="le-product">
+            <Image src={`/latin-eagle/productos/${item.file}.webp`} alt={item.name[lang]} width={720} height={720} sizes="(min-width: 1024px) 220px, (min-width: 768px) 25vw, 46vw" className="aspect-square w-full object-cover" />
+            <p className="px-3 py-2.5 text-sm font-bold leading-snug">{item.name[lang]}</p>
+          </li>)}
+        </ul>
+      </div>)}
+      <div className="mt-10 text-center">
+        <p className="text-white/75">{t.productsMore}</p>
+        <WaLink service="productos" className="le-btn le-btn-gold mt-4"><WhatsAppIcon className="h-5 w-5" />{t.productsCta}</WaLink>
+      </div>
     </div>
   </section>;
 }

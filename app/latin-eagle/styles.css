@@ -48,6 +48,12 @@ body:has(.le-root){background:#0a0a0a}
 .le-quote{margin-top:12px;font-weight:800;font-size:14px;color:var(--le-gold)}
 .le-country{padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;font-weight:600}
 
+/* Galería de productos: carrusel deslizable en móvil, cuadrícula en escritorio */
+.le-products{display:grid;grid-auto-flow:column;grid-auto-columns:46%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:-16px;padding:0 16px 8px;scrollbar-width:none}
+.le-products::-webkit-scrollbar{display:none}
+.le-product{scroll-snap-align:start;border-radius:16px;overflow:hidden;background:var(--le-panel);border:1px solid var(--le-line)}
+@media (min-width:768px){.le-products{grid-auto-flow:row;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible;margin-inline:0;padding:0}}
+@media (min-width:1024px){.le-products{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .le-map{min-height:320px;border-radius:20px;overflow:hidden;border:1px solid var(--le-line);background:var(--le-panel)}
 @media (min-width:768px){.le-map{min-height:420px}}
 

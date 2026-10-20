@@ -66,6 +66,37 @@ export const WA_MESSAGES: Record<ServiceId | "general", string> = {
 
 export const GIROS_COUNTRIES = ["Ecuador", "Colombia", "Perú", "Venezuela", "México", "El Salvador", "Honduras", "Nicaragua", "Costa Rica"];
 
+// Fotos de productos del local (public/latin-eagle/productos/, 720x720). Sin precios.
+type Label = { es: string; en: string };
+const same = (name: string): Label => ({ es: name, en: name });
+export const PRODUCT_GROUPS: { id: string; title: Label; items: { file: string; name: Label }[] }[] = [
+  { id: "bebidas", title: { es: "Bebidas", en: "Drinks" }, items: [
+    { file: "pony-malta-coca-cola", name: same("Pony Malta y Coca-Cola") },
+    { file: "vive100", name: same("Vive100") },
+    { file: "220v-guitig", name: { es: "220V y agua Güitig", en: "220V and Güitig water" } },
+    { file: "pulp", name: { es: "Néctar Pulp", en: "Pulp nectar" } },
+    { file: "toni-yogurt", name: { es: "Bebida láctea Toni", en: "Toni dairy drink" } },
+  ] },
+  { id: "dulces", title: { es: "Galletas y dulces", en: "Cookies and sweets" }, items: [
+    { file: "galletas-amor", name: { es: "Galletas Amor", en: "Amor cookies" } },
+    { file: "galletas-dulces", name: same("Festival, Oreo, Monstruosas y más") },
+    { file: "bon-o-bon", name: same("Bon o Bon") },
+    { file: "gelatoni", name: same("GelaToni") },
+  ] },
+  { id: "despensa", title: { es: "Despensa", en: "Pantry" }, items: [
+    { file: "panela-valdez", name: same("Panela Valdez") },
+    { file: "chocolate-ambateno", name: same("Chocolate Ambateño") },
+    { file: "la-vaquita", name: { es: "Leche La Vaquita", en: "La Vaquita milk" } },
+    { file: "maicena-royal", name: same("Maicena Royal") },
+    { file: "higos-chochos-harina", name: { es: "Higos, chochos y harina", en: "Figs, chochos and flour" } },
+    { file: "sambolon", name: { es: "Bolones Sambolón", en: "Sambolón bolones" } },
+  ] },
+  { id: "hogar", title: { es: "Hogar y cuidado personal", en: "Home and personal care" }, items: [
+    { file: "axion", name: same("Axion") },
+    { file: "protex-ales-ajax", name: same("Protex, Ales y Ajax") },
+  ] },
+];
+
 const promoEndLabel = { es: "1 de noviembre de 2026", en: "November 1, 2026" };
 
 export const T = {
@@ -120,8 +151,8 @@ export const T = {
       },
     },
     productsTitle: "Productos de nuestra tierra, más cerca de ti",
-    productsText: "Tus marcas favoritas de Ecuador y Latinoamérica, en un solo lugar en Patchogue.",
-    productsAlt: "Productos ecuatorianos y latinos disponibles en Latin Eagle: panela, galletas Amor, Tapioca, gelatina Royal, Pony Malta, Vive100 y néctares",
+    productsText: "Tus marcas favoritas de Ecuador y Latinoamérica, y productos para el hogar, en un solo lugar en Patchogue. Estos son algunos:",
+    productsMore: "¿Buscas algo que no ves aquí? Pregúntanos.",
     productsCta: "Preguntar por un producto",
     promoAlt: `Promoción de envíos a Colombia por carga aérea: ${COLOMBIA_PROMO.pounds} libras por $${COLOMBIA_PROMO.price}, hasta el ${promoEndLabel.es}`,
     locationTitle: "Visítanos en Patchogue",
@@ -192,8 +223,8 @@ export const T = {
       },
     },
     productsTitle: "Products from home, closer to you",
-    productsText: "Your favorite brands from Ecuador and Latin America, all in one place in Patchogue.",
-    productsAlt: "Ecuadorian and Latin products at Latin Eagle: panela, Amor cookies, Tapioca, Royal gelatin, Pony Malta, Vive100 and nectars",
+    productsText: "Your favorite brands from Ecuador and Latin America, plus home essentials, all in one place in Patchogue. Here are a few:",
+    productsMore: "Looking for something you don't see here? Just ask.",
     productsCta: "Ask about a product",
     promoAlt: `Air cargo shipping offer to Colombia: ${COLOMBIA_PROMO.pounds} pounds for $${COLOMBIA_PROMO.price}, through ${promoEndLabel.en}`,
     locationTitle: "Visit us in Patchogue",
