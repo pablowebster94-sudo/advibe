@@ -19,7 +19,7 @@ Si no se puede consultar la página, usa como respaldo el patrón de nombre y m�
 
 | Slug | Cliente | Página de Facebook (page_id) en Enfoque Visual ADS | Notas |
 |---|---|---|---|
-| `kamauto` | KAMAUTO | ❓ "Komauto Importadora" (106355732206742), sin anuncios | ¿Es la misma marca con otra ortografía? Confirmar |
+| `kamauto` | KAMAUTO | ❓ "Komauto Importadora" (106355732206742), sin anuncios | ¿Es la misma marca con otra ortografía? Confirmar. **Vende repuestos de autos, no autos** (confirmado por Pablo, 22-10-2026). Local en Cuenca. No quiere anuncios pagados: quiere videos, visitas, lives y manejo de su web nueva (tienda de repuestos) |
 | `muebles-ideal` | MUEBLES IDEAL | Muebles Ideal (201588683278071, campaña "MI Libertad"), Muebles Ideal Montecristi (109810038381949, campaña "MI Montecristi") y Paola Miguitama (1226660540522114) | **Dos ubicaciones: Gualaceo y Montecristi** (confirmado por Pablo). "Pendiente prod. Manta" = Montecristi. También tiene anuncios propios activos fuera de esta cuenta |
 | `paola-miguitama` | PAOLA MIGUITAMA | Paola Miguitama (1226660540522114) | **Mismo negocio que Muebles Ideal** (confirmado por Pablo, 2026-09-27). Campañas: MENSAJES PM, PM ago, Dormitorios |
 | `sb-cuenca` | CLUB SANTA BÁRBARA CUENCA | ❓ Sus campañas salen de la página de Gualaceo | CONFLICTO: ¿no tiene página propia? |
