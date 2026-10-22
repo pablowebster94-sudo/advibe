@@ -5,13 +5,7 @@ import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
-const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
 const rotatingWords = ["venden.", "atraen.", "convierten."];
-const system = [
-  { number: "01", title: "Estrategia", text: "Definimos qué decir, a quién y por qué." },
-  { number: "02", title: "Creación", text: "Convertimos ideas en contenido que se recuerda." },
-  { number: "03", title: "Performance", text: "Medimos, optimizamos y hacemos que avance." },
-];
 
 export default function Hero() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -52,53 +46,17 @@ export default function Hero() {
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <EventButton href="#contacto" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} leadOnClick className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi negocio <span className="ml-2">↗</span></EventButton>
-              <Button href="#portafolio" variant="secondary" className="rounded-full border-white/10 bg-white/[0.03] px-7 py-4 text-white hover:border-white/20 hover:bg-white/[0.08]">Ver casos</Button>
+              <Button href="#trabajo" variant="secondary" className="rounded-full border-white/10 bg-white/[0.03] px-7 py-4 text-white hover:border-white/20 hover:bg-white/[0.08]">Ver nuestro trabajo</Button>
             </div>
           </div>
 
-          <div className="relative lg:pb-1">
-            <div className="border-l border-white/10 pl-6 sm:pl-8">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-500">Cómo hacemos que pase</p>
-                <span className="flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-lime-300/70"><span className="h-1.5 w-1.5 rounded-full bg-lime-300 shadow-[0_0_12px_rgba(120,217,79,.8)]" /> AdVibe system</span>
+          <div className="relative hidden w-full max-w-[300px] lg:block lg:justify-self-end">
+            <div className="relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_40px_120px_-50px_rgba(120,217,79,.45)]">
+              <video src="/videos/am-mini-cooper.mp4" poster="/videos/am-mini-cooper.jpg" autoPlay muted loop playsInline preload="metadata" aria-label="Reel de vehículo producido por AdVibe para AM Motorsport" className="h-full w-full object-cover" />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lime-300">Trabajo real</p>
+                <p className="mt-1 text-sm font-semibold text-white">AM Motorsport · Reel de vehículo</p>
               </div>
-              <p className="mt-5 max-w-md text-2xl font-medium leading-tight tracking-[-0.035em] text-white sm:text-3xl">Creatividad que comunica.<br />Tecnología que acelera.</p>
-
-              <div className="mt-8">
-                {system.map((item) => (
-                  <div key={item.number} className="group relative border-t border-white/10 py-4 last:border-b">
-                    <div className="flex items-start gap-4">
-                      <span className="pt-0.5 font-mono text-[10px] text-lime-300/80">{item.number}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-semibold text-white transition-colors group-hover:text-lime-300">{item.title}</p>
-                          <span className="text-slate-600 transition-transform group-hover:translate-x-1">↗</span>
-                        </div>
-                        <p className="mt-1 max-w-sm text-xs leading-5 text-slate-500">{item.text}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-7 flex flex-wrap gap-2">
-                {highlights.map((item, index) => (
-                  <span key={item} className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[10px] font-medium text-slate-400">0{index + 1} · {item}</span>
-                ))}
-              </div>
-              <div className="mt-8 flex items-center gap-3 text-xs text-slate-500">
-                <span className="h-1.5 w-1.5 rounded-full bg-lime-300 shadow-[0_0_14px_rgba(120,217,79,.8)]" />
-                Ecuador + Estados Unidos
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-20 border-t border-white/10 pt-5 sm:mt-24">
-          <div className="flex flex-wrap items-center justify-between gap-5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-600">AdVibe / Creative systems</p>
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span>Contenido</span><span className="text-lime-300">×</span><span>Performance</span><span className="text-lime-300">×</span><span>Technology</span>
             </div>
           </div>
         </div>

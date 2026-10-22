@@ -1,50 +1,91 @@
-import { services } from "@/lib/content";
+const main = [
+  {
+    icon: "▶",
+    title: "Contenido y video",
+    benefit: "Videos que la gente mira hasta el final y recuerda.",
+    points: ["Reels y sketches con guion", "Videos de producto e institucionales", "Fotografía profesional"],
+    whatsapp: "Hola, quiero cotizar contenido y video para mi negocio.",
+  },
+  {
+    icon: "◎",
+    title: "Meta Ads",
+    benefit: "Anuncios en Facebook e Instagram que traen mensajes a tu WhatsApp.",
+    points: ["Campañas a personas de tu zona", "Creatividades hechas para vender", "Seguimiento y optimización semanal"],
+    whatsapp: "Hola, quiero que revisen mis anuncios de Facebook e Instagram.",
+  },
+  {
+    icon: "◇",
+    title: "Web y Google",
+    benefit: "Que te encuentren cuando buscan lo que vendes.",
+    points: ["Páginas web y landing pages", "Ficha de Google optimizada", "WhatsApp y formularios conectados"],
+    whatsapp: "Hola, quiero información sobre páginas web y Google para mi negocio.",
+  },
+];
+
+const extras = [
+  "Gestión de redes sociales",
+  "Branding e identidad visual",
+  "Cobertura de eventos",
+  "Automatización y chatbots",
+  "CRM y seguimiento de clientes",
+  "Inteligencia artificial",
+  "Consultoría estratégica",
+];
 
 export default function Services() {
   return (
-    <section id="servicios" className="relative overflow-hidden bg-[#f1f2ef] py-24 text-slate-950 sm:py-32 lg:py-40">
-      <div className="pointer-events-none absolute right-[-14rem] top-[-12rem] h-[42rem] w-[42rem] rounded-full border border-slate-900/[0.06]" />
-      <div className="pointer-events-none absolute right-[-7rem] top-[-5rem] h-[27rem] w-[27rem] rounded-full border border-lime-600/[0.12]" />
+    <section id="servicios" className="relative bg-[#05070a] py-24 sm:py-28">
       <div className="mx-auto max-w-7xl px-6">
-        <div className="grid gap-10 lg:grid-cols-[1fr_0.7fr] lg:items-end">
-          <div>
-            <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.32em] text-slate-500">
-              <span className="h-px w-8 bg-lime-600" /> 01 / Capacidades
-            </p>
-            <h2 className="mt-6 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.065em] sm:text-6xl lg:text-8xl">
-              Lo que tu marca necesita para avanzar.
-            </h2>
-          </div>
-          <div className="lg:pb-2 lg:pl-10">
-            <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              No vendemos una lista de servicios por separado. Combinamos creatividad, performance y tecnología según el problema que necesita resolver tu negocio.
-            </p>
-            <div className="mt-7 flex items-center gap-4 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-              <span className="text-slate-950">13 capacidades</span>
-              <span className="h-px w-10 bg-slate-300" />
-              <span>Un solo equipo</span>
-            </div>
-          </div>
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">Servicios</p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
+            Tres formas de traer más clientes a tu negocio.
+          </h2>
+          <p className="mt-5 text-base leading-7 text-slate-400 sm:text-lg">
+            Elegimos solo lo que tu negocio necesita. Muchas veces la mejor combinación es contenido + anuncios.
+          </p>
         </div>
 
-        <div className="mt-16 border-t border-slate-300">
-          {services.map((service) => (
-            <article key={service.title} className="group relative border-b border-slate-300">
-              <div className="relative grid gap-5 px-1 py-8 transition-all duration-500 sm:py-10 lg:grid-cols-[100px_1.05fr_0.9fr_48px] lg:items-center lg:gap-8 lg:px-5 lg:py-11">
-                <div className="absolute inset-0 -z-0 origin-left scale-x-0 bg-[#07100b] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-x-100" />
-                <span className="relative z-10 font-mono text-xs font-medium text-slate-400 transition-colors duration-500 group-hover:text-lime-300">{service.icon}</span>
-                <h3 className="relative z-10 max-w-2xl text-2xl font-semibold tracking-[-0.045em] text-slate-950 transition-colors duration-500 sm:text-3xl lg:text-[2.15rem] lg:leading-none group-hover:text-white">{service.title}</h3>
-                <p className="relative z-10 max-w-xl text-sm leading-6 text-slate-500 transition-colors duration-500 sm:text-[15px] lg:justify-self-end group-hover:text-white/60">{service.description}</p>
-                <span className="relative z-10 hidden justify-self-end text-xl text-slate-300 transition-all duration-500 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-lime-300 sm:block">↗</span>
-              </div>
-              <div className="absolute bottom-0 left-0 h-px w-0 bg-lime-300 transition-all duration-500 group-hover:w-full" />
+        <div className="mt-14 grid gap-5 lg:grid-cols-3">
+          {main.map((service) => (
+            <article
+              key={service.title}
+              className="group flex flex-col rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-8 transition-colors duration-300 hover:border-lime-300/40 sm:p-10"
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 text-lg text-lime-300 transition-colors duration-300 group-hover:border-lime-300/40 group-hover:bg-lime-300/10">
+                {service.icon}
+              </span>
+              <h3 className="mt-7 text-2xl font-semibold tracking-[-0.03em] text-white">{service.title}</h3>
+              <p className="mt-3 text-base leading-7 text-slate-300">{service.benefit}</p>
+              <ul className="mt-7 space-y-3 border-t border-white/10 pt-7">
+                {service.points.map((point) => (
+                  <li key={point} className="flex items-start gap-3 text-sm leading-6 text-slate-400">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-lime-300" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href={`https://wa.me/593984966335?text=${encodeURIComponent(service.whatsapp)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-auto inline-flex w-fit items-center pt-9 text-sm font-semibold text-lime-300 transition hover:text-lime-200"
+              >
+                Cotizar por WhatsApp <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+              </a>
             </article>
           ))}
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 pt-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>01—13 / Capacidades AdVibe</span>
-          <span>Seleccionamos solo lo que aporta al objetivo.</span>
+        <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <p className="shrink-0 text-sm font-semibold text-slate-300">También hacemos:</p>
+          <ul className="flex flex-wrap gap-2">
+            {extras.map((extra) => (
+              <li key={extra} className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-400">
+                {extra}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

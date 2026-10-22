@@ -13,7 +13,7 @@ export default function Portfolio() {
   return (
     <section id="portafolio" className="relative overflow-hidden bg-[#05070a] py-28 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeading eyebrow="02 / Trabajo real" title="Ideas que salieron del estudio y llegaron al mercado." description="Una selección de proyectos reales de AdVibe. Estrategia, creatividad, contenido y performance aplicados a objetivos concretos." />
+        <SectionHeading eyebrow="Casos" title="Proyectos completos, de la idea al resultado." description="Una selección de proyectos reales de AdVibe. Estrategia, creatividad, contenido y performance aplicados a objetivos concretos." />
 
         <div className="mt-16 overflow-hidden rounded-[2rem] border border-white/10">
           {projects.map((project) => (

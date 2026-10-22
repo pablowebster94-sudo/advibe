@@ -49,7 +49,7 @@ export default function AIShowcase() {
           <div className="flex flex-col justify-between border-t border-white/10 bg-white/[0.02] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
             <div><p className="text-[10px] uppercase tracking-[0.3em] text-slate-600">Enfoque AdVibe</p><p className="mt-6 text-6xl font-semibold tracking-[-0.07em] text-lime-300 sm:text-7xl">{demo.metric}</p><p className="mt-2 text-sm text-slate-500">{demo.metricLabel}</p></div>
             <div className="mt-12 border-t border-white/10 pt-6"><p className="text-sm font-semibold text-white">Cada sistema se diseña a medida.</p><p className="mt-2 text-xs leading-5 text-slate-600">No añadimos tecnología por moda. La usamos cuando resuelve un problema real.</p></div>
-            <EventButton href="#diagnostico" eventName="ai_showcase_cta" eventParams={{ source: "ai_showcase", demo: demo.id }} className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-lime-300 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-200">Implementar en mi marca ↗</EventButton>
+            <EventButton href="/diagnostico" eventName="ai_showcase_cta" eventParams={{ source: "ai_showcase", demo: demo.id }} className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-lime-300 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-200">Implementar en mi marca ↗</EventButton>
           </div>
         </div>
       </div>

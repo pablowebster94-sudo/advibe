@@ -3,15 +3,12 @@ import Hero from "@/components/Hero";
 import Showreel from "@/components/Showreel";
 import { homeReels } from "@/lib/reels";
 import ConversionStrategy from "@/components/ConversionStrategy";
-import Clients from "@/components/Clients";
 import ClientsMarquee from "@/components/ClientsMarquee";
 import Services from "@/components/Services";
 import AIShowcase from "@/components/AIShowcase";
 import Process from "@/components/Process";
 import Portfolio from "@/components/Portfolio";
-import Stats from "@/components/Stats";
 import Testimonials from "@/components/Testimonials";
-import DigitalAudit from "@/components/DigitalAudit";
 import CTA from "@/components/CTA";
 import GoatReveal from "@/components/GoatReveal";
 import Footer from "@/components/Footer";
@@ -28,16 +25,13 @@ export default function Home() {
         <Navbar />
         <Hero />
         <Showreel reels={homeReels} />
-        <ConversionStrategy />
         <ClientsMarquee />
+        <ConversionStrategy />
         <Services />
         <Portfolio />
         <Process />
         <AIShowcase />
-        <Stats />
-        <Clients />
         <Testimonials />
-        <DigitalAudit />
         <CTA />
         <GoatReveal />
         <Footer />

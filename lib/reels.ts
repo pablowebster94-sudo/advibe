@@ -23,7 +23,7 @@ const all: Reel[] = [
 const byId = (ids: string[]) => ids.map((id) => all.find((reel) => reel.id === id)).filter((reel): reel is Reel => Boolean(reel));
 
 /** Selección corta para la página principal: un video por rubro. */
-export const homeReels = byId(["kamauto", "am-mini-cooper", "restaurante", "muebles", "rocys", "aa-school", "cetad"]);
+export const homeReels = byId(["kamauto", "restaurante", "muebles", "rocys", "aa-school", "cetad"]);
 
 /** Galería completa para /casos. */
 export const allReels = all;

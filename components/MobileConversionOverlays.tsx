@@ -70,7 +70,7 @@ function DiagnosticBar() {
           <p className="text-sm font-semibold text-white">Descubre oportunidades</p>
         </div>
         <EventButton
-          href="#diagnostico"
+          href="/diagnostico"
           eventName="request_diagnostic"
           eventParams={{ source: "mobile_cta" }}
           leadOnClick
