@@ -8,8 +8,8 @@ export type Reel = {
 const all: Reel[] = [
   { id: "kamauto", client: "Kamauto", type: "Sketch comercial", sector: "Automotriz" },
   { id: "am-mini-cooper", client: "AM Motorsport", type: "Reel de vehículo", sector: "Automotriz" },
-  { id: "restaurante", client: "Restaurante", type: "Video gastronómico", sector: "Gastronomía" },
-  { id: "muebles", client: "Mueblería", type: "Video de producto", sector: "Retail" },
+  { id: "restaurante", client: "Bocabell", type: "Video gastronómico", sector: "Gastronomía" },
+  { id: "muebles", client: "Muebles Ideal", type: "Video de producto", sector: "Retail" },
   { id: "rocys", client: "Roxy's Joyería", type: "Video de catálogo", sector: "Retail" },
   { id: "aa-school", client: "AA School", type: "Campaña de inscripciones", sector: "Educación" },
   { id: "cetad", client: "CETAD San Lucas", type: "Video institucional", sector: "Salud" },
