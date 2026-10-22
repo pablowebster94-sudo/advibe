@@ -1,9 +1,12 @@
 import Link from "next/link";
+import Showreel from "@/components/Showreel";
+import { allReels } from "@/lib/reels";
 import { caseStudies } from "@/lib/cases";
 
 export const metadata = {
-  title: "Casos | AdVibe Agencia",
-  description: "Trabajo seleccionado de AdVibe: estrategia, creatividad, contenido, performance y tecnología.",
+  title: "Casos y videos | AdVibe Agencia · Gualaceo y Cuenca",
+  description: "Videos y proyectos de AdVibe para negocios del Azuay: automotriz, restaurantes, retail, educación y salud. Mira el trabajo real antes de escribirnos.",
+  alternates: { canonical: "https://www.advibeagencia.com/casos" },
 };
 
 const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];
@@ -33,6 +36,8 @@ export default function CasosPage() {
           </div>
         </div>
       </section>
+
+      <Showreel reels={allReels} eyebrow="Galería de videos" title="Videos que hemos producido para nuestros clientes." id="videos" />
 
       <section id="trabajos" className="mx-auto max-w-7xl px-6 pb-28 sm:px-8">
         <div className="mb-10 flex flex-wrap gap-2 border-b border-white/10 pb-6">

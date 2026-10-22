@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   keywords: ["AdVibe Agencia","agencia de marketing Gualaceo","agencia de marketing Cuenca","producción de video Cuenca","Meta Ads Azuay","videos para restaurantes","agencia de marketing Ecuador","Meta Ads Ecuador","inteligencia artificial para empresas","automatización comercial","desarrollo web Ecuador","producción audiovisual Ecuador"],
   alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
-  openGraph: { title: "AdVibe Agencia | Marketing, Meta Ads, Web e IA en Ecuador", description: "Creatividad, performance y tecnología conectadas para convertir atención en oportunidades de negocio.", url: siteUrl, siteName: "AdVibe Agencia", locale: "es_EC", type: "website" },
-  twitter: { card: "summary_large_image", title: "AdVibe Agencia | Marketing, IA y Automatización", description: "Estrategia, creatividad y tecnología para construir sistemas de crecimiento." },
+  openGraph: { title: "AdVibe Agencia | Marketing, Video y Meta Ads en Gualaceo, Cuenca y Azuay", description: "Videos y anuncios que traen clientes a tu WhatsApp. Agencia de marketing en Gualaceo para negocios de todo el Azuay.", url: siteUrl, siteName: "AdVibe Agencia", locale: "es_EC", type: "website" },
+  twitter: { card: "summary_large_image", title: "AdVibe Agencia | Marketing, Video y Meta Ads en el Azuay", description: "Videos y anuncios que traen clientes a tu WhatsApp." },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

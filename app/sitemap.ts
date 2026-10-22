@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { caseStudies } from "@/lib/cases";
+import { landings } from "@/lib/landings";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://www.advibeagencia.com";
@@ -13,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/casos`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+    ...landings.map((landing) => ({ url: `${baseUrl}/servicios/${landing.slug}`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.9 })),
+    { url: `${baseUrl}/diagnostico`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     ...cases,
     { url: `${baseUrl}/latin-eagle`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];

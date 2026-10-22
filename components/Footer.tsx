@@ -1,10 +1,17 @@
 import EventButton from "@/components/EventButton";
 
 const links = [
-  { label: "Soluciones", href: "#servicios" },
-  { label: "Casos de éxito", href: "#portafolio" },
-  { label: "Nuestra metodología", href: "#proceso" },
-  { label: "Diagnóstico", href: "#diagnostico" },
+  { label: "Soluciones", href: "/#servicios" },
+  { label: "Casos de éxito", href: "/casos" },
+  { label: "Nuestra metodología", href: "/#proceso" },
+  { label: "Diagnóstico", href: "/diagnostico" },
+];
+
+const serviceLinks = [
+  { label: "Agencia de marketing en Gualaceo", href: "/servicios/agencia-de-marketing-gualaceo" },
+  { label: "Producción de video en Cuenca", href: "/servicios/produccion-de-video-cuenca" },
+  { label: "Meta Ads en el Azuay", href: "/servicios/meta-ads-azuay" },
+  { label: "Videos para restaurantes", href: "/servicios/videos-para-restaurantes" },
 ];
 
 const socialLinks = [
@@ -56,6 +63,14 @@ export default function Footer() {
           <div className="mt-6 space-y-4">
             {links.map((link) => (
               <a key={link.label} href={link.href} className="block text-slate-400 transition hover:text-lime-300">
+                {link.label}
+              </a>
+            ))}
+          </div>
+          <h3 className="mt-10 font-semibold text-white">Servicios</h3>
+          <div className="mt-6 space-y-4">
+            {serviceLinks.map((link) => (
+              <a key={link.href} href={link.href} className="block text-slate-400 transition hover:text-lime-300">
                 {link.label}
               </a>
             ))}

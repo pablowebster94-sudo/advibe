@@ -1,25 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Reel } from "@/lib/reels";
 
-const reels = [
-  { src: "/videos/kamauto.mp4", poster: "/videos/kamauto.jpg", client: "Kamauto", type: "Sketch comercial" },
-  { src: "/videos/am-mini-cooper.mp4", poster: "/videos/am-mini-cooper.jpg", client: "AM Motorsport", type: "Reel de vehículo" },
-  { src: "/videos/restaurante.mp4", poster: "/videos/restaurante.jpg", client: "Restaurante", type: "Video gastronómico" },
-  { src: "/videos/muebles.mp4", poster: "/videos/muebles.jpg", client: "Mueblería", type: "Video de producto" },
-  { src: "/videos/rocys.mp4", poster: "/videos/rocys.jpg", client: "Roxy's Joyería", type: "Video de catálogo" },
-  { src: "/videos/aa-school.mp4", poster: "/videos/aa-school.jpg", client: "AA School", type: "Campaña de inscripciones" },
-  { src: "/videos/am-motorsport.mp4", poster: "/videos/am-motorsport.jpg", client: "AM Motorsport", type: "Reel de producto" },
-  { src: "/videos/colchones.mp4", poster: "/videos/colchones.jpg", client: "Tienda de descanso", type: "Video de producto" },
-  { src: "/videos/kamauto-entregas.mp4", poster: "/videos/kamauto-entregas.jpg", client: "Kamauto", type: "Entregas a clientes" },
-  { src: "/videos/marca-personal.mp4", poster: "/videos/marca-personal.jpg", client: "Marca personal", type: "Video de presentación" },
-  { src: "/videos/cetad.mp4", poster: "/videos/cetad.jpg", client: "CETAD San Lucas", type: "Video institucional" },
-  { src: "/videos/basquet.mp4", poster: "/videos/basquet.jpg", client: "Club de básquet", type: "Cobertura deportiva" },
-  { src: "/videos/mercedes.mp4", poster: "/videos/mercedes.jpg", client: "Producción creativa", type: "Video nocturno" },
-  { src: "/videos/sketch-ia.mp4", poster: "/videos/sketch-ia.jpg", client: "AdVibe", type: "Sketch con IA" },
-];
-
-function ReelCard({ reel }: { reel: (typeof reels)[number] }) {
+function ReelCard({ reel }: { reel: Reel }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
 
@@ -50,12 +34,13 @@ function ReelCard({ reel }: { reel: (typeof reels)[number] }) {
       <div className="relative aspect-[9/16] overflow-hidden rounded-[1.6rem] border border-white/10 bg-black">
         <video
           ref={ref}
-          src={reel.src}
-          poster={reel.poster}
+          src={`/videos/${reel.id}.mp4`}
+          poster={`/videos/${reel.id}.jpg`}
           muted
           loop
           playsInline
           preload="none"
+          aria-label={`${reel.type} para ${reel.client}, producido por AdVibe Agencia`}
           className="h-full w-full object-cover"
         />
         <button
@@ -75,18 +60,28 @@ function ReelCard({ reel }: { reel: (typeof reels)[number] }) {
   );
 }
 
-export default function Showreel() {
+type ShowreelProps = {
+  reels: Reel[];
+  eyebrow?: string;
+  title?: string;
+  id?: string;
+};
+
+export default function Showreel({
+  reels,
+  eyebrow = "Nuestro trabajo",
+  title = "Así se ve el contenido que hacemos para negocios del Azuay.",
+  id = "trabajo",
+}: ShowreelProps) {
   return (
-    <section id="trabajo" className="relative bg-[#05070a] py-20 sm:py-24">
+    <section id={id} className="relative bg-[#05070a] py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">Nuestro trabajo</p>
-        <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
-          Así se ve el contenido que hacemos para negocios del Azuay.
-        </h2>
-        <p className="mt-4 text-sm text-slate-500">Desliza para ver más →</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">{eyebrow}</p>
+        <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">{title}</h2>
+        {reels.length > 4 ? <p className="mt-4 text-sm text-slate-500">Desliza para ver más →</p> : null}
         <div className="-mx-6 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 sm:gap-6">
           {reels.map((reel) => (
-            <ReelCard key={reel.src} reel={reel} />
+            <ReelCard key={reel.id} reel={reel} />
           ))}
         </div>
       </div>
