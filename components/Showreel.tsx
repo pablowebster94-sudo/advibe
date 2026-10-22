@@ -7,7 +7,7 @@ const reels = [
   { src: "/videos/am-mini-cooper.mp4", poster: "/videos/am-mini-cooper.jpg", client: "AM Motorsport", type: "Reel de vehículo" },
   { src: "/videos/restaurante.mp4", poster: "/videos/restaurante.jpg", client: "Restaurante", type: "Video gastronómico" },
   { src: "/videos/muebles.mp4", poster: "/videos/muebles.jpg", client: "Mueblería", type: "Video de producto" },
-  { src: "/videos/rocys.mp4", poster: "/videos/rocys.jpg", client: "Rocy's Joyería", type: "Video de catálogo" },
+  { src: "/videos/rocys.mp4", poster: "/videos/rocys.jpg", client: "Roxy's Joyería", type: "Video de catálogo" },
   { src: "/videos/aa-school.mp4", poster: "/videos/aa-school.jpg", client: "AA School", type: "Campaña de inscripciones" },
   { src: "/videos/am-motorsport.mp4", poster: "/videos/am-motorsport.jpg", client: "AM Motorsport", type: "Reel de producto" },
   { src: "/videos/colchones.mp4", poster: "/videos/colchones.jpg", client: "Tienda de descanso", type: "Video de producto" },
