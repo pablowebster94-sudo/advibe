@@ -36,7 +36,8 @@
       "mcp__META_ADS__ads_catalog_update_catalog",
       "mcp__META_ADS__ads_pixel_event_create",
       "mcp__META_ADS__ads_pixel_event_update",
-      "mcp__META_ADS__ads_pixel_event_delete"
+      "mcp__META_ADS__ads_pixel_event_delete",
+      "mcp__Zernio"
     ]
   }
 }
