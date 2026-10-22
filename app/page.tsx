@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import Showreel from "@/components/Showreel";
 import ConversionStrategy from "@/components/ConversionStrategy";
 import Clients from "@/components/Clients";
 import ClientsMarquee from "@/components/ClientsMarquee";
@@ -25,6 +26,7 @@ export default function Home() {
       <main className="relative overflow-hidden pb-24">
         <Navbar />
         <Hero />
+        <Showreel />
         <ConversionStrategy />
         <ClientsMarquee />
         <Services />
