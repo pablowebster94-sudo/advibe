@@ -9,9 +9,9 @@ const siteUrl = "https://www.advibeagencia.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "AdVibe Agencia | Marketing, Meta Ads, Web e IA en Ecuador",
-  description: "AdVibe conecta creatividad, Meta Ads, contenido, desarrollo web, IA y automatización para convertir atención en oportunidades de negocio.",
-  keywords: ["AdVibe Agencia","agencia de marketing Ecuador","Meta Ads Ecuador","inteligencia artificial para empresas","automatización comercial","desarrollo web Ecuador","producción audiovisual Ecuador"],
+  title: "AdVibe Agencia | Marketing, Video y Meta Ads en Gualaceo, Cuenca y Azuay",
+  description: "Agencia de marketing en Gualaceo: producción de video, contenido para redes y Meta Ads para negocios de Gualaceo, Cuenca y todo el Azuay que quieren más clientes.",
+  keywords: ["AdVibe Agencia","agencia de marketing Gualaceo","agencia de marketing Cuenca","producción de video Cuenca","Meta Ads Azuay","videos para restaurantes","agencia de marketing Ecuador","Meta Ads Ecuador","inteligencia artificial para empresas","automatización comercial","desarrollo web Ecuador","producción audiovisual Ecuador"],
   alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
   openGraph: { title: "AdVibe Agencia | Marketing, Meta Ads, Web e IA en Ecuador", description: "Creatividad, performance y tecnología conectadas para convertir atención en oportunidades de negocio.", url: siteUrl, siteName: "AdVibe Agencia", locale: "es_EC", type: "website" },

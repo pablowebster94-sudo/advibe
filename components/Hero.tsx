@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import EventButton from "@/components/EventButton";
 
 const highlights = ["Contenido", "Publicidad", "Web", "IA", "Eventos"];
-const rotatingWords = ["atraen.", "convierten.", "crecen."];
+const rotatingWords = ["venden.", "atraen.", "convierten."];
 const system = [
   { number: "01", title: "Estrategia", text: "Definimos qué decir, a quién y por qué." },
   { number: "02", title: "Creación", text: "Convertimos ideas en contenido que se recuerda." },
@@ -34,11 +34,12 @@ export default function Hero() {
         <div className="grid items-end gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
           <div>
             <p className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
-              <span className="h-px w-8 bg-lime-300" /> Agencia creativa + tecnológica · Ecuador
+              <span className="h-px w-8 bg-lime-300" /> Agencia de marketing · Gualaceo · Cuenca · Azuay
             </p>
+            <p className="mb-5 text-lg font-medium text-slate-300 sm:text-xl">¿Tus anuncios gastan, pero no venden?</p>
             <h1 className="max-w-5xl text-[clamp(3.7rem,8.4vw,8.4rem)] font-semibold leading-[0.84] tracking-[-0.075em] text-white">
-              <span className="block">Convertimos atención</span>
-              <span className="block">en oportunidades que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
+              <span className="block">Videos y anuncios</span>
+              <span className="block">que <span className="inline-grid min-w-[6.1ch] align-baseline text-lime-300">
                 <AnimatePresence initial={false}>
                   <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="[grid-area:1/1] inline-block whitespace-nowrap">
                     {rotatingWords[wordIndex]}
@@ -47,7 +48,7 @@ export default function Hero() {
               </span></span>
             </h1>
             <p className="mt-9 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Estrategia, contenido, Meta Ads y tecnología conectados para atraer personas, convertir interés en oportunidades y hacer crecer tu negocio.
+              Producimos el contenido y manejamos tus Meta Ads para que lleguen más clientes a tu WhatsApp. Para negocios de Gualaceo, Cuenca y todo el Azuay.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <EventButton href="#contacto" eventName="hero_diagnostic_cta" eventParams={{ source: "interactive_hero" }} leadOnClick className="inline-flex items-center justify-center rounded-full bg-lime-400 px-7 py-4 text-sm font-semibold text-[#07101a] shadow-[0_18px_60px_-25px_rgba(120,217,79,.7)] hover:-translate-y-1 hover:bg-lime-300">Analizar mi negocio <span className="ml-2">↗</span></EventButton>

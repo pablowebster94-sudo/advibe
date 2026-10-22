@@ -10,7 +10,7 @@ export const organizationSchema = {
   name: "AdVibe Agencia",
   url: siteUrl,
   description: "Agencia creativa y tecnológica especializada en marketing, producción audiovisual, desarrollo web, inteligencia artificial y automatización.",
-  areaServed: { "@type": "Country", name: "Ecuador" },
+  areaServed: [{ "@type": "City", name: "Gualaceo" }, { "@type": "City", name: "Cuenca" }, { "@type": "AdministrativeArea", name: "Azuay" }, { "@type": "Country", name: "Ecuador" }],
   address: { "@type": "PostalAddress", addressLocality: "Gualaceo", addressRegion: "Azuay", addressCountry: "EC" },
   sameAs: ["https://instagram.com/advibe.agencia","https://www.facebook.com/share/1DT1TqhpjU/"],
   contactPoint: { "@type": "ContactPoint", contactType: "sales", telephone: "+593984966335", availableLanguage: ["Spanish"] },

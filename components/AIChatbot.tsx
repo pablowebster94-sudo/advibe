@@ -93,7 +93,7 @@ export default function AIChatbot() {
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
           onClick={toggle}
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-[0_8px_32px_-8px_rgba(34,211,238,0.5)]"
+          className="relative flex h-11 w-11 items-center sm:h-14 sm:w-14 justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-[0_8px_32px_-8px_rgba(34,211,238,0.5)]"
           aria-label={open ? "Cerrar asistente de diagnóstico" : "Abrir asistente de diagnóstico"}
           aria-expanded={open}
           type="button"
