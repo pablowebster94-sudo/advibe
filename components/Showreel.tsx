@@ -4,8 +4,18 @@ import { useEffect, useRef, useState } from "react";
 
 const reels = [
   { src: "/videos/kamauto.mp4", poster: "/videos/kamauto.jpg", client: "Kamauto", type: "Sketch comercial" },
-  { src: "/videos/am-motorsport.mp4", poster: "/videos/am-motorsport.jpg", client: "AM Motorsport", type: "Reel de producto" },
+  { src: "/videos/am-mini-cooper.mp4", poster: "/videos/am-mini-cooper.jpg", client: "AM Motorsport", type: "Reel de vehículo" },
+  { src: "/videos/restaurante.mp4", poster: "/videos/restaurante.jpg", client: "Restaurante", type: "Video gastronómico" },
+  { src: "/videos/muebles.mp4", poster: "/videos/muebles.jpg", client: "Mueblería", type: "Video de producto" },
   { src: "/videos/rocys.mp4", poster: "/videos/rocys.jpg", client: "Rocy's Joyería", type: "Video de catálogo" },
+  { src: "/videos/aa-school.mp4", poster: "/videos/aa-school.jpg", client: "AA School", type: "Campaña de inscripciones" },
+  { src: "/videos/am-motorsport.mp4", poster: "/videos/am-motorsport.jpg", client: "AM Motorsport", type: "Reel de producto" },
+  { src: "/videos/colchones.mp4", poster: "/videos/colchones.jpg", client: "Tienda de descanso", type: "Video de producto" },
+  { src: "/videos/kamauto-entregas.mp4", poster: "/videos/kamauto-entregas.jpg", client: "Kamauto", type: "Entregas a clientes" },
+  { src: "/videos/marca-personal.mp4", poster: "/videos/marca-personal.jpg", client: "Marca personal", type: "Video de presentación" },
+  { src: "/videos/cetad.mp4", poster: "/videos/cetad.jpg", client: "CETAD San Lucas", type: "Video institucional" },
+  { src: "/videos/basquet.mp4", poster: "/videos/basquet.jpg", client: "Club de básquet", type: "Cobertura deportiva" },
+  { src: "/videos/mercedes.mp4", poster: "/videos/mercedes.jpg", client: "Producción creativa", type: "Video nocturno" },
   { src: "/videos/sketch-ia.mp4", poster: "/videos/sketch-ia.jpg", client: "AdVibe", type: "Sketch con IA" },
 ];
 
@@ -36,7 +46,7 @@ function ReelCard({ reel }: { reel: (typeof reels)[number] }) {
   };
 
   return (
-    <figure className="relative w-[68vw] max-w-[260px] shrink-0 snap-center sm:w-auto sm:max-w-none">
+    <figure className="relative w-[68vw] max-w-[260px] shrink-0 snap-center sm:w-[240px]">
       <div className="relative aspect-[9/16] overflow-hidden rounded-[1.6rem] border border-white/10 bg-black">
         <video
           ref={ref}
@@ -45,7 +55,7 @@ function ReelCard({ reel }: { reel: (typeof reels)[number] }) {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
           className="h-full w-full object-cover"
         />
         <button
@@ -73,7 +83,8 @@ export default function Showreel() {
         <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
           Así se ve el contenido que hacemos para negocios del Azuay.
         </h2>
-        <div className="-mx-6 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-6 sm:overflow-visible sm:px-0">
+        <p className="mt-4 text-sm text-slate-500">Desliza para ver más →</p>
+        <div className="-mx-6 mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 sm:gap-6">
           {reels.map((reel) => (
             <ReelCard key={reel.src} reel={reel} />
           ))}
