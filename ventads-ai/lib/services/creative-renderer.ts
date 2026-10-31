@@ -67,6 +67,7 @@ function textLayer(params: {
   accent: string;
   textColor: string;
   panel: string;
+  highlights?: string[];
 }) {
   const {
     width,
