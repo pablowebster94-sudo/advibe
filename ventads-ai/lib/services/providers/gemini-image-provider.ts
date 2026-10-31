@@ -175,7 +175,6 @@ export class GeminiImageProvider implements ImageGenerationService {
     const prompt = buildScenePrompt({
       conceptType: "VENTA_DIRECTA",
       styleId,
-      formatId,
       headline: "",
       variantSeed: 0,
       hasProduct: false,
