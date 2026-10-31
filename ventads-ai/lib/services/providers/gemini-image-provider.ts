@@ -7,13 +7,8 @@ import {
 import sharp from "sharp";
 import { getFormat } from "@/lib/catalog/formats";
 import type { GeneratedImage, ImageGenerationService } from "@/lib/services/image-generation";
-import {
-  applyScrimAndCopy,
-  heroRatioFor,
-  placeProductOnScene,
-  type RenderCreativeInput,
-} from "@/lib/services/creative-renderer";
-import { buildBackgroundPrompt, buildScenePrompt } from "@/lib/services/gemini-prompt";
+import { applyScrimAndCopy, type RenderCreativeInput } from "@/lib/services/creative-renderer";
+import { buildScenePrompt } from "@/lib/services/gemini-prompt";
 import { detectMimeType, nearestSupportedAspectRatio } from "@/lib/services/image-utils";
 
 const DEFAULT_MODEL = "gemini-3.1-flash-image";
@@ -105,49 +100,28 @@ export class GeminiImageProvider implements ImageGenerationService {
     const format = getFormat(input.formatId);
     const aspectRatio = nearestSupportedAspectRatio(format.width, format.height);
 
-    // Preserve the uploaded product as real pixels. Gemini receives only
-    // the prompt for an empty scene; if an isolated cutout exists, we place
-    // it locally afterwards. If cutout extraction failed, use the local
-    // renderer over the untouched original instead of asking the model to
-    // redraw it.
-    if (input.productImageBuffer && !input.productCutout && this.fallback) {
+    // The current product pipeline does not provide an isolated cutout.
+    // Keep uploaded product photos untouched and use the local compositor;
+    // Gemini is used only to create a background when there is no product.
+    if (input.productImageBuffer && this.fallback) {
       const local = await this.fallback.generateCreative(input);
       return {
         ...local,
-        note: "No se pudo aislar el producto; se utilizó la foto original sin modificar.",
+        note: "Se conservó la foto original del producto mediante composición local.",
       };
     }
 
-    const prompt = input.productCutout
-      ? buildBackgroundPrompt({
-          conceptType: input.conceptType,
-          styleId: input.styleId,
-          formatId: input.formatId,
-          variantSeed: input.variantSeed,
-          isVehicle: Boolean(input.isVehicle),
-          visibleHeight: heroRatioFor(input.formatId),
-        })
-      : buildScenePrompt({
-          conceptType: input.conceptType,
-          styleId: input.styleId,
-          formatId: input.formatId,
-          variantSeed: input.variantSeed,
-          hasProduct: false,
-          isVehicle: Boolean(input.isVehicle),
-          objective: input.objective,
-          hasPrice: Boolean(input.priceDisplay || input.offerDisplay),
-        });
+    const prompt = buildScenePrompt({
+      conceptType: input.conceptType,
+      styleId: input.styleId,
+      headline: input.headline,
+      variantSeed: input.variantSeed,
+      hasProduct: false,
+    });
 
     let scene: Buffer;
     try {
       scene = await this.callGemini({ prompt, images: [], aspectRatio });
-      if (input.productCutout) {
-        scene = await placeProductOnScene(scene, input.productCutout, {
-          formatId: input.formatId,
-          dark: false,
-          reflection: 0.08,
-        });
-      }
     } catch (error) {
       if (!this.fallback) throw error;
       const detail = error instanceof Error ? error.message : String(error);
@@ -167,16 +141,15 @@ export class GeminiImageProvider implements ImageGenerationService {
       headline: input.headline,
       supportingLine: input.supportingLine,
       priceDisplay: input.priceDisplay,
-      offerDisplay: input.offerDisplay,
       ctaLabel: input.ctaLabel,
       logoBuffer: input.logoBuffer,
-      highlights: input.highlights,
+      hasProductPhoto: false,
     });
 
     return {
       ...composed,
-      provider: input.productCutout ? `gemini:${this.model}+producto-real` : `gemini:${this.model}`,
-      extension: "jpg",
+      provider: `gemini:${this.model}`,
+      extension: "png",
     };
   }
 
@@ -200,9 +173,9 @@ export class GeminiImageProvider implements ImageGenerationService {
       conceptType: "VENTA_DIRECTA",
       styleId,
       formatId,
+      headline: "",
       variantSeed: 0,
       hasProduct: false,
-      isVehicle: false,
     });
     const buffer = await this.callGemini({ prompt, images: [], aspectRatio });
     const resized = await sharp(buffer).resize(format.width, format.height, { fit: "cover" }).png().toBuffer();
