@@ -4,7 +4,14 @@ import { getStyle } from "@/lib/catalog/styles";
 import { renderCreative, type RenderCreativeInput } from "@/lib/services/creative-renderer";
 import { GeminiImageProvider } from "@/lib/services/providers/gemini-image-provider";
 
-export type GeneratedImage = { buffer: Buffer; width: number; height: number };
+export type GeneratedImage = {
+  buffer: Buffer;
+  width: number;
+  height: number;
+  provider?: string;
+  extension?: string;
+  note?: string;
+};
 
 /**
  * Every image-producing operation in ventADS.ai goes through this
@@ -37,11 +44,11 @@ export interface ImageGenerationService {
 
 class LocalCompositorProvider implements ImageGenerationService {
   async generateCreative(input: RenderCreativeInput) {
-    return renderCreative(input);
+    return { ...(await renderCreative(input)), provider: "local-compositor", extension: "jpg" };
   }
 
   async generateVariation(input: RenderCreativeInput) {
-    return renderCreative({ ...input, variantSeed: input.variantSeed + 1 });
+    return this.generateCreative({ ...input, variantSeed: input.variantSeed + 1 });
   }
 
   async editProductImage(buffer: Buffer, targetFormatId: string) {
@@ -115,7 +122,7 @@ function createImageGenerationService(): ImageGenerationService {
     case "local-compositor":
       return new LocalCompositorProvider();
     case "gemini":
-      return new GeminiImageProvider(process.env.GEMINI_API_KEY ?? "");
+      return new GeminiImageProvider(process.env.GEMINI_API_KEY ?? "", new LocalCompositorProvider());
     default:
       throw new Error(`Unknown IMAGE_PROVIDER: ${provider}`);
   }
