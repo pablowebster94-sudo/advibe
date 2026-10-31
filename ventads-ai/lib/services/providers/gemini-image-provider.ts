@@ -103,7 +103,10 @@ export class GeminiImageProvider implements ImageGenerationService {
     // The current product pipeline does not provide an isolated cutout.
     // Keep uploaded product photos untouched and use the local compositor;
     // Gemini is used only to create a background when there is no product.
-    if (input.productImageBuffer && this.fallback) {
+    if (input.productImageBuffer) {
+      if (!this.fallback) {
+        throw new Error("No se puede generar con Gemini sin alterar la foto del producto; configura un compositor local de respaldo.");
+      }
       const local = await this.fallback.generateCreative(input);
       return {
         ...local,
