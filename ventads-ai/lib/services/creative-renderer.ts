@@ -153,6 +153,13 @@ function textLayer(params: {
     ? `<text x="${margin}" y="${ctaY - headlineSize * 0.35}" font-family="${fontFamily}"
         font-size="${supportingSize}" fill="${textColor}" opacity="0.85">${escapeXml(supportingText)}</text>`
     : "";
+  const highlights = (params.highlights ?? []).slice(0, 3);
+  const highlightsMarkup = highlights.length
+    ? highlights.map((item, index) => {
+        const y = margin * 1.2 + headlineSize * (1.25 + index * 0.62);
+        return `<text x="${margin}" y="${y}" font-family="${fontFamily}" font-size="${headlineSize * 0.36}" fill="${textColor}" opacity="0.92">• ${escapeXml(item)}</text>`;
+      }).join("")
+    : "";
 
   return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -162,6 +169,7 @@ function textLayer(params: {
         ${headlineTspans}
       </text>
       ${supporting}
+      ${highlightsMarkup}
       <rect x="${margin}" y="${ctaY}" width="${ctaWidth}" height="${ctaHeight}" rx="${ctaHeight / 2}" fill="${accent}" />
       <text x="${margin + ctaWidth / 2}" y="${ctaY + ctaHeight * 0.65}" text-anchor="middle"
         font-family="${fontFamily}" font-weight="700" font-size="${headlineSize * 0.46}"
@@ -231,6 +239,8 @@ export type CopyOverlayInput = {
   /** Whether the base image already shows the product — widens the bottom
    * scrim when it doesn't, since there's no photo detail to protect. */
   hasProductPhoto: boolean;
+  /** Optional descriptive highlights, kept as literal copy over the image. */
+  highlights?: string[];
 };
 
 /**
@@ -266,6 +276,7 @@ export async function applyScrimAndCopy(
         accent: style.palette.accent,
         textColor: style.palette.text,
         panel: style.palette.panel,
+        highlights: input.highlights,
       })
     ),
   });
