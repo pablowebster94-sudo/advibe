@@ -23,9 +23,10 @@ export default function DiagnosticPage() {
     const incomingMarket = params.get("market");
     const incomingService = params.get("service");
     if (incomingMarket === "usa" || incomingMarket === "ecuador") setMarket(incomingMarket);
-    if (incomingService === "web") setService("Web / Landing Page");
-    if (incomingService === "ads") setService("Lead generation / Meta Ads");
-    if (incomingService === "video") setService("Contenido audiovisual");
+    const english = incomingMarket === "usa";
+    if (incomingService === "web") setService(english ? "Website / Landing Page" : "Web / Landing Page");
+    if (incomingService === "ads") setService(english ? "Lead Generation / Meta Ads" : "Lead generation / Meta Ads");
+    if (incomingService === "video") setService(english ? "Video Production" : "Contenido audiovisual");
   }, []);
 
   const isUS = market === "usa";
@@ -125,9 +126,9 @@ export default function DiagnosticPage() {
       `${english ? "Project budget" : "Presupuesto del proyecto"}: ${data.budget}`,
       `${english ? "Preferred contact" : "Contacto preferido"}: ${data.contact}`,
       `FBC: ${getFbc() || "Not available"}`,
-    ].join("\\n");
+    ].join("\n");
 
-    if (bookingUrl && data.contact === "Schedule a call") {
+    if (bookingUrl && data.contact === (data.market === "usa" ? "Schedule a call" : "Agendar llamada")) {
       const params = new URLSearchParams({ name: data.name, email: data.email, a1: data.phone });
       window.location.href = `${bookingUrl}${bookingUrl.includes("?") ? "&" : "?"}${params.toString()}`;
       return;
@@ -178,16 +179,24 @@ export default function DiagnosticPage() {
                 <input required name="phone" autoComplete="tel" placeholder={copy.phone} className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
                 <input required name="email" type="email" autoComplete="email" placeholder={copy.email} className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-white outline-none focus:border-lime-300/60" />
               </div>
-              <select required name="market" value={market} onChange={(e) => setMarket(e.target.value)} className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
-                <option value="ecuador">Ecuador</option><option value="usa">United States</option><option value="other">Other</option>
-              </select>
+              <div className="space-y-2">
+                <label htmlFor="market" className="block text-xs font-medium text-slate-400">{copy.market}</label>
+                <select id="market" required name="market" value={market} onChange={(e) => { setMarket(e.target.value); setService(""); }} className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
+                  <option value="ecuador">Ecuador</option><option value="usa">United States</option><option value="other">Other / Otro</option>
+                </select>
+              </div>
               <select required name="industry" defaultValue="" className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
                 <option value="" disabled>{isUS ? "Select your industry" : "Selecciona tu sector"}</option>
-                {["Home services / Contractors", "Roofing", "Remodeling", "Painting", "HVAC", "Automotriz", "Retail / Comercio", "Salud / Bienestar", "Inmobiliario", "Educación", "Otro"].map((item) => <option key={item}>{item}</option>)}
+                {(isUS
+                  ? ["Home services / Contractors", "Roofing", "Remodeling", "Painting", "HVAC", "Automotive", "Retail", "Health & Wellness", "Real Estate", "Education", "Other"]
+                  : ["Contratistas / Servicios para el hogar", "Roofing / Techos", "Remodelación", "Pintura", "Climatización", "Automotriz", "Comercio / Retail", "Salud / Bienestar", "Inmobiliario", "Educación", "Otro"]
+                ).map((item) => <option key={item}>{item}</option>)}
               </select>
               <select required name="service" value={service} onChange={(e) => setService(e.target.value)} className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
                 <option value="" disabled>{copy.service}</option>
-                <option>Web / Landing Page</option><option>Web corporativa / Ecommerce</option><option>Lead generation / Meta Ads</option><option>Contenido audiovisual</option><option>CRM / Automatización</option><option>Sistema digital integral</option>
+                {isUS
+                  ? <><option>Website / Landing Page</option><option>Business Website / Ecommerce</option><option>Lead Generation / Meta Ads</option><option>Video Production</option><option>CRM / Automation</option><option>Complete Digital System</option></>
+                  : <><option>Web / Landing Page</option><option>Web corporativa / Ecommerce</option><option>Lead generation / Meta Ads</option><option>Contenido audiovisual</option><option>CRM / Automatización</option><option>Sistema digital integral</option></>}
               </select>
               <select required name="ads" defaultValue="" className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
                 <option value="" disabled>{copy.ads}</option>
@@ -199,7 +208,7 @@ export default function DiagnosticPage() {
               </select>
               <select required name="contact" defaultValue="" className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
                 <option value="" disabled>{copy.contact}</option>
-                <option>WhatsApp</option><option>{isUS ? "Phone call" : "Llamada telefónica"}</option><option>Email</option><option>Schedule a call</option>
+                <option>WhatsApp</option><option>{isUS ? "Phone call" : "Llamada telefónica"}</option><option>{isUS ? "Email" : "Correo electrónico"}</option><option>{isUS ? "Schedule a call" : "Agendar llamada"}</option>
               </select>
               <label className="flex items-start gap-3 text-xs leading-5 text-slate-500"><input required type="checkbox" className="mt-1 accent-lime-300" /><span>{copy.consent}</span></label>
               <button disabled={loading} className="w-full rounded-xl bg-lime-300 px-5 py-4 font-semibold text-slate-950 transition hover:bg-lime-200 disabled:cursor-wait disabled:opacity-60">{loading ? (isUS ? "Preparing…" : "Enviando…") : copy.submit}</button>
