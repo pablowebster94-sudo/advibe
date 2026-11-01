@@ -88,6 +88,7 @@ export default function RoofingLeadForm() {
   const [language, setLanguage] = useState<Language>("en");
   const [loading, setLoading] = useState(false);
   const [messageUrl, setMessageUrl] = useState("");
+  const [formError, setFormError] = useState("");
   const t = labels[language];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -107,6 +108,13 @@ export default function RoofingLeadForm() {
       ads: String(form.get("ads") || "").trim(),
       goal: String(form.get("goal") || "").trim(),
     };
+
+    if (fields.services.length === 0) {
+      setFormError(language === "es" ? "Selecciona al menos un servicio." : "Please select at least one roofing service.");
+      setLoading(false);
+      return;
+    }
+    setFormError("");
 
     const params = new URLSearchParams(window.location.search);
     const attribution = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]
@@ -136,14 +144,14 @@ export default function RoofingLeadForm() {
 
     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
     setMessageUrl(url);
-    trackEvent("roofing_assessment_submit", {
+    trackEvent("roofing_assessment_open_whatsapp", {
       market: "usa",
       industry: "roofing",
       language,
       service_count: fields.services.length,
       goal: fields.goal,
     });
-    trackMetaEvent("Lead", { content_name: "Roofing business assessment", content_category: "Lead generation" }, crypto.randomUUID());
+    trackMetaEvent("Contact", { content_name: "Roofing business assessment", content_category: "Lead generation" }, crypto.randomUUID());
     window.open(url, "_blank", "noopener,noreferrer");
     setLoading(false);
   }
@@ -215,6 +223,7 @@ export default function RoofingLeadForm() {
           <span>{t.consent}</span>
         </label>
 
+        {formError ? <p role="alert" className="text-sm text-rose-300">{formError}</p> : null}
         <button type="submit" disabled={loading} className="w-full rounded-xl bg-lime-300 px-6 py-4 text-sm font-bold text-slate-950 transition hover:bg-lime-200 disabled:cursor-wait disabled:opacity-60">
           {loading ? t.sending : t.submit}
         </button>
