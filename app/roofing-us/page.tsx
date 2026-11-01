@@ -75,7 +75,7 @@ export default function RoofingUSPage() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <a href="#assessment" className="rounded-full bg-lime-300 px-7 py-4 text-sm font-bold text-slate-950 shadow-[0_12px_50px_rgba(163,230,53,0.14)] transition hover:-translate-y-0.5 hover:bg-lime-200">
-                Request a free 15-minute strategy call ↗
+                Request a free business assessment ↗
               </a>
 
             </div>
