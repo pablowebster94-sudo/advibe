@@ -12,10 +12,7 @@ export const metadata: Metadata = {
   title: "AdVibe | Desarrollo Web, Lead Generation y Marketing Digital",
   description: "Diseñamos páginas web, landing pages y sistemas de captación para empresas en Ecuador y Estados Unidos. Desarrollo web, Meta Ads, contenido y automatización.",
   keywords: ["AdVibe Agencia", "desarrollo web Ecuador", "diseño de páginas web Ecuador", "landing pages Ecuador", "desarrollo web Estados Unidos", "websites for contractors", "contractor lead generation", "roofing websites", "remodeling websites", "Meta Ads", "lead generation", "automatización comercial"],
-  alternates: {
-    canonical: siteUrl,
-    languages: { "es-EC": siteUrl, "en-US": `${siteUrl}/usa` },
-  },
+  alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
   openGraph: {
     title: "AdVibe | Web, Marketing & Growth Systems",
