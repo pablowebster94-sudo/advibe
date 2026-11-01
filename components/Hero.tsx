@@ -23,15 +23,15 @@ export default function Hero() {
       <div className="pointer-events-none absolute right-[-10rem] top-48 -z-10 h-[30rem] w-[30rem] rounded-full border border-lime-300/[0.08]" />
 
       <div className="mx-auto max-w-7xl">
-        <div className="grid items-end gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
-          <div>
+        <div className="grid items-start gap-12 lg:grid-cols-[1.25fr_0.75fr] lg:gap-20">
+          <div className="min-w-0">
             <p className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">
               <span className="h-px w-8 bg-lime-300" /> Digital experiences · Measurable growth
             </p>
             <p className="mb-5 text-lg font-medium text-slate-300 sm:text-xl">Tu negocio necesita más que presencia digital.</p>
             <h1 className="max-w-5xl text-[clamp(3.35rem,7.8vw,7.7rem)] font-semibold leading-[0.88] tracking-[-0.075em] text-white">
               <span className="block">Creamos sistemas</span>
-              <span className="block">digitales que <span className="inline-grid min-w-[8.2ch] align-baseline text-lime-300">
+              <span className="block">digitales que <span className="inline-grid min-w-[23ch] align-baseline text-lime-300">
                 <AnimatePresence initial={false}>
                   <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="[grid-area:1/1] inline-block whitespace-nowrap">{rotatingWords[wordIndex]}</motion.span>
                 </AnimatePresence>
@@ -51,7 +51,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="relative hidden w-full max-w-[300px] lg:block lg:justify-self-end">
+          <div className="relative hidden w-full max-w-[300px] lg:mt-2 lg:block lg:justify-self-end">
             <div className="relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_40px_120px_-50px_rgba(120,217,79,.45)]">
               <video src="/videos/am-mini-cooper.mp4" poster="/videos/am-mini-cooper.jpg" autoPlay muted loop playsInline preload="metadata" aria-label="Producción audiovisual de AdVibe para AM Motorsport" className="h-full w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5">
