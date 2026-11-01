@@ -32,9 +32,9 @@ export default function Hero() {
             <h1 className="w-full text-[clamp(3rem,5.2vw,5.5rem)] font-semibold leading-[0.94] tracking-[-0.065em] text-white">
               <span className="block">Creamos sistemas</span>
               <span className="block">digitales que</span>
-              <span className="relative block min-h-[1.05em] overflow-hidden text-lime-300">
+              <span className="relative block min-h-[2.1em] overflow-hidden text-lime-300 md:min-h-[1.05em]">
                 <AnimatePresence initial={false} mode="wait">
-                  <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="block whitespace-nowrap">{rotatingWords[wordIndex]}</motion.span>
+                  <motion.span key={rotatingWords[wordIndex]} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -18 }} transition={{ duration: .35, ease: [0.22,1,0.36,1] }} className="block whitespace-normal md:whitespace-nowrap">{rotatingWords[wordIndex]}</motion.span>
                 </AnimatePresence>
               </span>
             </h1>
@@ -52,7 +52,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="relative hidden w-full max-w-[280px] xl:mt-2 xl:block xl:justify-self-end">
+          <div className="relative mx-auto mt-2 block w-full max-w-[min(72vw,280px)] xl:mx-0 xl:justify-self-end">
             <div className="relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_40px_120px_-50px_rgba(120,217,79,.45)]">
               <video src="/videos/am-mini-cooper.mp4" poster="/videos/am-mini-cooper.jpg" autoPlay muted loop playsInline preload="metadata" aria-label="Producción audiovisual de AdVibe para AM Motorsport" className="h-full w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5">
