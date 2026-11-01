@@ -24,12 +24,12 @@ export default function Home() {
       <main className="relative overflow-hidden pb-24">
         <Navbar />
         <Hero />
-        <Showreel reels={homeReels} />
-        <ClientsMarquee />
         <ConversionStrategy />
+        <ClientsMarquee />
         <Services />
         <Portfolio />
         <Process />
+        <Showreel reels={homeReels} eyebrow="Producción audiovisual" title="Contenido real para presentar productos, marcas y servicios con intención comercial." />
         <AIShowcase />
         <Testimonials />
         <CTA />
