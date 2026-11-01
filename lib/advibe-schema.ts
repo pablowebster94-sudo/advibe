@@ -1,7 +1,5 @@
 import { faq } from "@/lib/content";
 
-// Datos estructurados de AdVibe Agencia. Van solo en la home de advibeagencia.com:
-// en el layout raíz se filtraban también a otros sitios servidos por esta app (p. ej. Enfoque Visual).
 const siteUrl = "https://www.advibeagencia.com";
 
 export const organizationSchema = {
@@ -9,12 +7,27 @@ export const organizationSchema = {
   "@type": "ProfessionalService",
   name: "AdVibe Agencia",
   url: siteUrl,
-  description: "Agencia creativa y tecnológica especializada en marketing, producción audiovisual, desarrollo web, inteligencia artificial y automatización.",
-  areaServed: [{ "@type": "City", name: "Gualaceo" }, { "@type": "City", name: "Cuenca" }, { "@type": "AdministrativeArea", name: "Azuay" }, { "@type": "Country", name: "Ecuador" }],
+  description: "Agencia digital especializada en desarrollo web, landing pages, sistemas de captación, marketing de resultados y automatización.",
+  areaServed: [
+    { "@type": "Country", name: "Ecuador" },
+    { "@type": "Country", name: "United States" },
+  ],
   address: { "@type": "PostalAddress", addressLocality: "Gualaceo", addressRegion: "Azuay", addressCountry: "EC" },
-  sameAs: ["https://instagram.com/advibe.agencia","https://www.facebook.com/share/1DT1TqhpjU/"],
-  contactPoint: { "@type": "ContactPoint", contactType: "sales", telephone: "+593984966335", availableLanguage: ["Spanish"] },
-  hasOfferCatalog: { "@type": "OfferCatalog", name: "Servicios AdVibe", itemListElement: ["Meta Ads y adquisición de clientes","Producción audiovisual","Desarrollo web","Inteligencia artificial","Automatización","CRM y chatbots","Branding e identidad visual"].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })) },
+  sameAs: ["https://instagram.com/advibe.agencia", "https://www.facebook.com/share/1DT1TqhpjU/"],
+  contactPoint: { "@type": "ContactPoint", contactType: "sales", telephone: "+593984966335", availableLanguage: ["Spanish", "English"] },
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "AdVibe Digital Solutions",
+    itemListElement: [
+      "Desarrollo web y sitios corporativos",
+      "Landing pages y sistemas de captación",
+      "Ecommerce y catálogos digitales",
+      "Meta Ads y generación de prospectos",
+      "Producción audiovisual",
+      "SEO local",
+      "CRM y automatización comercial",
+    ].map((name) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name } })),
+  },
 };
 
 export const faqSchema = {

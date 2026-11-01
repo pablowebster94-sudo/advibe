@@ -13,8 +13,7 @@ export default function Portfolio() {
   return (
     <section id="portafolio" className="relative overflow-hidden bg-[#05070a] py-28 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-7xl px-6">
-        <SectionHeading eyebrow="Casos" title="Proyectos completos, de la idea al resultado." description="Una selección de proyectos reales de AdVibe. Estrategia, creatividad, contenido y performance aplicados a objetivos concretos." />
-
+        <SectionHeading eyebrow="Experiencia aplicada" title="Proyectos reales en distintos sectores." description="Una selección de colaboraciones reales de AdVibe. Estrategia, creatividad, contenido y publicidad aplicados a necesidades comerciales concretas." />
         <div className="mt-16 overflow-hidden rounded-[2rem] border border-white/10">
           {projects.map((project) => (
             <article key={project.title} className="group relative border-b border-white/10 last:border-b-0">
@@ -29,7 +28,7 @@ export default function Portfolio() {
                   </div>
                 </div>
                 <div className="flex flex-col justify-between border-t border-white/10 bg-white/[0.025] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
-                  <div><span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lime-300">Servicios realizados</span><p className="mt-5 text-xl font-medium leading-8 text-white sm:text-2xl">{project.work}</p><p className="mt-4 text-sm leading-7 text-slate-500">{project.description}</p></div>
+                  <div><span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lime-300">Trabajo realizado</span><p className="mt-5 text-xl font-medium leading-8 text-white sm:text-2xl">{project.work}</p><p className="mt-4 text-sm leading-7 text-slate-500">{project.description}</p></div>
                   <Link href={`/casos/${project.slug}`} className="mt-8 inline-flex w-fit items-center rounded-full border border-white/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-300">Ver proyecto <span className="ml-2">↗</span></Link>
                 </div>
               </div>
@@ -37,7 +36,6 @@ export default function Portfolio() {
             </article>
           ))}
         </div>
-
         <div className="mt-7 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center justify-between gap-8 text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-600"><span>AdVibe / Selected work</span><span>{projects.length} destacados</span></div>
           <EventButton href="/casos" eventName="portfolio_view_all" eventParams={{ source: "home_portfolio" }} className="inline-flex w-fit items-center rounded-full border border-white/10 px-5 py-3 text-xs font-semibold uppercase tracking-[0.15em] text-slate-300 transition hover:border-lime-300/40 hover:text-lime-300">Ver todos los casos <span className="ml-3">→</span></EventButton>

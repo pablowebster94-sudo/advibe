@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 
 const pains = [
-  "Publicas en redes, pero casi nadie escribe para comprar.",
-  "Pagas anuncios y no sabes si de verdad te traen clientes.",
-  "Recibes mensajes, pero el seguimiento se pierde.",
-  "Tus fotos y videos no muestran lo bueno que es tu producto.",
+  "Tu negocio depende de redes sociales y no tienes un sitio propio que explique bien lo que ofreces.",
+  "Inviertes en publicidad, pero envías a las personas a una página lenta o a un chat sin contexto.",
+  "Recibes consultas, pero no tienes un proceso claro para responder, dar seguimiento y cerrar.",
+  "No sabes qué campaña, página o canal está generando las oportunidades más valiosas.",
 ];
 
 export default function ConversionStrategy() {
@@ -14,10 +14,11 @@ export default function ConversionStrategy() {
     <section className="border-y border-white/10 bg-[#07101a] py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-lime-300">¿Te pasa esto?</p>
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-lime-300">El problema no es solo conseguir visitas</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
-            Conseguir atención no basta. Hay que convertirla en clientes.
+            Cada oportunidad necesita un camino para convertirse en cliente.
           </h2>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">Una web aislada no resuelve todo. La estrategia conecta tu propuesta, el tráfico, la conversión y el seguimiento comercial.</p>
         </div>
         <div className="mt-12 grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 md:grid-cols-2">
           {pains.map((pain, index) => (

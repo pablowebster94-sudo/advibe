@@ -9,13 +9,20 @@ const siteUrl = "https://www.advibeagencia.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "AdVibe Agencia | Marketing, Video y Meta Ads en Gualaceo, Cuenca y Azuay",
-  description: "Agencia de marketing en Gualaceo: producción de video, contenido para redes y Meta Ads para negocios de Gualaceo, Cuenca y todo el Azuay que quieren más clientes.",
-  keywords: ["AdVibe Agencia","agencia de marketing Gualaceo","agencia de marketing Cuenca","producción de video Cuenca","Meta Ads Azuay","videos para restaurantes","agencia de marketing Ecuador","Meta Ads Ecuador","inteligencia artificial para empresas","automatización comercial","desarrollo web Ecuador","producción audiovisual Ecuador"],
+  title: "AdVibe | Desarrollo Web, Lead Generation y Marketing Digital",
+  description: "Diseñamos páginas web, landing pages y sistemas de captación para empresas en Ecuador y Estados Unidos. Desarrollo web, Meta Ads, contenido y automatización.",
+  keywords: ["AdVibe Agencia", "desarrollo web Ecuador", "diseño de páginas web Ecuador", "landing pages Ecuador", "desarrollo web Estados Unidos", "websites for contractors", "contractor lead generation", "roofing websites", "remodeling websites", "Meta Ads", "lead generation", "automatización comercial"],
   alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
-  openGraph: { title: "AdVibe Agencia | Marketing, Video y Meta Ads en Gualaceo, Cuenca y Azuay", description: "Videos y anuncios que traen clientes a tu WhatsApp. Agencia de marketing en Gualaceo para negocios de todo el Azuay.", url: siteUrl, siteName: "AdVibe Agencia", locale: "es_EC", type: "website" },
-  twitter: { card: "summary_large_image", title: "AdVibe Agencia | Marketing, Video y Meta Ads en el Azuay", description: "Videos y anuncios que traen clientes a tu WhatsApp." },
+  openGraph: {
+    title: "AdVibe | Web, Marketing & Growth Systems",
+    description: "Páginas web y sistemas digitales diseñados para atraer oportunidades y convertirlas en clientes. Ecuador y Estados Unidos.",
+    url: siteUrl,
+    siteName: "AdVibe Agencia",
+    locale: "es_EC",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: "AdVibe | Web, Marketing & Growth Systems", description: "Desarrollo web, captación y automatización para empresas en Ecuador y Estados Unidos." },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

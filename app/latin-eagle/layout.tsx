@@ -1,17 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
 import { SITE_URL } from "./content";
 import "./styles.css";
-
-const montserrat = Montserrat({ variable: "--font-le", subsets: ["latin"], weight: ["500", "700", "800", "900"] });
 
 const TITLE = "Latin Eagle Multiservices | Envíos, giros y productos latinos en Patchogue, NY";
 const DESCRIPTION = "Envíos a Ecuador y Colombia, giros y productos latinos en Patchogue, NY. Farmacia de venta libre y atención en español. Escríbenos por WhatsApp.";
 
-// Reemplaza lo heredado del layout raíz de AdVibe (canonical, Open Graph, Twitter):
-// esta ruta tiene la identidad de Latin Eagle, no la de AdVibe.
+// Reemplaza lo heredado del layout raíz de AdVibe: esta ruta tiene la identidad de Latin Eagle.
 export const metadata: Metadata = {
-  // Solo el origen: las rutas de metadata (p. ej. /latin-eagle/opengraph-image) ya son absolutas.
   metadataBase: new URL(new URL(SITE_URL).origin),
   title: { absolute: TITLE },
   description: DESCRIPTION,
@@ -27,5 +22,5 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0a0a0a" };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <div className={`${montserrat.variable} le-root`}>{children}</div>;
+  return <div className="le-root">{children}</div>;
 }

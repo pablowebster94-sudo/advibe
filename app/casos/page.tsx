@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Showreel from "@/components/Showreel";
 import { allReels } from "@/lib/reels";
 import { caseStudies } from "@/lib/cases";
@@ -8,8 +9,6 @@ export const metadata = {
   description: "Videos y proyectos de AdVibe para negocios del Azuay: automotriz, restaurantes, retail, educación y salud. Mira el trabajo real antes de escribirnos.",
   alternates: { canonical: "https://www.advibeagencia.com/casos" },
 };
-
-const filters = ["Todos", "Audiovisual", "Performance", "Digital", "Branding"];
 
 export default function CasosPage() {
   return (
@@ -40,15 +39,16 @@ export default function CasosPage() {
       <Showreel reels={allReels} eyebrow="Galería de videos" title="Videos que hemos producido para nuestros clientes." id="videos" />
 
       <section id="trabajos" className="mx-auto max-w-7xl px-6 pb-28 sm:px-8">
-        <div className="mb-10 flex flex-wrap gap-2 border-b border-white/10 pb-6">
-          {filters.map((filter, i) => <span key={filter} className={`rounded-full border px-4 py-2 text-xs font-semibold ${i === 0 ? "border-lime-300/40 bg-lime-300/10 text-lime-300" : "border-white/10 text-slate-500"}`}>{filter}</span>)}
+        <div className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Proyectos seleccionados</p>
+          <p className="font-mono text-xs text-slate-600">{caseStudies.length} casos documentados</p>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">
           {caseStudies.map((project, index) => (
             <Link key={project.slug} href={`/casos/${project.slug}`} className={`group block overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.025] ${index === 0 ? "md:col-span-2" : ""}`}>
               <div className={`relative overflow-hidden bg-gradient-to-br ${project.accent} ${index === 0 ? "aspect-[2/1]" : "aspect-[4/3]"}`}>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_25%,rgba(255,255,255,.08),transparent_30%)]" />
+                {project.posterSrc ? <Image src={project.posterSrc} alt={`Trabajo de AdVibe para ${project.client}`} fill sizes={index === 0 ? "(max-width: 768px) 100vw, 1200px" : "(max-width: 768px) 100vw, 600px"} className="object-cover transition duration-700 group-hover:scale-[1.03]" /> : null}<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10" />
                 <div className="absolute left-7 top-7 font-mono text-xs text-white/40">{project.number}</div>
                 <div className="absolute bottom-7 left-7 right-7 flex items-end justify-between gap-5">
                   <div>

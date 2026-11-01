@@ -11,6 +11,8 @@ export type CaseStudy = {
   outcome: string;
   featured?: boolean;
   accent: string;
+  mediaSrc?: string;
+  posterSrc?: string;
 };
 
 export const caseStudies: CaseStudy[] = [
@@ -22,7 +24,7 @@ export const caseStudies: CaseStudy[] = [
     challenge: "Presentar un vehículo de alto impacto visual y convertir esa atención en interés comercial.",
     solution: "Concepto creativo, producción de fotografía y video, piezas verticales y adaptación del contenido para distribución digital y campañas.",
     outcome: "Un sistema de contenido preparado para redes y performance, con la creatividad trabajando como parte de la estrategia comercial.",
-    featured: true, accent: "from-lime-300/25 via-emerald-400/10 to-transparent",
+    featured: true, accent: "from-lime-300/25 via-emerald-400/10 to-transparent", mediaSrc: "/videos/am-mini-cooper.mp4", posterSrc: "/videos/am-mini-cooper.jpg",
   },
   {
     slug: "uk-english-academy", number: "02", client: "United Kingdom English Academy", sector: "Educación",
@@ -32,7 +34,7 @@ export const caseStudies: CaseStudy[] = [
     challenge: "Dar visibilidad a una oferta concreta y llevar a personas interesadas desde el anuncio hasta una conversación.",
     solution: "Diseño de piezas publicitarias, mensajes orientados a acción, segmentación y optimización de campañas enfocadas en conversaciones.",
     outcome: "Una campaña construida alrededor de una oferta clara, creatividad de respuesta directa y un recorrido simple hacia WhatsApp.",
-    featured: true, accent: "from-cyan-300/20 via-blue-500/10 to-transparent",
+    featured: true, accent: "from-cyan-300/20 via-blue-500/10 to-transparent", mediaSrc: "/videos/aa-school.mp4", posterSrc: "/videos/aa-school.jpg",
   },
   {
     slug: "kamauto", number: "03", client: "Kamauto", sector: "Automotriz",
@@ -42,7 +44,7 @@ export const caseStudies: CaseStudy[] = [
     challenge: "Destacar productos automotrices en un entorno donde la atención compite con decenas de ofertas similares.",
     solution: "Dirección visual, fotografía comercial, video corto y piezas adaptadas a los formatos de redes sociales.",
     outcome: "Un banco de contenido visual listo para alimentar comunicación orgánica y futuras campañas.",
-    featured: true, accent: "from-orange-300/20 via-red-500/10 to-transparent",
+    featured: true, accent: "from-orange-300/20 via-red-500/10 to-transparent", mediaSrc: "/videos/kamauto.mp4", posterSrc: "/videos/kamauto.jpg",
   },
   {
     slug: "muebles-ideal", number: "04", client: "Muebles Ideal", sector: "Retail",
@@ -52,7 +54,7 @@ export const caseStudies: CaseStudy[] = [
     challenge: "Transformar productos físicos en contenido capaz de comunicar calidad, estilo y valor a través de canales digitales.",
     solution: "Fotografía de producto, videos cortos y planificación de piezas para una comunicación más consistente.",
     outcome: "Una biblioteca de contenido reutilizable para redes, promociones y comunicación comercial.",
-    featured: true, accent: "from-amber-200/20 via-yellow-500/10 to-transparent",
+    featured: true, accent: "from-amber-200/20 via-yellow-500/10 to-transparent", mediaSrc: "/videos/muebles.mp4", posterSrc: "/videos/muebles.jpg",
   },
   {
     slug: "g3l", number: "05", client: "G3L", sector: "Servicios",
@@ -72,7 +74,7 @@ export const caseStudies: CaseStudy[] = [
     challenge: "Construir una comunicación clara, profesional y humana para una audiencia que necesita confianza.",
     solution: "Dirección visual, piezas de comunicación y contenidos adaptados a distintas etapas de la colaboración.",
     outcome: "Una presencia digital más coherente y un sistema de comunicación preparado para informar y conectar.",
-    accent: "from-sky-300/20 via-teal-500/10 to-transparent",
+    accent: "from-sky-300/20 via-teal-500/10 to-transparent", mediaSrc: "/videos/cetad.mp4", posterSrc: "/videos/cetad.jpg",
   },
 ];
 
