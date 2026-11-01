@@ -34,10 +34,21 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
           <div className="flex flex-wrap items-center gap-3 font-mono text-xs uppercase tracking-[0.25em] text-slate-500"><span className="text-lime-300">{project.number}</span><span>/</span><span>{project.sector}</span></div>
           <h1 className="mt-8 max-w-5xl text-6xl font-semibold leading-[0.92] tracking-[-0.07em] sm:text-8xl lg:text-[7.5rem]">{project.client}</h1>
           <p className="mt-8 max-w-3xl text-2xl leading-10 text-slate-400 sm:text-3xl">{project.title}</p>
-          <div className={`relative mt-16 aspect-[16/8] overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br ${project.accent}`}>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,.1),transparent_28%),linear-gradient(120deg,transparent_30%,rgba(255,255,255,.03))]" />
-            <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between"><span className="font-mono text-xs uppercase tracking-[0.25em] text-white/40">AdVibe / {project.sector}</span><span className="text-5xl font-light tracking-[-0.06em] text-white/20 sm:text-8xl">{project.number}</span></div>
-          </div>
+          {project.mediaSrc ? (
+            <div className="mt-14 flex justify-center">
+              <figure className="w-full max-w-[420px]">
+                <div className="relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-[0_35px_100px_-45px_rgba(163,230,53,0.22)]">
+                  <video src={project.mediaSrc} poster={project.posterSrc} controls muted loop playsInline preload="metadata" aria-label={`Video de proyecto de ${project.client}, producido por AdVibe`} className="h-full w-full object-cover" />
+                </div>
+                <figcaption className="mt-3 text-center text-xs uppercase tracking-[0.2em] text-slate-500">Producción original · AdVibe Agencia</figcaption>
+              </figure>
+            </div>
+          ) : (
+            <div className={`relative mt-16 flex aspect-[16/8] items-end overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br ${project.accent} p-8 sm:p-12`}>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,.1),transparent_28%)]" />
+              <div className="relative"><p className="font-mono text-xs uppercase tracking-[0.25em] text-lime-300">AdVibe / {project.sector}</p><p className="mt-3 text-3xl font-semibold text-white sm:text-5xl">{project.client}</p></div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -53,14 +64,6 @@ export default async function CasePage({ params }: { params: Promise<{ slug: str
           <div className="grid gap-12 lg:grid-cols-2">
             <div><p className="font-mono text-xs uppercase tracking-[0.3em] text-lime-300">El sistema AdVibe</p><h2 className="mt-6 text-5xl font-semibold tracking-[-0.06em] sm:text-6xl">Estrategia que se convierte en ejecución.</h2></div>
             <div><p className="text-xl leading-9 text-slate-400">{project.solution}</p><div className="mt-8 flex flex-wrap gap-2">{project.services.map((service) => <span key={service} className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-slate-300">{service}</span>)}</div></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 pb-24 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-5 md:grid-cols-3">
-            {["ESTRATEGIA", "CREATIVIDAD", "DISTRIBUCIÓN"].map((label, index) => <div key={label} className="aspect-square rounded-[1.75rem] border border-white/10 bg-white/[0.025] p-7"><span className="font-mono text-xs text-lime-300">0{index + 1}</span><div className="flex h-full items-end"><h3 className="text-3xl font-semibold tracking-[-0.05em]">{label}</h3></div></div>)}
           </div>
         </div>
       </section>
