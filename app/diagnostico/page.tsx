@@ -204,7 +204,7 @@ export default function DiagnosticPage() {
               </select>
               <select required name="budget" defaultValue="" className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
                 <option value="" disabled>{copy.budget}</option>
-                <option>Menos de $300</option><option>$300 – $600</option><option>$600 – $1,200</option><option>$1,200 – $2,500</option><option>$2,500+</option><option>{isUS ? "Not sure yet" : "Aún no lo sé"}</option>
+                {(isUS ? ["Under $300", "$300 – $600", "$600 – $1,200", "$1,200 – $2,500", "$2,500+", "Not sure yet"] : ["Menos de $300", "$300 – $600", "$600 – $1,200", "$1,200 – $2,500", "$2,500+", "Aún no lo sé"]).map((option) => <option key={option}>{option}</option>)}
               </select>
               <select required name="contact" defaultValue="" className="w-full rounded-xl border border-white/10 bg-[#0b0b0b] px-4 py-3.5 text-white outline-none focus:border-lime-300/60">
                 <option value="" disabled>{copy.contact}</option>
