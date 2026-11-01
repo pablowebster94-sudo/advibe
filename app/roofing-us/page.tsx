@@ -54,12 +54,7 @@ export default function RoofingUSPage() {
             <span className="text-lime-300">Ad</span>Vibe
             <span className="ml-2 text-[9px] font-semibold tracking-[0.35em] text-slate-500">AGENCIA</span>
           </a>
-          <a
-            href="#assessment"
-            className="rounded-full border border-lime-300/50 px-4 py-2.5 text-xs font-semibold text-lime-200 transition hover:bg-lime-300 hover:text-slate-950 sm:px-6 sm:text-sm"
-          >
-            Free business assessment ↗
-          </a>
+
         </div>
       </header>
 
@@ -80,11 +75,9 @@ export default function RoofingUSPage() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <a href="#assessment" className="rounded-full bg-lime-300 px-7 py-4 text-sm font-bold text-slate-950 shadow-[0_12px_50px_rgba(163,230,53,0.14)] transition hover:-translate-y-0.5 hover:bg-lime-200">
-                Get a free business assessment ↗
+                Request a free 15-minute strategy call ↗
               </a>
-              <a href="#how-it-works" className="rounded-full border border-white/15 px-7 py-4 text-sm font-semibold text-white transition hover:border-white/40">
-                See how it works
-              </a>
+
             </div>
             <div className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-500">
               <span>Meta Ads</span><span>Landing pages</span><span>Lead qualification</span><span>Follow-up systems</span>
@@ -192,6 +185,7 @@ export default function RoofingUSPage() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
           <span>© {new Date().getFullYear()} AdVibe Agencia</span>
           <span>Creative · Performance · Technology</span>
+          <a href="/privacy" className="hover:text-lime-300">Privacy Policy</a>
           <a href="/" className="hover:text-lime-300">advibeagencia.com</a>
         </div>
       </footer>
