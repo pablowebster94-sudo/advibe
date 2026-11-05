@@ -35,11 +35,18 @@ Pablo lo confirmó el 2026-09-27: Paola Miguitama es el contacto de Muebles Idea
 - La hoja CLIENTES tiene dos filas con mensualidad, día de pago y meta de contenido distintos (CLI-002 y CLI-003). **No se tocan.** Queda pendiente confirmar si son dos líneas de servicio o dos ubicaciones, o si hay un duplicado. Hasta entonces, los cobros y metas se reportan por fila, sin sumarlos ni fusionarlos.
 - Las carpetas de Drive `muebles-ideal` y `paola-miguitama` se conservan las dos.
 
+## Lista de clientes confirmada (Pablo, 2026-10-05)
+
+Pablo confirmó que sus únicos clientes son: **Kamauto, Muebles Ideal / Paola Miguitama, CETAD San Lucas, AM Motorsport, Club Santa Bárbara y Roxy's Joyería**. "De ahí no hay más clientes."
+
+- **Roxy's Joyería es cliente**, pero aún no está en la hoja CLIENTES (página 101351141775273). Falta su mensualidad y su día de pago.
+- AM Motorsport y CETAD San Lucas están activos: tienen trabajo en curso. Queda resuelto el conflicto con el CRM.
+- Club Santa Bárbara: Pablo habló de un solo club. Falta confirmar si Cuenca y Gualaceo siguen siendo dos clientes (CLI-004 y CLI-005).
+- **No son clientes:** United Kingdom English Academy, LatinEagle, A&N Latino, Constructora Peralta, Bocabel, Cardagali, Kueva, Panera, La Trinidad, G3L, Verónica López y Carla Molina. Sus publicaciones recurrentes de martes y jueves en Calendar ya no corresponden.
+
 ## Marcas con actividad que no están en la hoja oficial
 
-Mientras Pablo no las clasifique, no se mezclan con ningún cliente de la hoja.
-
-**Estado de cliente pendiente de confirmar** (Pablo, 2026-09-27): United Kingdom English Academy, LatinEagle Multiservices, Roxy's Joyería y Constructora Peralta. No son clientes confirmados. Sus campañas se pueden analizar, pero no se cuentan como ingreso, no se añaden a CLIENTES ni se les proyectan cobros.
+Historial de la revisión del 2026-09-27. La clasificación vigente es la de arriba.
 
 | Marca | Evidencia |
 |---|---|
