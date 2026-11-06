@@ -28,6 +28,12 @@ export default function StudioLayout({ children }: { children: React.ReactNode }
               Proyectos
             </Link>
             <Link
+              href="/studio/quitar-fondo"
+              className="flex min-h-11 items-center rounded-lg px-3 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
+            >
+              Quitar fondo
+            </Link>
+            <Link
               href="/studio/estilos"
               className="flex min-h-11 items-center rounded-lg px-3 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-neutral-100"
             >
