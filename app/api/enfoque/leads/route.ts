@@ -60,6 +60,25 @@ export async function POST(req:Request){
         utm_campaign:lead.utm_campaign,utm_content:lead.utm_content,utm_term:lead.utm_term,
         fbclid:lead.fbclid,gclid:lead.gclid,fbp,fbc,event_source_url:sourceUrl,...capiFields(meta)
       })}).catch(error=>console.error("[enfoque] No se registró conversion_event Lead:",error));
+      const jarvisUrl=process.env.JARVIS_WEBHOOK_URL;
+      const jarvisSecret=process.env.JARVIS_WEBHOOK_SECRET;
+      if(jarvisUrl&&jarvisSecret){
+        try{
+          const sync=await fetch(jarvisUrl,{
+            method:"POST",
+            headers:{"Content-Type":"application/json","Authorization":`Bearer ${jarvisSecret}`},
+            body:JSON.stringify({
+              name,phone,email,event_id:`enfoque-lead-${leadId||eventId}`,
+              service:interest,budget:body.budget,company:body.company,website_url:body.website_url,
+              utm_source:lead.utm_source,utm_medium:lead.utm_medium,utm_campaign:lead.utm_campaign,
+              event_source_url:sourceUrl,fbclid:lead.fbclid,fbp,fbc
+            }),
+            signal:AbortSignal.timeout(8000),
+            cache:"no-store"
+          });
+          if(!sync.ok) console.error("[enfoque] JARVIS lead sync failed:",sync.status,await sync.text().catch(()=>""));
+        }catch(error){console.error("[enfoque] JARVIS lead sync error:",error);}
+      }
     });
     return NextResponse.json({ok:true,lead_id:leadId,event_id:eventId});
   }catch(error){
