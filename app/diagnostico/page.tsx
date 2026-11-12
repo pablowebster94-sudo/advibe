@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { sendCapiEvent, trackEvent, trackMetaEvent } from "@/lib/tracking";
+import { enviarLeadAJarvis } from "@/lib/jarvis-lead";
 
 const whatsappNumber = "593984966335";
 const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL;
@@ -44,6 +45,7 @@ export default function DiagnosticPage() {
     trackMetaEvent("Lead", { content_name: "Diagnóstico digital AdVibe", content_category: "lead_generation" }, eventId);
     const testEventCode = new URLSearchParams(window.location.search).get("test_event_code") || undefined;
     await sendCapiEvent({ eventName: "Lead", eventId, email: data.email, phone: data.phone, testEventCode });
+    void enviarLeadAJarvis({ ...data, event_id: eventId, source: "diagnostico" });
 
     const message = [
       "Hola AdVibe, quiero solicitar un diagnóstico estratégico.",
