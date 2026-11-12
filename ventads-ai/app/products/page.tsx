@@ -30,17 +30,17 @@ export default async function ProductsPage() {
           AD VIBE <span className="text-accent-strong">AI</span>
         </Link>
         <Link href="/new">
-          <Button size="sm">Crear producto</Button>
+          <Button size="sm">Crear publicidad</Button>
         </Link>
       </header>
 
-      <h1 className="text-2xl font-semibold text-foreground">Mis productos</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Mis creaciones</h1>
 
       {products.length === 0 ? (
         <div className="flex flex-col items-center gap-4 rounded-[var(--radius-lg)] border border-dashed border-border p-10 text-center text-sm text-muted">
-          <span>Sin productos todavía.</span>
+          <span>Todavía no hay creaciones.</span>
           <Link href="/new">
-            <Button>Crear el primer producto</Button>
+            <Button>Crear la primera publicidad</Button>
           </Link>
         </div>
       ) : (
