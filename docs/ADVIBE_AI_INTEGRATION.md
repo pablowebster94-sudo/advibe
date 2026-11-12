@@ -64,12 +64,29 @@ Usar `ventads-ai/` como núcleo de producto (dominio, persistencia, orquestació
 - [x] Inspeccionar contratos de los endpoints de campañas, generación de IA, marcas y productos.
 - [x] Confirmar que la aplicación raíz actual no contiene el editor/publicador asumido en el plan inicial.
 - [x] Revisar el cron configurado y el plan de Vercel.
-- [ ] Inspeccionar rutas restantes de upload, creative regeneration, worker y sweep.
-- [ ] Revisar configuración exacta de Root Directory y variables de entorno sin revelar valores.
-- [ ] Ejecutar lint, tests y build con dependencias y variables seguras; no se han ejecutado desde este entorno.
+- [x] Inspeccionar rutas de upload, regeneración de creative, worker y sweep.
+- [ ] Revisar configuración exacta de Root Directory (no expuesta por la lectura de proyecto disponible) y presencia de variables de entorno sin revelar valores.
+- [ ] Ejecutar lint, tests y build con dependencias y variables seguras; el conector GitHub no ejecuta comandos locales y no se ha conectado un entorno de ejecución.
 - [ ] QA visual con imágenes reales de prueba y verificación de aislamiento.
 
 **Puerta de salida:** no iniciar la integración de UI ni despliegue hasta completar los puntos pendientes de ejecución y verificación.
+
+### Contratos API revisados en Fase 0
+
+| Endpoint | Contrato observado | Observación |
+|---|---|---|
+| `GET/POST /api/brands` | Lista o crea Brand del usuario actual | Usa identidad demo fija |
+| `GET/POST /api/products` | Lista o crea Product; valida `brandId` del mismo usuario | Incluye imágenes y Brand |
+| `POST /api/uploads` | `multipart/form-data` con `file` y `folder`; responde `key`, `url`, dimensiones | Validación de imagen delegada a `processUploadedImage` |
+| `POST /api/campaigns` | `productId`, `objective`, `style`, `variants` | Persiste campaña y jobs; responde 201 con campaign |
+| `GET /api/campaigns/:id` | Devuelve campaña, conceptos, copy, creatives y producto | Verifica propiedad; hace self-heal de jobs pendientes |
+| `POST /api/creatives/:id/regenerate` | Inicia nueva versión pendiente | Verifica propiedad; responde 202 |
+| `POST /api/jobs/process` | Bearer `CRON_SECRET`, `campaignId` opcional | Worker protegido; procesa trabajos en ventana acotada |
+| `GET /api/cron/sweep` | Bearer `CRON_SECRET` | Recupera jobs abandonados, finaliza campañas y procesa lote pequeño |
+| `POST /api/generate-ad-campaign` | `productId`, `objective` obligatorios; contexto opcional | Orquestador IA devuelve análisis, variantes y estado de proveedores; no reemplaza por sí solo el flujo persistente de `/api/campaigns` |
+| Raíz `POST /api/meta/capi` | Envía evento de conversión a Meta CAPI | No publica anuncios ni crea campañas |
+
+**Hallazgo de seguridad/arquitectura:** `getCurrentUser()` resuelve actualmente un usuario demo fijo (`demo@ventads.ai`). El Basic Auth global evita exposición casual, pero no crea identidad individual. No habilitar clientes externos hasta reemplazar ambos mecanismos por autenticación y autorización multi-tenant.
 
 ### Fase 1 — Experiencia de producto
 La UI de VentAds ya tiene un flujo de producto/campaña propio (`app/new`, `app/products`, `app/results`, componentes wizard y resultados). Primero consolidar esta UI como aplicación del producto. El sitio raíz debe enlazar a la aplicación, no compartir componentes Next.js entre dos builds independientes. Criterio: crear producto/campaña, consultar estado, ver variantes, regenerar una creatividad y exportar resultados desde un flujo coherente.
