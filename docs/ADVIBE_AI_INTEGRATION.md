@@ -2,30 +2,45 @@
 
 ## Estado
 - Rama de trabajo: `feature/advibe-ai-integration`
-- Base: `main`
-- Alcance inicial: integración gradual, sin alterar el proyecto raíz ni el deployment de producción.
-- Este documento registra la auditoría inicial y las puertas de aceptación. No implica que las fases de código estén implementadas.
+- Base: `main` en commit `33082d0871aa9df539b80813f9c4cedfab9d8bfe`
+- Primer commit de esta rama: documentación del plan y auditoría.
+- Alcance: integración gradual; no se han cambiado producción, variables ni el proyecto raíz.
+- Este documento registra el estado observado y las puertas de aceptación. No implica que las fases de código estén implementadas.
 
 ## Decisión de arquitectura
-Usar `ventads-ai/` como núcleo de producto (dominio, persistencia, orquestación de campañas, cola, renderizado y almacenamiento) y reutilizar selectivamente capacidades de la aplicación raíz. No fusionar aplicaciones copiando carpetas completas ni reemplazar producción antes de validar paridad funcional.
+Usar `ventads-ai/` como núcleo de producto (dominio, persistencia, orquestación de campañas, cola, renderizado y almacenamiento). El proyecto raíz actual es principalmente el sitio web de AdVibe y no contiene el editor publicitario conversacional que se había supuesto en una revisión anterior. Por tanto, no se deben importar componentes de un supuesto `/crear` ni de `AdCreator.tsx` sin encontrarlos en la rama actual. Mantener los dos proyectos independientes y conectar el sitio público al producto mediante un enlace o dominio cuando corresponda.
 
 ## Hallazgos verificados
 
 ### Aplicación raíz
-- Next.js 16.2.10 / React 19.2.4.
-- Tiene un `package.json` independiente en la raíz.
-- Contiene rutas de API raíz bajo `app/api/`, incluyendo `meta/`, `chat/`, `enfoque/` y `am-motorsport/`.
-- Mantenerla fuera del alcance de cambios de VentAds salvo cambios explícitos de integración entre proyectos.
+- Next.js 16.2.10 / React 19.2.4, con `package.json` independiente.
+- El README raíz sigue siendo el README inicial de Next.js y no describe el producto.
+- La estructura actual de `app/` corresponde al sitio web de AdVibe y secciones de negocio.
+- Las rutas de API raíz observadas incluyen `/api/meta/capi`, `/api/chat`, `/api/enfoque` y `/api/am-motorsport`.
+- En el árbol actual inspeccionado no se encontró `app/crear`, `components/AdCreator.tsx`, `ChatInterface.tsx` ni un endpoint `/api/meta/publish`. No asumir que existen en `main`.
+- `/api/meta/capi` es Conversions API para eventos web; no es una integración de publicación de anuncios.
 
 ### ventads-ai
 - Proyecto Next.js independiente dentro de `ventads-ai/`, con su propio `package.json`, lockfile, configuración y aplicación App Router.
 - Next.js 16, React 19, TypeScript, Prisma 7 y PostgreSQL.
 - Dominio existente de marcas, productos, campañas, conceptos, copies y creatividades.
 - APIs existentes para marcas, productos, campañas, creatividades, uploads, procesamiento de jobs y generación de campañas.
-- Orquestador documentado: Gemini (estrategia), Claude (copy) y OpenAI (dirección de arte), con fallback determinista.
-- Renderizado de copy separado de la generación visual; las fotos originales de producto no deben sobrescribirse.
-- Cola persistente basada en registros Creative y workers HTTP.
-- Storage local no es persistente en Vercel; la documentación contempla storage en base de datos o S3 compatible.
+- `POST /api/campaigns` recibe datos validados por `campaignInputSchema`, verifica que el producto pertenezca al usuario demo, persiste la campaña y crea conceptos/copies/creatives pendientes; devuelve `{ campaign }` con HTTP 201.
+- `POST /api/generate-ad-campaign` requiere `productId` y `objective`, acepta contexto opcional y devuelve `{ success, data }`. Usa Gemini/Claude/OpenAI server-side con fallback determinista.
+- `GET/POST /api/brands` y `GET/POST /api/products` gestionan los registros asociados al usuario actual.
+- La autenticación de aplicación es actualmente Basic Auth en `proxy.ts` y un usuario demo implícito en `lib/auth.ts`; NO es autenticación multiusuario. La autorización por userId existe en consultas de productos y marcas, pero el usuario se resuelve a una identidad fija.
+- La generación de imagen usa `ImageGenerationService`; el proveedor implementado es local compositor y Gemini. Pixazo no aparece en el adaptador actual inspeccionado y no debe declararse integrado.
+- El proveedor Gemini incluye protecciones para no redibujar la foto original: usa cutout/fondo y compone el producto real; el texto se renderiza mediante el compositor.
+- La cola persiste el trabajo en registros Creative y usa workers HTTP.
+- Storage soporta local, database y S3 compatible según configuración/código. En Vercel no se debe depender del filesystem efímero.
+- `ventads-ai/vercel.json` tiene un cron diario `0 3 * * *`, no `*/5 * * * *`.
+
+### Vercel
+- El equipo ADVIBE está en plan Hobby.
+- Existe un proyecto Vercel llamado `advibe-ai`, conectado al repositorio `pablowebster94-sudo/advibe`, con dominios `advibe-ai-six.vercel.app` y `advibe-ai-advibe.vercel.app`.
+- La configuración consultada muestra SSO protection habilitada para todos excepto dominios custom. No se verificó el Root Directory porque la lectura de proyecto consultada no expuso ese campo.
+- Al momento de la consulta, Vercel reportó el deployment más reciente en estado BUILDING. No se ha iniciado ni modificado ningún deployment desde esta rama.
+- No se consultaron ni copiaron valores de variables de entorno.
 
 ## Restricciones obligatorias
 1. No modificar `main` ni producción durante esta integración.
@@ -34,41 +49,45 @@ Usar `ventads-ai/` como núcleo de producto (dominio, persistencia, orquestació
 4. No inventar precios, características ni claims de productos: usar exclusivamente datos verificados del ProductBrief.
 5. No sobrescribir las fotografías originales ni alterar logotipos, placas, vehículos o productos.
 6. Los textos exactos (precio, titular, CTA) se renderizan de forma determinista, no dentro de la imagen generativa.
-7. La publicación en Meta permanece separada, con aprobación humana y preferiblemente en estado PAUSED.
+7. La publicación en Meta permanece separada, con aprobación humana y preferiblemente en estado PAUSED. La CAPI raíz no sustituye esta integración.
 8. No introducir cambios de esquema hasta revisar migraciones, datos y compatibilidad.
-9. No implementar multi-tenant SaaS sobre Basic Auth; antes del acceso a clientes se requiere autenticación de usuarios, organizaciones, autorización por tenant y pruebas de aislamiento.
+9. No implementar multi-tenant SaaS sobre Basic Auth/usuario demo; antes del acceso a clientes se requiere autenticación real, organizaciones, autorización por tenant y pruebas de aislamiento.
+10. No añadir Pixazo hasta implementar un adaptador compatible con `ImageGenerationService` y validar calidad, coste, latencia y fidelidad.
 
 ## Fases y criterios de aceptación
 
 ### Fase 0 — Auditoría técnica
 - [x] Confirmar rama base y crear rama de integración.
 - [x] Confirmar separación de los dos proyectos y sus manifests.
-- [x] Inventariar endpoints raíz y endpoints de VentAds.
-- [x] Revisar documentación de Next.js 16, Prisma 7, proveedores y despliegue.
-- [ ] Inspeccionar contratos request/response de los endpoints de generación y publicación.
-- [ ] Inspeccionar componentes raíz que se pretenden reutilizar y dependencias transitivas.
-- [ ] Ejecutar lint, tests y build en entorno con dependencias y variables seguras.
-- [ ] Revisar configuración real del proyecto Vercel sin modificarla.
+- [x] Inventariar las rutas principales de API raíz y VentAds.
+- [x] Revisar documentación local de Next.js 16, Prisma 7, proveedores y despliegue.
+- [x] Inspeccionar contratos de los endpoints de campañas, generación de IA, marcas y productos.
+- [x] Confirmar que la aplicación raíz actual no contiene el editor/publicador asumido en el plan inicial.
+- [x] Revisar el cron configurado y el plan de Vercel.
+- [ ] Inspeccionar rutas restantes de upload, creative regeneration, worker y sweep.
+- [ ] Revisar configuración exacta de Root Directory y variables de entorno sin revelar valores.
+- [ ] Ejecutar lint, tests y build con dependencias y variables seguras; no se han ejecutado desde este entorno.
+- [ ] QA visual con imágenes reales de prueba y verificación de aislamiento.
 
-**Puerta de salida:** inventario de contratos, dependencias, variables necesarias y pruebas reproducibles. No iniciar una migración de UI antes de completar esta puerta.
+**Puerta de salida:** no iniciar la integración de UI ni despliegue hasta completar los puntos pendientes de ejecución y verificación.
 
-### Fase 1 — Experiencia integrada
-Conectar la experiencia de creación elegida a las APIs de VentAds mediante contratos explícitos. Evitar acoplar componentes cliente a Prisma o servicios internos. Criterio: crear campaña, consultar estado, ver variantes y regenerar una creatividad desde un único flujo.
+### Fase 1 — Experiencia de producto
+La UI de VentAds ya tiene un flujo de producto/campaña propio (`app/new`, `app/products`, `app/results`, componentes wizard y resultados). Primero consolidar esta UI como aplicación del producto. El sitio raíz debe enlazar a la aplicación, no compartir componentes Next.js entre dos builds independientes. Criterio: crear producto/campaña, consultar estado, ver variantes, regenerar una creatividad y exportar resultados desde un flujo coherente.
 
 ### Fase 2 — Proveedores de IA
-Formalizar interfaces de proveedores; validar Gemini, Claude, OpenAI y Pixazo con el mismo conjunto de pruebas. Pixazo se incorpora solo si cumple calidad, coste, latencia, términos de uso y preservación del producto. Criterio: fallback probado y claves solo server-side.
+Formalizar y probar interfaces de proveedores. Gemini ya está conectado como proveedor de imagen; el orquestador de campaña llama Gemini, Claude y OpenAI para estrategia/copy/dirección de arte. Pixazo se incorpora solo como adaptador adicional si cumple calidad, coste, latencia, términos y preservación del producto. Criterio: fallback probado, observabilidad sin secretos y claves solo server-side.
 
 ### Fase 3 — Brand Kit y catálogo
-Completar identidad de marca, assets autorizados, productos y fuentes de verdad. Criterio: aislamiento de datos y consistencia de marca entre formatos.
+Completar identidad de marca, assets autorizados, productos y fuentes de verdad. Criterio: coherencia de marca y permisos/aislamiento correctos.
 
 ### Fase 4 — Renderizado y fidelidad
-Mantener fotografía original inmutable; componer fondo, tipografía, copy y CTA por capas controladas. Criterio: pruebas visuales de 1:1, 4:5 y 9:16, sin deformaciones ni texto inventado.
+Mantener fotografía original inmutable; componer fondo, tipografía, copy y CTA por capas controladas. Criterio: pruebas visuales 1:1, 4:5 y 9:16, sin deformaciones ni texto inventado.
 
 ### Fase 5 — Jobs y almacenamiento
-Validar recuperación de jobs, reintentos, concurrencia, límites de ejecución y storage persistente (R2/S3 o database storage). Criterio: ningún asset depende del filesystem efímero de Vercel y los jobs huérfanos se recuperan.
+Validar recuperación de jobs, reintentos, concurrencia, límites de ejecución y storage persistente. Criterio: ningún asset depende del filesystem efímero de Vercel y los jobs huérfanos se recuperan. El cron actual es diario y debe seguir siendo un safety net, no el único mecanismo de dispatch.
 
 ### Fase 6 — Meta Ads
-Integrar la publicación como flujo independiente. Criterio: revisión humana, permisos mínimos, publicación en pausa y sin activar gasto automáticamente.
+No existe una ruta de publicación de anuncios confirmada en el código raíz actual; solo se verificó CAPI. Diseñar la integración de Marketing API como módulo separado. Criterio: revisión humana, permisos mínimos, publicación en pausa y sin activar gasto automáticamente.
 
 ### Fase 7 — SaaS multiusuario
 Diseñar identidad, organizaciones, membresías, roles, autorización tenant-aware, cuotas, auditoría y aislamiento de assets/datos. Criterio: pruebas negativas de acceso cruzado antes de abrir a clientes.
@@ -81,12 +100,5 @@ Desde `ventads-ai/`:
 
 Además: pruebas de integración de API, QA visual de PNG exportados y pruebas de autorización. No afirmar build/test exitoso sin ejecutarlo.
 
-## Riesgos que requieren verificación
-- El proyecto Vercel `advibe-ai` debe tener Root Directory `ventads-ai`; verificarlo en configuración antes de cualquier deployment.
-- El cron `*/5 * * * *` documentado requiere un plan Vercel compatible; validar plan y configuración antes de confiar en él.
-- Verificar la implementación real del fallback de almacenamiento en Vercel y los límites de tamaño/tiempo de generación.
-- Verificar que las rutas de publicación Meta no puedan activarse sin aprobación y que las credenciales tengan permisos mínimos.
-- Verificar el estado real de los componentes de la aplicación raíz antes de reutilizarlos; el plan no presupone compatibilidad directa.
-
 ## Próximo trabajo
-Completar los contratos de API y la matriz de dependencias en Fase 0. Después implementar un adaptador de integración en una frontera estable; no mover archivos de una aplicación a la otra de forma masiva.
+Terminar la auditoría de endpoints de upload/regeneración/worker y ejecutar la suite desde un entorno reproducible. La primera modificación de producto debería ser una pequeña mejora aislada dentro de `ventads-ai/`, no una fusión de carpetas ni un cambio de producción.
