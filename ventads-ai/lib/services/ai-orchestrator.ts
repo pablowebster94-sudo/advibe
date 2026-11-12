@@ -141,7 +141,7 @@ async function claudeJson(prompt: string, deadline: Deadline): Promise<unknown> 
 async function openaiJson(prompt: string, deadline: Deadline): Promise<unknown> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new Error("OPENAI_API_KEY no configurada.");
-  const model = process.env.OPENAI_MODEL || "gpt-5.6";
+  const model = process.env.OPENAI_MODEL || "gpt-6-luna";
   const raw = await requestText(
     "https://api.openai.com/v1/responses",
     {

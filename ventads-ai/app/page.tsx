@@ -31,7 +31,7 @@ export default async function Home() {
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-14 px-6 py-10">
       <header className="flex items-center justify-between">
         <span className="text-sm font-semibold tracking-tight text-foreground">
-          ventADS<span className="text-accent-strong">.ai</span>
+          AD VIBE <span className="text-accent-strong">AI</span>
         </span>
         <Link href="/products" className="text-sm text-muted hover:text-foreground">
           Mis productos
@@ -40,22 +40,21 @@ export default async function Home() {
 
       <section className="flex flex-col gap-5">
         <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-          Convierte tu producto en anuncios listos para publicar.
+          Convierte cualquier idea en una publicidad extraordinaria.
         </h1>
         <p className="max-w-lg text-base text-muted">
-          Sube información y fotos reales. ventADS.ai analiza el producto y genera
-          conceptos, copy y creatividades para Meta Ads en minutos.
+          Describe lo que necesitas, adjunta tu producto si quieres y deja que el director creativo desarrolle el concepto, el copy y la composición visual.
         </p>
         <div>
           <Link href="/new">
-            <Button size="lg">Crear producto</Button>
+            <Button size="lg">Crear publicidad</Button>
           </Link>
         </div>
       </section>
 
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Productos recientes</h2>
+          <h2 className="text-sm font-semibold text-foreground">Creaciones recientes</h2>
           {products.length > 0 && (
             <Link href="/products" className="text-sm text-accent-strong hover:underline">
               Ver todos
@@ -65,9 +64,9 @@ export default async function Home() {
 
         {products.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-[var(--radius-lg)] border border-dashed border-border p-10 text-center text-sm text-muted">
-            <span>Sin productos todavía.</span>
+            <span>Todavía no hay creaciones.</span>
             <Link href="/new">
-              <Button>Crear el primer producto</Button>
+              <Button>Crear la primera publicidad</Button>
             </Link>
           </div>
         ) : (

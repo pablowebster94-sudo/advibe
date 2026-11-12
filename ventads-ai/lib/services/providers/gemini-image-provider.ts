@@ -121,7 +121,7 @@ export class GeminiImageProvider implements ImageGenerationService {
       };
     }
 
-    const prompt = input.productCutout
+    const basePrompt = input.productCutout
       ? buildBackgroundPrompt({
           conceptType: input.conceptType,
           styleId: input.styleId,
@@ -140,6 +140,8 @@ export class GeminiImageProvider implements ImageGenerationService {
           objective: input.objective,
           hasPrice: Boolean(input.priceDisplay || input.offerDisplay),
         });
+    const prompt = [basePrompt, input.visualPrompt ? `DIRECCIÓN DE ARTE DEL USUARIO:\n${input.visualPrompt}` : ""]
+      .filter(Boolean).join("\n\n");
 
     let scene: Buffer;
     try {

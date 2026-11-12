@@ -2,18 +2,28 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { Field, Input, Textarea } from "@/components/ui/Field";
+import { useEffect, useMemo, useState } from "react";
 import { ImageUploader, type UploadedImage } from "@/components/wizard/ImageUploader";
+import { Button } from "@/components/ui/Button";
 import { readJson } from "@/lib/fetch-json";
 
-/**
- * Create ads, one screen: photo → ad content → Brand Kit → design.
- * Everything typed here is drawn exactly as written by VentAds' template
- * renderer (no AI writes text into the image). The full 6-step wizard stays
- * available at /new/avanzado.
- */
+const FORMATS = [
+  { id: "SQUARE_1_1", label: "Cuadrado", size: "1080 × 1080", ratio: "1:1" },
+  { id: "PORTRAIT_4_5", label: "Feed vertical", size: "1080 × 1350", ratio: "4:5" },
+  { id: "STORY_9_16", label: "Historia / Reel", size: "1080 × 1920", ratio: "9:16" },
+] as const;
+
+const STYLES = [
+  ["AUTO", "Que la IA decida"],
+  ["PREMIUM", "Premium"],
+  ["COMERCIAL", "Comercial"],
+  ["MINIMALISTA", "Minimalista"],
+  ["ELEGANTE", "Elegante"],
+  ["MODERNO", "Moderno"],
+  ["LIFESTYLE", "Lifestyle"],
+  ["URGENCIA", "Promoción"],
+  ["DEPORTIVO", "Deportivo"],
+] as const;
 
 type Brand = {
   id: string;
@@ -25,408 +35,220 @@ type Brand = {
   logoUrl: string | null;
 };
 
-type PromotionRow = { value: string; label: string; detail: string; note: string };
-
-const KINDS = [
-  { id: "Productos de retail", label: "Producto" },
-  { id: "Vehículos", label: "Vehículo" },
-  { id: "Servicios", label: "Servicio" },
-] as const;
-
-const DESIGNS = [
-  { id: "poster-elegante", label: "Póster de marca" },
-  { id: "classic", label: "Clásico" },
-] as const;
-
-const LOOKS = [
-  { id: "COMERCIAL", label: "Claro" },
-  { id: "PREMIUM", label: "Oscuro premium" },
-] as const;
-
-const COUNTS = [
-  { id: "3", label: "3 anuncios" },
-  { id: "4", label: "4 anuncios" },
-] as const;
-
-const LAST_BRAND_KEY = "ventads:last-brand";
-const EMPTY_PROMO: PromotionRow = { value: "", label: "", detail: "", note: "" };
-
-function remembered(key: string) {
-  try {
-    return window.localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function remember(key: string, value: string) {
-  try {
-    window.localStorage.setItem(key, value);
-  } catch {
-    // Private mode / blocked storage: nothing to remember, nothing breaks.
-  }
-}
-
-/** One item per line; "a, b, c" on one line also works. */
-function toLines(text: string) {
-  return text
-    .split(/\n|,\s+|\s+·\s+|\s+\+\s+/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .join("\n");
-}
-
-function brandColors(brand: Brand | undefined): [string, string] {
-  try {
-    const parsed = brand?.colors ? JSON.parse(brand.colors) : [];
-    return [parsed[0] ?? "#0b5d2e", parsed[1] ?? "#c9a227"];
-  } catch {
-    return ["#0b5d2e", "#c9a227"];
-  }
-}
-
-function Chips<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly { id: T; label: string }[];
-  value: T;
-  onChange: (id: T) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          aria-pressed={value === option.id}
-          onClick={() => onChange(option.id)}
-          className={`rounded-full border px-4 py-2 text-sm cursor-pointer transition-colors ${
-            value === option.id
-              ? "border-accent-strong bg-accent-strong text-white"
-              : "border-border bg-surface text-foreground hover:border-accent-strong/60"
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <section className="flex flex-col gap-4 rounded-[var(--radius-lg)] border border-border bg-surface p-5 sm:p-6">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
-        {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
-      </div>
-      {children}
-    </section>
-  );
-}
+const ALL_FORMAT_IDS = FORMATS.map((format) => format.id);
 
 export default function CreateAdsPage() {
   const router = useRouter();
-  const [photos, setPhotos] = useState<UploadedImage[]>([]);
-  const [kind, setKind] = useState<string>(KINDS[0].id);
-  const [name, setName] = useState("");
-  const [kicker, setKicker] = useState("");
-  const [bigTitle, setBigTitle] = useState("");
-  const [tagline, setTagline] = useState("");
-  const [price, setPrice] = useState("");
-  const [includes, setIncludes] = useState("");
-  const [benefits, setBenefits] = useState("");
-  const [promos, setPromos] = useState<PromotionRow[]>([]);
-
-  const [design, setDesign] = useState<string>(DESIGNS[0].id);
-  const [look, setLook] = useState<string>(LOOKS[0].id);
-  const [count, setCount] = useState<string>(COUNTS[0].id);
-
+  const [prompt, setPrompt] = useState("");
+  const [productImage, setProductImage] = useState<UploadedImage[]>([]);
+  const [logoImage, setLogoImage] = useState<UploadedImage[]>([]);
+  const [formats, setFormats] = useState<string[]>(ALL_FORMAT_IDS);
+  const [style, setStyle] = useState<string>("AUTO");
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [brandId, setBrandId] = useState<string>("new");
-  const [businessName, setBusinessName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
+  const [brandId, setBrandId] = useState("new");
+  const [brandName, setBrandName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [footerNote, setFooterNote] = useState("");
-  const [primary, setPrimary] = useState("#0b5d2e");
-  const [accent, setAccent] = useState("#c9a227");
-  const [logo, setLogo] = useState<UploadedImage[]>([]);
-
+  const [primaryColor, setPrimaryColor] = useState("#111827");
+  const [accentColor, setAccentColor] = useState("#f4a900");
+  const [showBrand, setShowBrand] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function loadBrand(id: string, list: Brand[]) {
-    setBrandId(id);
-    const brand = list.find((b) => b.id === id);
-    const [p, a] = brandColors(brand);
-    setBusinessName(brand?.name ?? "");
-    setWhatsapp(brand?.contactPhone ?? "");
-    setFooterNote(brand?.footerNote ?? "");
-    setPrimary(p);
-    setAccent(a);
-    setLogo(brand?.logoKey && brand.logoUrl ? [{ key: brand.logoKey, url: brand.logoUrl, width: 0, height: 0 }] : []);
-  }
-
   useEffect(() => {
-    fetch("/api/brands")
-      .then((res) => readJson<{ brands?: Brand[] }>(res))
-      .then((data) => {
-        const list = data.brands ?? [];
-        setBrands(list);
-        const saved = remembered(LAST_BRAND_KEY);
-        const preferred = list.find((b) => b.id === saved) ?? list[0];
-        if (preferred) loadBrand(preferred.id, list);
-      })
-      .catch(() => setBrands([]));
+    let active = true;
+    fetch("/api/brands", { cache: "no-store" })
+      .then((response) => readJson<{ brands?: Brand[] }>(response))
+      .then((data) => { if (active) setBrands(data.brands ?? []); })
+      .catch(() => { if (active) setBrands([]); });
+    return () => { active = false; };
   }, []);
 
-  const canGenerate = name.trim() !== "" && !submitting;
+  const canGenerate = useMemo(() => prompt.trim().length >= 8 && formats.length > 0 && !submitting, [prompt, formats, submitting]);
 
-  async function saveBrand(): Promise<string | null> {
-    const kit = {
-      contactPhone: whatsapp.trim() || null,
-      footerNote: footerNote.trim() || null,
-      colors: [primary, accent],
-      logoKey: logo[0]?.key ?? null,
-    };
-    if (brandId !== "new") {
-      const res = await fetch(`/api/brands/${brandId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...kit, ...(businessName.trim() ? { name: businessName.trim() } : {}) }),
-      });
-      const data = await readJson<{ error?: string }>(res);
-      if (!res.ok) throw new Error(data.error ?? "No se pudo guardar tu marca.");
-      return brandId;
+  function selectBrand(value: string) {
+    setBrandId(value);
+    const brand = brands.find((item) => item.id === value);
+    if (!brand) {
+      setBrandName(""); setContactPhone(""); setFooterNote("");
+      setLogoImage([]); setPrimaryColor("#111827"); setAccentColor("#f4a900");
+      return;
     }
-    if (!businessName.trim() && !whatsapp.trim() && logo.length === 0) return null;
-    const res = await fetch("/api/brands", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: businessName.trim() || "Mi negocio",
-        contactPhone: kit.contactPhone ?? undefined,
-        footerNote: kit.footerNote ?? undefined,
-        colors: kit.colors,
-        logoKey: kit.logoKey ?? undefined,
-        defaultCta: whatsapp.trim() ? "Escríbenos por WhatsApp" : undefined,
-      }),
-    });
-    const data = await readJson<{ error?: string; brand: { id: string } }>(res);
-    if (!res.ok) throw new Error(data.error ?? "No se pudo guardar tu marca.");
-    return data.brand.id;
+    setBrandName(brand.name);
+    setContactPhone(brand.contactPhone ?? "");
+    setFooterNote(brand.footerNote ?? "");
+    try {
+      const colors = brand.colors ? JSON.parse(brand.colors) as string[] : [];
+      setPrimaryColor(colors[0] ?? "#111827");
+      setAccentColor(colors[1] ?? "#f4a900");
+    } catch {
+      setPrimaryColor("#111827"); setAccentColor("#f4a900");
+    }
+    // The server reads an existing Brand Kit logo by key; only upload a new
+    // logo here when the user explicitly replaces it.
+    setLogoImage([]);
   }
 
   async function generate() {
+    if (!canGenerate) return;
     setSubmitting(true);
     setError(null);
     try {
-      const useBrandId = await saveBrand();
-      if (useBrandId) remember(LAST_BRAND_KEY, useBrandId);
-
-      const numericPrice = Number(price.replace(/[^\d.]/g, ""));
-      const adTitle = [kicker.trim(), bigTitle.trim()].filter(Boolean).join("\n");
-      const facts = benefits.trim() ? toLines(benefits) : undefined;
-      const promotions = promos
-        .filter((p) => p.value.trim() && p.label.trim())
-        .map((p) => ({
-          value: p.value.trim(),
-          label: p.label.trim(),
-          detail: p.detail.trim() || null,
-          note: p.note.trim() || null,
-        }));
-
-      const productRes = await fetch("/api/products", {
+      const response = await fetch("/api/creative-studio", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          category: kind,
-          name: name.trim(),
-          adTitle: adTitle || undefined,
-          description: tagline.trim() || undefined,
-          price: price.trim() && numericPrice > 0 ? numericPrice : undefined,
-          currency: "USD",
-          includes: includes.trim() ? toLines(includes) : undefined,
-          benefits: facts,
-          features: facts,
-          promotions: promotions.length ? promotions : undefined,
-          brandId: useBrandId || undefined,
-          images: photos.map((img) => ({ ...img, role: "PRODUCT" as const })),
+          prompt: prompt.trim(),
+          productImage: productImage[0] ? { key: productImage[0].key, width: productImage[0].width, height: productImage[0].height } : undefined,
+          logoImage: logoImage[0] ? { key: logoImage[0].key, width: logoImage[0].width, height: logoImage[0].height } : undefined,
+          brandId: brandId !== "new" ? brandId : undefined,
+          brandName: brandName.trim() || undefined,
+          contactPhone: contactPhone.trim() || undefined,
+          footerNote: footerNote.trim() || undefined,
+          colors: [primaryColor, accentColor],
+          style,
+          formats,
         }),
       });
-      const productData = await readJson<{ error?: string; product: { id: string } }>(productRes);
-      if (!productRes.ok) throw new Error(productData.error ?? "No se pudo guardar el producto.");
-
-      const campaignRes = await fetch("/api/campaigns", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: productData.product.id,
-          objective: "VENDER",
-          style: look,
-          variants: Number(count),
-          templateId: design === "classic" ? undefined : design,
-        }),
-      });
-      const campaignData = await readJson<{ error?: string; campaign: { id: string } }>(campaignRes);
-      if (!campaignRes.ok) throw new Error(campaignData.error ?? "No se pudieron generar los anuncios.");
-
-      router.push(`/results/${campaignData.campaign.id}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado.");
+      const data = await readJson<{ error?: string; campaign?: { id: string } }>(response);
+      if (!response.ok || !data.campaign?.id) throw new Error(data.error ?? "No se pudo iniciar la generación.");
+      router.push(`/results/${data.campaign.id}`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Ocurrió un error inesperado.");
       setSubmitting(false);
     }
   }
 
-  function setPromo(index: number, patch: Partial<PromotionRow>) {
-    setPromos((list) => list.map((p, i) => (i === index ? { ...p, ...patch } : p)));
+  function toggleFormat(id: string) {
+    setFormats((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-5 px-4 py-8 sm:px-6">
-      <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
-          ventADS<span className="text-accent-strong">.ai</span>
-        </Link>
-        <Link href="/products" className="text-sm text-muted hover:text-foreground">
-          Mis productos
-        </Link>
-      </header>
+    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 sm:py-10">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+        <header className="flex items-center justify-between">
+          <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
+            AD VIBE <span className="text-accent-strong">AI</span>
+          </Link>
+          <Link href="/products" className="text-sm text-muted transition hover:text-foreground">Mis creaciones</Link>
+        </header>
 
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Crear anuncios</h1>
-        <p className="mt-1 text-sm text-muted">
-          Tu foto real + tu marca + tus datos exactos. VentAds arma el diseño en 1080×1080, 1080×1350 y 1080×1920.
-        </p>
-      </div>
+        <section className="space-y-3 pt-3 sm:pt-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent-strong">AI Advertising Creative Studio</p>
+          <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+            Tu idea. Nuestra dirección creativa. <span className="text-muted">Un anuncio listo para publicar.</span>
+          </h1>
+          <p className="max-w-2xl text-sm leading-6 text-muted sm:text-base">
+            Cuéntame qué necesitas como se lo explicarías a un diseñador. La IA desarrolla el concepto, el copy y la composición.
+          </p>
+        </section>
 
-      <form
-        className="flex flex-col gap-5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (canGenerate) void generate();
-        }}
-      >
-        <Section title="1. Foto" hint="Tu foto original se conserva siempre. Mejor si el producto se ve completo.">
-          <ImageUploader images={photos} onChange={setPhotos} folder="products" label="Foto del producto" />
-          <Chips options={KINDS} value={kind} onChange={setKind} />
-        </Section>
-
-        <Section title="2. Anuncio" hint="Solo datos reales: se imprimen tal cual los escribes.">
-          <Field label="¿Qué vendes?" required>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Juego de sala Imperial" autoFocus />
-          </Field>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Línea pequeña del título" hint="Opcional">
-              <Input value={kicker} onChange={(e) => setKicker(e.target.value)} placeholder="Ej: Juego de sala" />
-            </Field>
-            <Field label="Título grande" hint="Opcional; si lo dejas vacío usamos el nombre">
-              <Input value={bigTitle} onChange={(e) => setBigTitle(e.target.value)} placeholder="Ej: Imperial" />
-            </Field>
+        <section className="rounded-2xl border border-border bg-surface p-4 shadow-[0_24px_80px_rgba(0,0,0,0.12)] sm:p-6">
+          <label htmlFor="creative-prompt" className="mb-3 block text-sm font-semibold">¿Qué publicidad quieres crear?</label>
+          <textarea
+            id="creative-prompt"
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="Ejemplo: Crea un flyer premium para promocionar un juego de sala moderno. Quiero que transmita elegancia y comodidad. Incluye un llamado a escribir por WhatsApp. No inventes precios ni características."
+            rows={5}
+            maxLength={5000}
+            className="min-h-36 w-full resize-y rounded-xl border border-border bg-background px-4 py-4 text-sm leading-6 text-foreground outline-none transition placeholder:text-muted/70 focus:border-accent-strong focus:ring-2 focus:ring-accent-strong/15"
+          />
+          <div className="mt-2 flex justify-between text-[11px] text-muted">
+            <span>Escribe con libertad. No necesitas completar formularios.</span>
+            <span>{prompt.length}/5000</span>
           </div>
-          <Field label="Frase corta" hint="Opcional">
-            <Input value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Ej: Elegancia, comodidad y estilo para transformar tu sala." />
-          </Field>
-          <Field label="Precio (USD)" hint="Opcional">
-            <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Ej: 1299" />
-          </Field>
-          <Field label="¿Qué incluye?" hint="Opcional. Separado por comas: se muestra con íconos.">
-            <Textarea value={includes} onChange={(e) => setIncludes(e.target.value)} placeholder="Sofá triple, Sofá doble, 2 poltronas, Mesa de centro" className="min-h-16" />
-          </Field>
-          <Field label="Beneficios / características" hint="Opcional. Hasta 4 se muestran con íconos.">
-            <Textarea
-              value={benefits}
-              onChange={(e) => setBenefits(e.target.value)}
-              placeholder="Estructura de madera de alta calidad, Tapizado antifluido fácil de limpiar, Durabilidad y confort"
-              className="min-h-16"
-            />
-          </Field>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-foreground">Promociones</span>
-            {promos.map((p, i) => (
-              <div key={i} className="grid grid-cols-2 gap-2 rounded-[var(--radius-sm)] border border-border p-3 sm:grid-cols-4">
-                <Input value={p.value} onChange={(e) => setPromo(i, { value: e.target.value })} placeholder="15%" aria-label="Valor" />
-                <Input value={p.label} onChange={(e) => setPromo(i, { label: e.target.value })} placeholder="de descuento" aria-label="Texto" />
-                <Input value={p.detail} onChange={(e) => setPromo(i, { detail: e.target.value })} placeholder="En toda la tienda" aria-label="Detalle" />
-                <div className="flex gap-2">
-                  <Input value={p.note} onChange={(e) => setPromo(i, { note: e.target.value })} placeholder="(Pago en efectivo)" aria-label="Nota" />
-                  <button
-                    type="button"
-                    onClick={() => setPromos((list) => list.filter((_, j) => j !== i))}
-                    className="px-2 text-muted hover:text-danger cursor-pointer"
-                    aria-label="Quitar promoción"
-                  >
-                    ×
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">Fotografía del producto <span className="font-normal text-muted">(opcional)</span></p>
+              <p className="text-xs text-muted">Usaremos tu fotografía original y la integraremos sin redibujar el producto.</p>
+              <ImageUploader images={productImage} onChange={setProductImage} folder="products" multiple={false} label="Subir producto" aspectClassName="aspect-[4/3]" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">Logotipo <span className="font-normal text-muted">(opcional)</span></p>
+              <p className="text-xs text-muted">Se añade como una capa independiente para conservarlo intacto.</p>
+              <ImageUploader images={logoImage} onChange={setLogoImage} folder="logos" multiple={false} label="Subir logo" aspectClassName="aspect-[4/3]" />
+            </div>
+          </div>
+
+          <div className="mt-7 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold">Formatos de publicación</p>
+              <button type="button" onClick={() => setFormats(ALL_FORMAT_IDS)} className="text-xs text-accent-strong hover:underline">Usar los 3 formatos</button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {FORMATS.map((format) => {
+                const selected = formats.includes(format.id);
+                return (
+                  <button key={format.id} type="button" aria-pressed={selected} onClick={() => toggleFormat(format.id)}
+                    className={`rounded-xl border p-3 text-left transition ${selected ? "border-accent-strong bg-accent-soft/40" : "border-border bg-background hover:border-muted"}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">{format.label}</span>
+                      <span className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${selected ? "border-accent-strong bg-accent-strong text-white" : "border-border text-transparent"}`}>✓</span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted">{format.size} · {format.ratio}</p>
                   </button>
-                </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_1fr]">
+            <label className="flex flex-col gap-2 text-sm">
+              <span className="font-semibold">Dirección artística</span>
+              <select value={style} onChange={(event) => setStyle(event.target.value)} className="min-h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-accent-strong">
+                {STYLES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+              </select>
+            </label>
+            <div className="flex flex-col justify-end text-xs leading-5 text-muted">
+              <span>La opción automática interpreta tu idea y selecciona el estilo visual más adecuado.</span>
+              <span>Se generan 3 propuestas creativas con enfoques distintos.</span>
+            </div>
+          </div>
+
+          <details open={showBrand} onToggle={(event) => setShowBrand((event.currentTarget as HTMLDetailsElement).open)} className="mt-6 rounded-xl border border-border bg-background px-4 py-3">
+            <summary className="cursor-pointer text-sm font-semibold">Identidad de marca <span className="font-normal text-muted">(opcional)</span></summary>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {brands.length > 0 && (
+                <label className="flex flex-col gap-1.5 text-xs text-muted sm:col-span-2">
+                  Seleccionar marca guardada
+                  <select value={brandId} onChange={(event) => selectBrand(event.target.value)} className="min-h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground">
+                    <option value="new">Crear / usar otra marca</option>
+                    {brands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
+                  </select>
+                </label>
+              )}
+              <label className="flex flex-col gap-1.5 text-xs text-muted">
+                Nombre del negocio
+                <input value={brandName} onChange={(event) => setBrandName(event.target.value)} placeholder="Ej. Muebles Ideal" className="min-h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground outline-none focus:border-accent-strong" />
+              </label>
+              <label className="flex flex-col gap-1.5 text-xs text-muted">
+                WhatsApp de contacto
+                <input value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="Ej. 099 000 0000" className="min-h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground outline-none focus:border-accent-strong" />
+              </label>
+              <label className="flex flex-col gap-1.5 text-xs text-muted">
+                Texto de pie
+                <input value={footerNote} onChange={(event) => setFooterNote(event.target.value)} placeholder="Ej. Envíos a todo el Ecuador" className="min-h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground outline-none focus:border-accent-strong" />
+              </label>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 text-xs text-muted">Principal <input aria-label="Color principal" type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} className="h-8 w-10 cursor-pointer rounded border border-border bg-transparent" /></label>
+                <label className="flex items-center gap-2 text-xs text-muted">Acento <input aria-label="Color de acento" type="color" value={accentColor} onChange={(event) => setAccentColor(event.target.value)} className="h-8 w-10 cursor-pointer rounded border border-border bg-transparent" /></label>
               </div>
-            ))}
-            {promos.length < 3 && (
-              <button
-                type="button"
-                onClick={() => setPromos((list) => [...list, { ...EMPTY_PROMO }])}
-                className="self-start text-sm text-accent-strong underline cursor-pointer"
-              >
-                + Agregar promoción
-              </button>
-            )}
+            </div>
+          </details>
+
+          {error && <p role="alert" className="mt-4 rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">{error}</p>}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted">Tus datos comerciales se componen como texto real. La IA no debe inventar precios ni beneficios.</p>
+            <Button type="button" size="lg" disabled={!canGenerate} onClick={() => void generate()}>
+              {submitting ? "Preparando tus propuestas…" : "Generar publicidad →"}
+            </Button>
           </div>
-        </Section>
+        </section>
 
-        <Section title="3. Tu marca (Brand Kit)" hint="Se guarda y se usa en todos tus anuncios.">
-          {brands.length > 0 && (
-            <select
-              value={brandId}
-              onChange={(e) => (e.target.value === "new" ? loadBrand("new", []) : loadBrand(e.target.value, brands))}
-              className="w-full rounded-[var(--radius-sm)] border border-border bg-surface px-3.5 py-2.5 text-sm text-foreground"
-            >
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-              <option value="new">+ Otra marca…</option>
-            </select>
-          )}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Nombre del negocio" />
-            <Input inputMode="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="WhatsApp, ej: 099 336 1284" />
-          </div>
-          <Input value={footerNote} onChange={(e) => setFooterNote(e.target.value)} placeholder="Pie del anuncio (opcional), ej: Envío a todo el país" />
-          <div className="flex flex-wrap items-end gap-5">
-            <ImageUploader images={logo} onChange={setLogo} folder="logos" multiple={false} label="Logo" aspectClassName="aspect-[4/3]" />
-            <label className="flex flex-col gap-1 text-sm text-foreground">
-              Color principal
-              <input type="color" value={primary} onChange={(e) => setPrimary(e.target.value)} className="h-10 w-20 cursor-pointer rounded border border-border" />
-            </label>
-            <label className="flex flex-col gap-1 text-sm text-foreground">
-              Color de acento
-              <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} className="h-10 w-20 cursor-pointer rounded border border-border" />
-            </label>
-          </div>
-        </Section>
-
-        <Section title="4. Diseño">
-          <Chips options={DESIGNS} value={design} onChange={setDesign} />
-          {design === "classic" && <Chips options={LOOKS} value={look} onChange={setLook} />}
-          <Chips options={COUNTS} value={count} onChange={setCount} />
-        </Section>
-
-        {error && <p className="text-sm text-danger">{error}</p>}
-
-        <Button type="submit" size="lg" disabled={!canGenerate}>
-          {submitting ? "Creando tus anuncios…" : `Crear ${count} anuncios × 3 tamaños`}
-        </Button>
-      </form>
-
-      <p className="text-center text-xs text-muted">
-        ¿Necesitas objetivo o público?{" "}
-        <Link href="/new/avanzado" className="underline hover:text-foreground">
-          Modo avanzado
-        </Link>
-      </p>
-    </div>
+        <p className="text-center text-xs text-muted">¿Necesitas más controles? <Link href="/new/avanzado" className="underline hover:text-foreground">Abrir modo avanzado</Link></p>
+      </div>
+    </main>
   );
 }

@@ -120,7 +120,7 @@ export default function NewProductPage() {
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-10">
       <header className="flex items-center justify-between">
         <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
-          ventADS<span className="text-accent-strong">.ai</span>
+          AD VIBE <span className="text-accent-strong">AI</span>
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/new" className="text-sm text-muted hover:text-foreground">

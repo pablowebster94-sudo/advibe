@@ -43,11 +43,12 @@ export default async function ResultsPage({
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-10">
       <header className="flex items-center justify-between">
         <Link href="/" className="text-sm font-semibold tracking-tight text-foreground">
-          ventADS<span className="text-accent-strong">.ai</span>
+          AD VIBE <span className="text-accent-strong">AI</span>
         </Link>
-        <Link href={`/products/${campaign.productId}`} className="text-sm text-muted hover:text-foreground">
-          Volver al producto
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href={`/products/${campaign.productId}`} className="text-sm text-muted hover:text-foreground">Ver producto</Link>
+          <Link href="/new" className="rounded-lg bg-accent-strong px-3 py-2 text-xs font-semibold text-white hover:opacity-90">Nueva publicidad</Link>
+        </div>
       </header>
 
       <div className="flex flex-wrap items-end justify-between gap-4">

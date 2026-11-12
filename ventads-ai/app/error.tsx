@@ -18,7 +18,7 @@ export default function Error({
   return (
     <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-5 px-6 py-10">
       <span className="text-sm font-semibold tracking-tight text-foreground">
-        ventADS<span className="text-accent-strong">.ai</span>
+        AD VIBE <span className="text-accent-strong">AI</span>
       </span>
       <h1 className="text-2xl font-semibold text-foreground">No se pudo cargar esta pantalla</h1>
       <p className="text-sm text-muted">

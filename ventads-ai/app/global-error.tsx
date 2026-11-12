@@ -10,8 +10,8 @@ export default function GlobalError({
   return (
     <html lang="es">
       <body style={{ fontFamily: "system-ui, sans-serif", padding: 32, maxWidth: 560, margin: "0 auto" }}>
-        <title>ventADS.ai — Error</title>
-        <h1 style={{ fontSize: 22 }}>ventADS.ai no pudo cargar</h1>
+        <title>AdVibe AI — Error</title>
+        <h1 style={{ fontSize: 22 }}>AdVibe AI no pudo cargar</h1>
         <p style={{ color: "#555", fontSize: 14 }}>
           Ocurrió un error inesperado.{error.digest ? ` Código: ${error.digest}.` : ""}
         </p>

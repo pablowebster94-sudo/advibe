@@ -8,9 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ventADS.ai — Creatividades publicitarias con IA",
+  title: "AdVibe AI — Estudio Creativo Publicitario",
   description:
-    "Convierte información y fotografías de tu producto en creatividades publicitarias profesionales listas para Meta Ads y redes sociales.",
+    "Convierte cualquier idea y fotografía de producto en creatividades publicitarias profesionales listas para publicar.",
 };
 
 export default function RootLayout({

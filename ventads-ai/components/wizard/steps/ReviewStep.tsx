@@ -31,7 +31,7 @@ export function ReviewStep({
       <div>
         <h2 className="text-lg font-semibold text-foreground">Generar creatividades</h2>
         <p className="text-sm text-muted mt-1">
-          ventADS.ai analizará el producto y generará {CONCEPT_TYPES.length} conceptos
+          AdVibe AI analizará el producto y generará {CONCEPT_TYPES.length} conceptos
           publicitarios en los formatos disponibles.
         </p>
       </div>

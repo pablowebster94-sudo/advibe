@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { readJson } from "@/lib/fetch-json";
 import { FORMATS, getFormat } from "@/lib/catalog/formats";
 import { getConceptType } from "@/lib/catalog/concepts";
 import { Button } from "@/components/ui/Button";
@@ -40,6 +41,10 @@ function Spinner() {
  */
 export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
   const [regenerating, setRegenerating] = useState(false);
+  const [editInstruction, setEditInstruction] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [chat, setChat] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
 
   const latest = useMemo(() => latestCreativesByFormat(concept.creatives), [concept.creatives]);
   const availableFormats = useMemo(
@@ -57,9 +62,39 @@ export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
     if (!active) return;
     setRegenerating(true);
     try {
-      await fetch(`/api/creatives/${active.id}/regenerate`, { method: "POST" });
+      const response = await fetch(`/api/creatives/${active.id}/regenerate`, { method: "POST" });
+      const data = await readJson<{ error?: string }>(response);
+      if (!response.ok) throw new Error(data.error ?? "No se pudo generar otra versión.");
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : "No se pudo generar otra versión.");
     } finally {
       setRegenerating(false);
+    }
+  }
+
+  async function handleEdit() {
+    if (!active || !editInstruction.trim() || editBusy) return;
+    const instruction = editInstruction.trim();
+    const nextHistory = [...chat, { role: "user" as const, content: instruction }].slice(-12);
+    setChat(nextHistory);
+    setEditInstruction("");
+    setEditBusy(true);
+    setEditError(null);
+    try {
+      const response = await fetch(`/api/creatives/${active.id}/edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instruction, history: chat.slice(-8) }),
+      });
+      const data = await readJson<{ error?: string; message?: string }>(response);
+      if (!response.ok) throw new Error(data.error ?? "No se pudo aplicar el cambio.");
+      setChat((current) => [...current, { role: "assistant" as const, content: data.message ?? "Cambio aplicado. Estoy generando la nueva versión." }].slice(-12));
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : "No se pudo aplicar el cambio.");
+      setChat((current) => current.slice(0, -1));
+      setEditInstruction(instruction);
+    } finally {
+      setEditBusy(false);
     }
   }
 
@@ -159,7 +194,7 @@ export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
           onClick={handleRegenerate}
           disabled={!active || regenerating || busy}
         >
-          {regenerating ? "Iniciando…" : active?.status === "FAILED" ? "Reintentar" : "Regenerar"}
+          {regenerating ? "Iniciando…" : active?.status === "FAILED" ? "Reintentar" : "Otra propuesta"}
         </Button>
         {active?.status === "COMPLETED" && active.imageUrl && (
           <a
@@ -170,9 +205,39 @@ export function ConceptPanel({ concept }: { concept: ConceptWithResults }) {
           </a>
         )}
 
-        <Button variant="ghost" size="sm" disabled title="La conexión de publicación a Meta está pendiente de aprobación y configuración.">
-          Publicar en Meta · Pendiente de conexión
-        </Button>      </div>
+      </div>
+
+      <div className="space-y-3 rounded-xl border border-border bg-surface-muted/60 p-3">
+        <div>
+          <p className="text-xs font-semibold text-foreground">Director creativo</p>
+          <p className="mt-0.5 text-[11px] text-muted">Pide cambios con tus propias palabras. La foto original del producto se mantiene protegida.</p>
+        </div>
+        {chat.length > 0 && (
+          <div className="max-h-40 space-y-2 overflow-y-auto">
+            {chat.map((message, index) => (
+              <div key={`${message.role}-${index}`} className={`rounded-lg px-3 py-2 text-xs ${message.role === "user" ? "ml-5 bg-accent-soft text-foreground" : "mr-5 bg-surface text-muted"}`}>
+                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide opacity-70">{message.role === "user" ? "Tú" : "AdVibe AI"}</span>
+                {message.content}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <textarea
+            value={editInstruction}
+            onChange={(event) => setEditInstruction(event.target.value)}
+            placeholder="Ej. Haz el fondo más elegante y cambia el titular…"
+            rows={2}
+            maxLength={1200}
+            disabled={!active || active.status !== "COMPLETED" || editBusy}
+            className="min-h-11 flex-1 resize-y rounded-lg border border-border bg-surface px-3 py-2 text-xs text-foreground outline-none placeholder:text-muted focus:border-accent-strong disabled:opacity-50"
+          />
+          <Button size="sm" onClick={handleEdit} disabled={!active || active.status !== "COMPLETED" || !editInstruction.trim() || editBusy}>
+            {editBusy ? "Aplicando…" : "Aplicar cambio"}
+          </Button>
+        </div>
+        {editError && <p role="alert" className="text-xs text-danger">{editError}</p>}
+      </div>
     </div>
   );
 }

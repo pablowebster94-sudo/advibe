@@ -21,6 +21,8 @@ export type RenderCreativeInput = {
   highlights?: string[];
   isVehicle?: boolean;
   objective?: string | null;
+  /** User-supplied visual direction, kept separate from factual ad copy. */
+  visualPrompt?: string | null;
 };
 
 const FONT = "'DejaVu Sans', sans-serif";

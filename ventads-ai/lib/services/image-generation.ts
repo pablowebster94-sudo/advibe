@@ -3,6 +3,7 @@ import { getFormat } from "@/lib/catalog/formats";
 import { getStyle } from "@/lib/catalog/styles";
 import { renderCreative, type RenderCreativeInput } from "@/lib/services/creative-renderer";
 import { GeminiImageProvider } from "@/lib/services/providers/gemini-image-provider";
+import { OpenAIImageProvider } from "@/lib/services/providers/openai-image-provider";
 
 export type GeneratedImage = {
   buffer: Buffer;
@@ -115,15 +116,17 @@ class LocalCompositorProvider implements ImageGenerationService {
 }
 
 /**
- * The configured provider: IMAGE_PROVIDER when set, otherwise Gemini
- * whenever GEMINI_API_KEY exists (real AI scenes in production by default),
- * falling back to the local compositor when there is no key.
+ * The configured provider: IMAGE_PROVIDER when set; otherwise OpenAI Images
+ * is preferred when OPENAI_API_KEY exists, then Gemini, then local composition.
  */
 export function activeImageProviderName(): string {
   const configured = process.env.IMAGE_PROVIDER?.trim();
   const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY?.trim());
-  if (configured === "gemini" && !hasGeminiKey) return "local-compositor";
+  const hasOpenAIKey = Boolean(process.env.OPENAI_API_KEY?.trim());
+  if (configured === "gemini" && !hasGeminiKey) return hasOpenAIKey ? "openai" : "local-compositor";
+  if (configured === "openai" && !hasOpenAIKey) return "local-compositor";
   if (configured) return configured;
+  if (hasOpenAIKey) return "openai";
   return hasGeminiKey ? "gemini" : "local-compositor";
 }
 
@@ -134,6 +137,8 @@ function createImageGenerationService(): ImageGenerationService {
       return new LocalCompositorProvider();
     case "gemini":
       return new GeminiImageProvider(process.env.GEMINI_API_KEY ?? "", new LocalCompositorProvider());
+    case "openai":
+      return new OpenAIImageProvider(process.env.OPENAI_API_KEY ?? "");
     default:
       throw new Error(`Unknown IMAGE_PROVIDER: ${provider}`);
   }

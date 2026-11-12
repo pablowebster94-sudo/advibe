@@ -76,4 +76,5 @@ export const campaignInputSchema = z.object({
   variants: z.number().int().min(3).max(4).optional(),
   /** Design template; omitted = classic renderer. */
   templateId: z.enum(TEMPLATE_IDS).optional(),
+  formats: z.array(z.enum(["SQUARE_1_1", "PORTRAIT_4_5", "STORY_9_16"])).min(1).max(3).optional(),
 });

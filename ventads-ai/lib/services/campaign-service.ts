@@ -32,7 +32,7 @@ function backoffMs(attempts: number) {
 
 export async function createCampaignJobs(
   campaignId: string,
-  options: { variants?: number } = {}
+  options: { variants?: number; formats?: string[] } = {}
 ): Promise<void> {
   const campaign = await prisma.campaign.findUniqueOrThrow({
     where: { id: campaignId },
@@ -57,7 +57,8 @@ export async function createCampaignJobs(
 
   // Every angle in every Meta placement: feed 1080x1080, feed 1080x1350 and
   // stories/reels 1080x1920.
-  const initialFormats = FORMATS;
+  const requestedFormats = options.formats?.length ? new Set(options.formats) : null;
+  const initialFormats = requestedFormats ? FORMATS.filter((format) => requestedFormats.has(format.id)) : FORMATS;
 
   for (const [index, variant] of ai.variants.entries()) {
     const type = conceptTypeForVariant(index, brief);
@@ -189,6 +190,7 @@ export async function processClaimedJob(creativeId: string): Promise<void> {
         highlights: creativeHighlights(concept.type, brief, concept.copy!.headline),
         isVehicle: isVehicleBrief(brief),
         objective: campaign.objective,
+        visualPrompt: concept.copy!.visualPrompt,
       });
     };
 
