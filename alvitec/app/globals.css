@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+  ::selection {
+    @apply bg-steel text-white;
+  }
+  :focus-visible {
+    outline: 2px solid #315b78;
+    outline-offset: 3px;
+  }
+  .on-dark :focus-visible,
+  .on-dark:focus-visible {
+    outline-color: #ffffff;
+  }
+}
+
+@layer components {
+  .container-site {
+    @apply mx-auto w-full max-w-site px-5 sm:px-8 lg:px-14;
+  }
+  .btn {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2.5 px-6 text-[13px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200;
+  }
+  .btn-primary {
+    @apply btn bg-navy text-white hover:bg-steel;
+  }
+  .btn-light {
+    @apply btn bg-white text-navy hover:bg-mist;
+  }
+  .btn-ghost-light {
+    @apply btn border border-white/60 text-white hover:bg-white hover:text-navy;
+  }
+  .btn-ghost {
+    @apply btn border border-navy/30 text-navy hover:border-navy hover:bg-navy hover:text-white;
+  }
+  .field {
+    @apply w-full border border-navy/20 bg-white px-4 py-3.5 text-[15px] text-ink placeholder:text-ink/45 focus:border-steel focus:outline-none focus:ring-2 focus:ring-steel/25;
+  }
+  .field-label {
+    @apply mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-ink/70;
+  }
+  .link-underline {
+    @apply underline decoration-current/30 underline-offset-4 transition hover:decoration-current;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
