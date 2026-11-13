@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { SITE_URL, site } from "@/lib/site";
 import { images } from "@/lib/images";
 import "./globals.css";
 
-const display = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display", display: "swap" });
-const body = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-body", display: "swap" });
+// Fuentes autoalojadas (variables, subconjunto latino): el build no depende de Google Fonts.
+const display = localFont({ src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2", weight: "200 800", variable: "--font-display", display: "swap" });
+const body = localFont({ src: "./fonts/manrope-latin-wght-normal.woff2", weight: "200 800", variable: "--font-body", display: "swap" });
 
 const TITLE = "ALVITEC | Aluminio y vidrio en Guayaquil — fachadas, ventanas y puertas";
 
