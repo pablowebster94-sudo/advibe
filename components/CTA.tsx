@@ -26,15 +26,30 @@ export default function CTA() {
               Descubre qué está frenando tu crecimiento digital.
             </motion.h2>
             <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-500">Revisamos tu presencia digital, captación, conversión y seguimiento para identificar prioridades concretas y definir el siguiente paso con claridad.</p>
-            <EventButton
-              href="/diagnostico"
-              eventName="final_cta_diagnostic_click"
-              eventParams={{ source: "final_cta", action: "diagnostic_landing" }}
-              leadOnClick
-              className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white px-7 py-3 text-sm font-semibold text-slate-950 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:bg-[#f3f3f0] hover:shadow-[0_16px_60px_-30px_rgba(255,255,255,0.45)] mt-9 bg-lime-300 text-slate-950 hover:bg-lime-200"
-            >
-              Analizar mi negocio ↗
-            </EventButton>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <EventButton
+                href="/diagnostico"
+                eventName="final_cta_diagnostic_click"
+                eventParams={{ source: "final_cta", action: "diagnostic_landing" }}
+                leadOnClick
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/10 bg-white px-7 py-3 text-sm font-semibold text-slate-950 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:bg-[#f3f3f0] hover:shadow-[0_16px_60px_-30px_rgba(255,255,255,0.45)] bg-lime-300 text-slate-950 hover:bg-lime-200 sm:w-auto"
+              >
+                Analizar mi negocio ↗
+              </EventButton>
+              <a
+                href={`https://wa.me/593984966335?text=${encodeURIComponent("Hola, quiero cotizar videos para mi negocio")}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  trackWhatsAppOpen("final_cta_quote");
+                  trackEvent("final_cta_quote_click", { source: "final_cta", action: "whatsapp_quote" });
+                  trackLead({ source: "final_cta", cta: "final_cta_quote_click" });
+                }}
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-white transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:border-lime-300/50 hover:text-lime-300 sm:w-auto"
+              >
+                Cotizar en 2 minutos
+              </a>
+            </div>
           </div>
 
           <div className="border-t border-white/10 lg:border-t-0 lg:border-l lg:pl-10">
