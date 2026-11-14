@@ -1,23 +1,22 @@
-// TODO: reemplazar los precios placeholder por los valores reales.
 const packages = [
   {
     name: "Básico",
     videos: "5 videos al mes",
-    price: "[PRECIO_BASICO]",
+    price: "120",
     featured: false,
     whatsapp: "Hola, quiero cotizar el paquete Básico de 5 videos al mes.",
   },
   {
     name: "Estándar",
     videos: "6 videos al mes",
-    price: "[PRECIO_ESTANDAR]",
+    price: "150",
     featured: true,
     whatsapp: "Hola, quiero cotizar el paquete Estándar de 6 videos al mes.",
   },
   {
     name: "Pro",
     videos: "8 videos al mes",
-    price: "[PRECIO_PRO]",
+    price: "250",
     featured: false,
     whatsapp: "Hola, quiero cotizar el paquete Pro de 8 videos al mes.",
   },
@@ -84,6 +83,7 @@ export default function Packages() {
         <p className="mt-8 text-sm leading-6 text-slate-500">
           Meta Ads se cotiza aparte. El presupuesto de anuncios lo defines tú.
         </p>
+        <p className="mt-2 text-sm leading-6 text-slate-500">Precios con IVA incluido.</p>
       </div>
     </section>
   );
