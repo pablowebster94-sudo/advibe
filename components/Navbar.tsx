@@ -6,7 +6,6 @@ import EventButton from "@/components/EventButton";
 
 const navLinks = [
   { label: "Servicios", href: "#servicios" },
-  { label: "Planes", href: "#planes" },
   { label: "Trabajo", href: "#trabajo" },
   { label: "Casos", href: "/casos" },
   { label: "Proceso", href: "#proceso" },
