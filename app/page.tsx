@@ -5,6 +5,7 @@ import { homeReels } from "@/lib/reels";
 import ConversionStrategy from "@/components/ConversionStrategy";
 import ClientsMarquee from "@/components/ClientsMarquee";
 import Services from "@/components/Services";
+import Pricing from "@/components/Pricing";
 import AIShowcase from "@/components/AIShowcase";
 import Process from "@/components/Process";
 import Portfolio from "@/components/Portfolio";
@@ -28,6 +29,7 @@ export default function Home() {
         <ClientsMarquee />
         <ConversionStrategy />
         <Services />
+        <Pricing />
         <Portfolio />
         <Process />
         <AIShowcase />
