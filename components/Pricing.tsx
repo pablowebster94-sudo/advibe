@@ -60,7 +60,7 @@ export default function Pricing() {
             </article>
           ))}
         </div>
-        <p className="mt-8 max-w-3xl text-xs leading-6 text-[#737d82]">Precios mensuales de referencia. Meta Ads se cotiza por separado y el presupuesto publicitario lo define el cliente. Valores sujetos al alcance y necesidades de cada proyecto.</p>
+        <p className="mt-8 max-w-3xl text-xs leading-6 text-[#737d82]">Precios mensuales con IVA incluido. Meta Ads se cotiza por separado y el presupuesto publicitario lo define el cliente. Valores sujetos al alcance y necesidades de cada proyecto.</p>
         <div className="mt-12 flex flex-col gap-3 border-t border-black/10 pt-7 text-sm text-[#59636a] sm:flex-row sm:items-center sm:justify-between">
           <span>¿Necesitas una web, campañas o automatizaciones?</span>
           <a href="https://wa.me/593984966335?text=Hola%2C%20quiero%20una%20propuesta%20personalizada%20de%20AdVibe." target="_blank" rel="noreferrer" className="font-bold text-[#438d2a] hover:text-[#245c19]">Solicita una propuesta personalizada ↗</a>
