@@ -3,42 +3,9 @@
 import { useState } from "react";
 
 const plans = [
-  {
-    name: "Inicial",
-    audience: "Para marcas que están arrancando",
-    monthly: 99,
-    featured: false,
-    channels: "Facebook, Instagram y TikTok",
-    deliverables: ["8 diseños / imágenes al mes", "2 Reels al mes", "4 historias al mes", "Community management ligero (3 veces por semana)", "Estrategia base", "Reporte de métricas mensual"],
-    website: "Landing page (sin dominio) desde el mes 3",
-  },
-  {
-    name: "Emprendimientos",
-    audience: "Para marcas en crecimiento",
-    monthly: 180,
-    featured: true,
-    channels: "Facebook, Instagram y TikTok",
-    deliverables: ["12 diseños / imágenes al mes", "6 Reels al mes", "8 historias al mes", "Community management diario: respuesta a comentarios y mensajes", "Estrategia mensual", "Reporte de métricas mensual"],
-    website: "Landing page incluida (sin dominio): advibeagencia.com/tu-marca",
-  },
-  {
-    name: "Estándar",
-    audience: "Para marcas consolidadas",
-    monthly: 280,
-    featured: false,
-    channels: "Facebook, Instagram, TikTok + 1 red adicional",
-    deliverables: ["16 diseños / imágenes al mes", "8 Reels al mes", "12 historias al mes", "Community completo + engagement en cuentas afines", "Estrategia mensual + reunión", "Reporte de métricas quincenal"],
-    website: "Sitio web en advibeagencia.com/tu-marca; desde el mes 3, dominio personalizado por 1 año",
-  },
-  {
-    name: "Full",
-    audience: "Para marcas que quieren liderar",
-    monthly: 400,
-    featured: false,
-    channels: "Facebook, Instagram, TikTok, X y YouTube",
-    deliverables: ["20 diseños / imágenes al mes", "16 Reels al mes", "16 historias al mes", "Community full + respuesta prioritaria", "1 jornada de producción audiovisual al mes", "Estrategia semanal", "Reporte de métricas semanal"],
-    website: "Web personalizada + dominio propio por 1 año",
-  },
+  { name: "Inicial", audience: "Para marcas que están arrancando", monthly: 99, featured: false, channels: "Facebook e Instagram", deliverables: ["8 diseños / imágenes al mes", "2 Reels al mes", "4 historias al mes", "Community management ligero (3 veces por semana)", "Estrategia base de contenido", "Reporte de métricas mensual"] },
+  { name: "Crecimiento", audience: "Para negocios que quieren generar más oportunidades", monthly: 180, featured: true, channels: "Facebook, Instagram y TikTok", deliverables: ["12 diseños / imágenes al mes", "6 Reels al mes", "8 historias al mes", "Community management diario: respuesta a comentarios y mensajes", "Estrategia mensual de contenido", "Configuración y gestión de campañas Meta Ads", "Reporte de métricas mensual"] },
+  { name: "Profesional", audience: "Para marcas consolidadas que buscan crecer", monthly: 280, featured: false, channels: "Facebook, Instagram, TikTok + 1 red adicional", deliverables: ["16 diseños / imágenes al mes", "8 Reels al mes", "12 historias al mes", "Community management completo + engagement", "Estrategia mensual y reunión de seguimiento", "Gestión y optimización de campañas Meta Ads", "Reporte de métricas quincenal"] },
 ];
 
 const production = [
@@ -79,7 +46,7 @@ export default function Pricing() {
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">Planes de gestión de redes</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-5xl">Una presencia digital a la altura de tu marca.</h2>
-          <p className="mt-5 text-base leading-7 text-slate-400 sm:text-lg">Producción con equipos profesionales de foto y video: priorizamos calidad e impacto sobre cantidad.</p>
+          <p className="mt-5 text-base leading-7 text-slate-400 sm:text-lg">Contenido, estrategia y publicidad digital para que tu marca se comunique mejor y genere oportunidades comerciales.</p>
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-5">
@@ -116,16 +83,12 @@ export default function Pricing() {
                     <li key={detail} className="flex gap-3 text-sm leading-6 text-slate-300"><span className="font-bold text-lime-300">✓</span><span>{detail}</span></li>
                   ))}
                 </ul>
-                <div className="mt-6 rounded-xl border border-lime-300/15 bg-lime-300/[0.04] p-4">
-                  <p className="text-xs font-semibold text-lime-300">Incluye sitio web</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-300">{plan.website}</p>
-                </div>
                 <a href={`https://wa.me/593984966335?text=${encodeURIComponent("Hola, quiero información del plan " + plan.name + " de AdVibe. Modalidad: " + (quarterly ? "trimestral" : "mensual") + ". Precio mensual: $" + amount + " más IVA.")}`} target="_blank" rel="noreferrer" className={`mt-7 inline-flex items-center justify-center rounded-full px-5 py-4 text-sm font-semibold transition hover:-translate-y-0.5 ${plan.featured ? "bg-lime-400 text-[#07101a] hover:bg-lime-300" : "border border-white/15 bg-white/[0.04] text-white hover:border-lime-300/50 hover:text-lime-300"}`}>Me interesa <span className="ml-2">↗</span></a>
               </article>
             );
           })}
         </div>
-        <p className="mt-8 text-center text-xs leading-6 text-slate-500">La inversión publicitaria de Meta Ads no está incluida y se paga directamente por el cliente. El descuento trimestral aplica con compromiso de permanencia de 3 meses. No ofrecemos garantías de alcance que dependan de factores externos.</p>
+        <p className="mt-8 text-center text-xs leading-6 text-slate-500">La inversión publicitaria de Meta Ads no está incluida y se paga directamente por el cliente. El descuento trimestral aplica con compromiso de permanencia de 3 meses. Los entregables se planifican mensualmente con el cliente.</p>
 
         <div id="produccion-audiovisual" className="mt-28">
           <div className="mx-auto max-w-3xl text-center">
