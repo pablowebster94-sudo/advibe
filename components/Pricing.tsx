@@ -31,7 +31,7 @@ export default function Pricing() {
                 <p className="text-xl font-semibold text-white">{plan.videos}</p>
               </div>
               <ul className="mt-6 flex-1 space-y-4">
-                {["Guion y planificación del contenido", "Grabación", "Edición de video", "Publicación en redes sociales"].map((detail) => (
+                {["Guion y planificación", "Grabación y edición de video", "Publicación del contenido", "Acompañamiento mensual"].map((detail) => (
                   <li key={detail} className="flex gap-3 text-sm leading-6 text-slate-300"><span className="font-bold text-lime-300">✓</span>{detail}</li>
                 ))}
               </ul>
