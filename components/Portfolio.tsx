@@ -33,7 +33,7 @@ export default function Portfolio() {
                 </div>
                 <div className="flex flex-col justify-between border-t border-white/10 bg-white/[0.025] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
                   <div><span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-lime-300">Servicios realizados</span><p className="mt-5 text-xl font-medium leading-8 text-white sm:text-2xl">{project.work}</p><p className="mt-4 text-sm leading-7 text-slate-500">{project.description}</p></div>
-                  <Link href={`/casos/${project.slug}`} className="mt-8 inline-flex w-fit items-center rounded-full border border-white/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-300">Ver proyecto <span className="ml-2">↗</span></Link>
+                  <Link href={`/casos/${project.slug}`} className="mt-8 inline-flex w-fit items-center rounded-full border border-white/10 bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-300">Ver caso <span className="ml-2">↗</span></Link>
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 h-px w-0 bg-lime-300 transition-all duration-700 group-hover:w-full" />
@@ -46,14 +46,14 @@ export default function Portfolio() {
           <div className="max-w-3xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-lime-300/90">Diseño y desarrollo web</p>
             <h3 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">Experiencias digitales que también hablan por tu marca.</h3>
-            <p className="mt-5 text-base leading-7 text-slate-400 sm:text-lg">Sitios web y plataformas desarrollados por AdVibe para negocios de distintos sectores.</p>
+            <p className="mt-5 text-base leading-7 text-slate-400 sm:text-lg">Estos son sitios reales desarrollados por AdVibe. Explora cada proyecto y visita su versión publicada.</p>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
             {[
               { name: "Paola Miguitama", type: "Marca personal · Sitio web", url: "https://paolamiguitama.com", initials: "PM", style: "from-rose-950 via-stone-900 to-black" },
               { name: "Étika", type: "Sitio web · Marca", url: "https://etika-rho.vercel.app", initials: "É", style: "from-emerald-950 via-slate-900 to-black" },
               { name: "AM Motorsport", type: "Automotriz · Sitio web", url: "https://am-motorsport.advibeagencia.com", initials: "AM", style: "from-red-950 via-zinc-900 to-black" },
-              { name: "Melany González Joyería", type: "Joyería · Tienda digital", url: "https://melany-gonzalez-joyeria.vercel.app", initials: "MG", style: "from-amber-950 via-stone-900 to-black" },
+              { name: "Melanie González Joyería", type: "Joyería · Tienda digital", url: "https://melany-gonzalez-joyeria.vercel.app", initials: "MG", style: "from-amber-950 via-stone-900 to-black" },
             ].map((site) => (
               <a key={site.name} href={site.url} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.025] transition duration-300 hover:-translate-y-1 hover:border-lime-300/40">
                 <div className={`relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-gradient-to-br ${site.style}`}>
@@ -64,7 +64,7 @@ export default function Portfolio() {
                       <span className="mt-3 h-1 w-12 rounded-full bg-lime-300/80" />
                     </div>
                   </div>
-                  <span className="absolute bottom-5 right-6 text-[9px] font-semibold uppercase tracking-[0.3em] text-white/45">AdVibe · Web project</span>
+                  <span className="absolute bottom-5 right-6 text-[9px] font-semibold uppercase tracking-[0.3em] text-white/45">Sitio desarrollado por AdVibe</span>
                 </div>
                 <div className="flex items-center justify-between gap-4 p-6">
                   <div><h4 className="text-lg font-semibold text-white">{site.name}</h4><p className="mt-1 text-sm text-slate-500">{site.type}</p></div>
