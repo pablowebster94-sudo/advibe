@@ -1,12 +1,13 @@
 import Link from "next/link";
+import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
 import EventButton from "@/components/EventButton";
 
 const projects = [
-  { number: "01", title: "AM Motorsport", sector: "Automotriz", work: "Contenido + Publicidad", description: "Dirección audiovisual y contenido comercial para el lanzamiento del Polaris Slingshot Roush Edition.", slug: "am-motorsport" },
-  { number: "02", title: "United Kingdom English Academy", sector: "Educación", work: "Contenido + Meta Ads", description: "Creatividad y campañas para comunicar una oferta y llevar potenciales estudiantes a conversación.", slug: "uk-english-academy" },
-  { number: "03", title: "Kamauto", sector: "Automotriz", work: "Fotografía + Video", description: "Contenido visual comercial para comunicar vehículos y productos con una estética consistente.", slug: "kamauto" },
-  { number: "04", title: "Muebles Ideal", sector: "Retail", work: "Foto + Video + Contenido", description: "Contenido comercial para presentar producto y fortalecer la comunicación digital.", slug: "muebles-ideal" },
+  { number: "01", title: "AM Motorsport", sector: "Automotriz", work: "Contenido + Publicidad", description: "Dirección audiovisual y contenido comercial para el lanzamiento del Polaris Slingshot Roush Edition.", image: "/videos/am-mini-cooper.jpg", slug: "am-motorsport" },
+  { number: "02", title: "United Kingdom English Academy", sector: "Educación", work: "Contenido + Meta Ads", description: "Creatividad y campañas para comunicar una oferta y llevar potenciales estudiantes a conversación.", image: "/videos/aa-school.jpg", slug: "uk-english-academy" },
+  { number: "03", title: "Kamauto", sector: "Automotriz", work: "Fotografía + Video", description: "Contenido visual comercial para comunicar vehículos y productos con una estética consistente.", image: "/videos/kamauto.jpg", slug: "kamauto" },
+  { number: "04", title: "Muebles Ideal", sector: "Retail", work: "Foto + Video + Contenido", description: "Contenido comercial para presentar producto y fortalecer la comunicación digital.", image: "/videos/muebles.jpg", slug: "muebles-ideal" },
 ];
 
 export default function Portfolio() {
@@ -23,9 +24,11 @@ export default function Portfolio() {
                 <div className="relative overflow-hidden p-7 sm:p-10 lg:p-12">
                   <div className="pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full border border-white/[0.06] transition-transform duration-700 group-hover:scale-125" />
                   <div className="pointer-events-none absolute right-12 top-14 h-32 w-32 rounded-full bg-lime-300/[0.04] blur-3xl transition-all duration-700 group-hover:bg-lime-300/[0.1]" />
-                  <div className="relative flex h-full flex-col justify-between">
-                    <div className="flex items-center justify-between"><span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500">{project.sector}</span><span className="font-mono text-xs text-white/25 lg:hidden">{project.number}</span></div>
-                    <h3 className="mt-16 max-w-2xl text-4xl font-semibold tracking-[-0.055em] text-white transition-transform duration-500 group-hover:translate-x-1 sm:text-6xl">{project.title}</h3>
+                  <div className="relative flex h-full min-h-[260px] flex-col justify-between overflow-hidden">
+                    <Image src={project.image} alt={`Producción audiovisual de AdVibe para ${project.title}`} fill sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover opacity-35 transition duration-700 group-hover:scale-105 group-hover:opacity-50" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#05070a]/95 via-[#05070a]/65 to-[#05070a]/20" />
+                    <div className="relative z-10 flex items-center justify-between"><span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-300">{project.sector}</span><span className="font-mono text-xs text-white/50 lg:hidden">{project.number}</span></div>
+                    <h3 className="relative z-10 mt-16 max-w-2xl text-4xl font-semibold tracking-[-0.055em] text-white transition-transform duration-500 group-hover:translate-x-1 sm:text-6xl">{project.title}</h3>
                   </div>
                 </div>
                 <div className="flex flex-col justify-between border-t border-white/10 bg-white/[0.025] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-12">
