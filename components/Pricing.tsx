@@ -61,6 +61,12 @@ const production = [
     price: "$350",
     details: ["Concepto y guion", "Equipo completo", "Edición avanzada + efectos", "Colorización profesional", "Grabación en 4K"],
   },
+  {
+    name: "Transmisión en vivo",
+    subtitle: "Charlas, cursos, misas y ruedas de prensa",
+    price: "$150",
+    details: ["1 cámara + operador", "Micrófono DJI", "Iluminación", "Transmisión a 1 plataforma", "Grabación entregada"],
+  },
 ];
 
 export default function Pricing() {
@@ -127,7 +133,7 @@ export default function Pricing() {
             <h3 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-5xl">Videos que dejan huella.</h3>
             <p className="mt-5 text-base leading-7 text-slate-400 sm:text-lg">Videos turísticos, videoclips y piezas promocionales, grabados en 4K con edición profesional.</p>
           </div>
-          <div className="mt-12 grid gap-5 lg:grid-cols-3">
+          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {production.map((item) => (
               <article key={item.name} className={`flex flex-col rounded-[1.5rem] border p-8 ${item.featured ? "border-lime-300/50 bg-white/[0.06]" : "border-white/10 bg-white/[0.025]"}`}>
                 {item.featured && <span className="mb-5 w-fit rounded-sm bg-lime-300 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-[#07101a]">Popular</span>}
