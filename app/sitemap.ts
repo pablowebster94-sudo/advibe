@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/casos`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     ...landings.map((landing) => ({ url: `${baseUrl}/servicios/${landing.slug}`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.9 })),
     { url: `${baseUrl}/diagnostico`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/dealership-websites`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.85 },
     ...cases,
     { url: `${baseUrl}/latin-eagle`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
   ];
