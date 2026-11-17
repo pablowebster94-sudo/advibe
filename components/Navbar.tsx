@@ -28,6 +28,7 @@ function BrandLogo() {
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
     onScroll();
@@ -44,9 +45,21 @@ export default function Navbar() {
         </nav>
         <div className="flex items-center gap-2.5">
           <div className="hidden items-center gap-2 sm:flex">{socials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-[10px] font-bold text-slate-400 hover:border-lime-300/30 hover:text-lime-300">{item.icon}</a>)}</div>
-          <EventButton href="#contacto" eventName="navbar_diagnostic_cta" eventParams={{ source: "navbar" }} leadOnClick className="inline-flex items-center justify-center rounded-full border border-lime-300/60 bg-transparent px-7 py-3 text-sm font-semibold text-lime-300 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:border-lime-300 hover:bg-lime-300/10 hover:text-lime-200">Analizar mi negocio</EventButton>
+          <button type="button" aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={menuOpen} aria-controls="advibe-mobile-menu" onClick={() => setMenuOpen((open) => !open)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white transition hover:border-lime-300/40 hover:text-lime-300 md:hidden">
+            <span className="text-xl leading-none" aria-hidden="true">{menuOpen ? "×" : "☰"}</span>
+          </button>
+          <EventButton href="#contacto" eventName="navbar_diagnostic_cta" eventParams={{ source: "navbar" }} leadOnClick className="inline-flex items-center justify-center rounded-full border border-lime-300/60 bg-transparent px-4 py-3 text-xs font-semibold text-lime-300 transition duration-300 ease-out transform-gpu hover:-translate-y-0.5 hover:border-lime-300 hover:bg-lime-300/10 hover:text-lime-200 sm:px-7 sm:text-sm"><span className="sm:hidden">Diagnóstico</span><span className="hidden sm:inline">Analizar mi negocio</span></EventButton>
         </div>
       </div>
+      {menuOpen && (
+        <nav id="advibe-mobile-menu" aria-label="Navegación móvil" className="border-t border-white/10 bg-[#07101a] px-6 py-4 shadow-2xl md:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col">
+            {navLinks.map((link) => (
+              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="border-b border-white/[0.07] py-4 text-sm font-medium text-slate-300 transition hover:text-lime-300 last:border-0">{link.label}<span className="float-right text-lime-300/60">↗</span></a>
+            ))}
+          </div>
+        </nav>
+      )}
     </motion.header>
   );
 }
