@@ -12,7 +12,6 @@ import Portfolio from "@/components/Portfolio";
 import Testimonials from "@/components/Testimonials";
 import FAQSection from "@/components/FAQSection";
 import CTA from "@/components/CTA";
-import GoatReveal from "@/components/GoatReveal";
 import Footer from "@/components/Footer";
 import AIChatbot from "@/components/AIChatbot";
 import StickyDesktopCTA from "@/components/StickyDesktopCTA";
@@ -37,7 +36,6 @@ export default function Home() {
         <Testimonials />
         <FAQSection />
         <CTA />
-        <GoatReveal />
         <Footer />
       </main>
       <MobileConversionOverlays />
