@@ -10,6 +10,7 @@ import AIShowcase from "@/components/AIShowcase";
 import Process from "@/components/Process";
 import Portfolio from "@/components/Portfolio";
 import Testimonials from "@/components/Testimonials";
+import FAQSection from "@/components/FAQSection";
 import CTA from "@/components/CTA";
 import GoatReveal from "@/components/GoatReveal";
 import Footer from "@/components/Footer";
@@ -34,6 +35,7 @@ export default function Home() {
         <Process />
         <AIShowcase />
         <Testimonials />
+        <FAQSection />
         <CTA />
         <GoatReveal />
         <Footer />
