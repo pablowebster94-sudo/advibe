@@ -33,9 +33,9 @@ export default async function Home() {
         <span className="text-sm font-semibold tracking-tight text-foreground">
           ventADS<span className="text-accent-strong">.ai</span>
         </span>
-        <Link href="/products" className="text-sm text-muted hover:text-foreground">
+        <nav className="flex items-center gap-4"><Link href="/meta" className="text-sm text-accent-strong hover:underline">Meta Ads</Link><Link href="/products" className="text-sm text-muted hover:text-foreground">
           Mis productos
-        </Link>
+        </Link></nav>
       </header>
 
       <section className="flex flex-col gap-5">
