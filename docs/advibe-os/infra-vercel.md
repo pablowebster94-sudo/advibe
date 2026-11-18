@@ -123,3 +123,58 @@ sección Delete Project; el borrado lo confirma Pablo en el panel.
 - INFORMACIÓN FALTANTE: Root Directory configurado en cada proyecto (fuente
   esperada: panel de Vercel).
 - INFORMACIÓN FALTANTE: si `advibe-ads-ai` sigue en uso (fuente esperada: Pablo).
+
+## Limpieza de ramas (18 nov 2026)
+
+El repo `advibe` tenía 83 ramas. Clasificación verificada:
+
+- **19 fusionadas en `main`** — verificado con `git merge-base --is-ancestor`:
+  no contienen ningún commit que no esté ya en `main`. Ninguna tiene PR abierto.
+  Borrarlas no pierde nada.
+- **63 sin fusionar** — se conservan.
+- **17 con PR abierto** — no se tocan (excepto la del punto siguiente).
+- **5 ramas apuntando al mismo commit `df18300`**: `feat/advibe-visual-redesign`
+  y sus variantes `-check`, `-check2`, `-final`, `-pr`. Se conserva la primera.
+- **`feat/advibe-meta-marketing-api-integration`** — el intento de publicar
+  campañas que Pablo descartó. Nunca se fusionó a `main`; toca solo
+  `ventads-ai/`. Tiene abierto el PR #53 (borrador), que se cerrará al borrar
+  la rama. Eso es lo buscado.
+
+### Comandos pendientes de ejecutar
+
+Bloqueados por el clasificador de permisos de la sesión. Ejecutar desde un
+clon del repo:
+
+```bash
+# 19 ramas fusionadas en main
+git push origin --delete \
+  chore/remove-one-time-optimize-workflow \
+  claude/advibe-ai-photo-editor-izz6aw \
+  claude/advibe-repo-setup-3rmxvv \
+  claude/bold-knuth-kcjm7a \
+  claude/landing-latin-eagle \
+  claude/sleepy-pascal-56j512 \
+  claude/tender-hypatia-1258mz \
+  feat/ventads-schema-module1 \
+  feature/enfoque-public-final \
+  fix-goat-mobile-final \
+  fix-web-carefully \
+  fix/enfoque-contact \
+  fix/p0-testimonials-og-image \
+  fix/p1-cta-consistency-tracking \
+  fix/p1-security-headers \
+  fix/ventads-photo-framing \
+  fix/vercel-production-build \
+  mejora-hero-local \
+  redesign-interactive-advibe
+
+# 4 duplicados del mismo commit (se conserva feat/advibe-visual-redesign)
+git push origin --delete \
+  feat/advibe-visual-redesign-check \
+  feat/advibe-visual-redesign-check2 \
+  feat/advibe-visual-redesign-final \
+  feat/advibe-visual-redesign-pr
+
+# el intento descartado (cierra el PR #53)
+git push origin --delete feat/advibe-meta-marketing-api-integration
+```
