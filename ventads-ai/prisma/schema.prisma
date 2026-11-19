@@ -112,8 +112,52 @@ model Campaign {
   aiAnalysis String?
   providerStatus String?
   templateId String? // ad template (lib/templates); null = classic renderer
+  // SaleADS-style flow: a campaign is a draft until the operator approves it,
+  // and nothing reaches Meta before that. Kept as a String (not an enum) to
+  // match the catalog convention used for every other extensible value.
+  // DRAFT | APPROVED | PUBLISHED_PAUSED | PUBLISHED | ARCHIVED
+  approvalStatus String  @default("DRAFT")
+  approvedAt DateTime?
+  // The recommendation returned by lib/services/strategy-service.ts at the
+  // moment of approval, stored verbatim so an approved campaign can always
+  // be explained — even after the engine's heuristics change.
+  strategy   String?
+  brief      CampaignBrief?
   concepts   Concept[]
   createdAt  DateTime   @default(now())
+}
+
+// The operator's campaign brief, in their own words: what is being sold, to
+// whom, where, with what budget and where the ad should send people. One per
+// campaign. Separate from Product because the same product can be briefed
+// differently for each campaign (a launch, a clearance, a reminder), and
+// because these are commercial facts about an offer, not about a product.
+//
+// Every field is nullable or defaulted on purpose: the flow must be able to
+// save a half-written brief. What is still missing is computed by
+// findMissingInfo(), never enforced by the database.
+model CampaignBrief {
+  id             String   @id @default(cuid())
+  campaignId     String   @unique
+  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  offerSummary   String   @default("")
+  priceDisplay   String?
+  benefits       String   @default("[]") // JSON array
+  restrictions   String?
+  destinationId  String   @default("WHATSAPP") // lib/catalog/destinations.ts
+  whatsappNumber String?
+  landingUrl     String?
+  phoneNumber    String?
+  countries      String   @default("[]") // JSON array
+  cities         String   @default("[]") // JSON array
+  radiusKm       Int?
+  language       String?
+  audienceNotes  String?
+  dailyBudgetUsd    Decimal? @db.Decimal(10, 2)
+  lifetimeBudgetUsd Decimal? @db.Decimal(10, 2)
+  durationDays   Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // A creative "angle" (venta directa, beneficio, aspiracional, oferta,
