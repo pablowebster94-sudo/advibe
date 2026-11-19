@@ -1,11 +1,13 @@
 import { cache } from "react";
 import { filasARemates, parseCSV, type Remate } from "@/lib/remates";
+import { archivosARemates, type ArchivoDrive } from "@/lib/remates-drive";
 
 // Configuración por cliente. Añadir otra mueblería es una entrada más aquí y una ruta nueva.
 export type ClienteRemates = {
   slug: string;
   negocio: string;
-  csvEnv: string;   // variable con el CSV publicado de su hoja
+  driveEnv: string; // variable con el JSON de su carpeta de Drive (fuente preferida)
+  csvEnv: string;   // variable con el CSV publicado de su hoja (alternativa)
   waEnv: string;    // variable con su WhatsApp (solo dígitos, con código de país)
   titulo: string;
   resaltado: string;
@@ -15,6 +17,7 @@ export type ClienteRemates = {
 export const MUEBLES_IDEAL: ClienteRemates = {
   slug: "muebles-ideal",
   negocio: "Muebles Ideal",
+  driveEnv: "REMATES_MUEBLES_IDEAL_DRIVE",
   csvEnv: "REMATES_MUEBLES_IDEAL_CSV",
   waEnv: "NEXT_PUBLIC_REMATES_MUEBLES_IDEAL_WA",
   titulo: "Remates y",
@@ -48,26 +51,46 @@ export function urlCSV(raw: string): string {
   return u + (u.includes("?") ? "&" : "?") + "output=csv";
 }
 
-async function leerHoja(c: ClienteRemates): Promise<Remate[]> {
-  const configurado = process.env[c.csvEnv];
-  if (!configurado) {
-    if (demoPermitido()) return DEMO;
-    console.error(`[remates] Falta ${c.csvEnv}; el catálogo de ${c.negocio} sale vacío en producción.`);
-    return [];
-  }
+// Fuente preferida: la carpeta de Drive. El cliente sube la foto y el mueble aparece solo.
+async function leerCarpeta(c: ClienteRemates, url: string): Promise<Remate[] | null> {
   try {
-    // revalidate 60: la hoja se consulta como máximo una vez por minuto, así un cambio de
-    // precio o un "vendido" se ve casi al instante sin golpear a Google en cada visita.
-    const res = await fetch(urlCSV(configurado), { next: { revalidate: 60 } });
+    // revalidate 60: una foto nueva sale publicada como mucho un minuto después de subirla.
+    const res = await fetch(url, { next: { revalidate: 60 } });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const items = filasARemates(parseCSV(await res.text()));
-    if (!items.length) console.error(`[remates] La hoja de ${c.negocio} respondió sin productos usables.`);
-    return items;
+    const data = (await res.json()) as { ok?: boolean; error?: string; archivos?: ArchivoDrive[] };
+    if (data.ok === false) throw new Error(data.error || "la carpeta respondió con error");
+    return archivosARemates(data.archivos ?? []);
   } catch (error) {
-    console.error(`[remates] Error leyendo la hoja de ${c.negocio}:`, error);
-    return demoPermitido() ? DEMO : [];
+    console.error(`[remates] Error leyendo la carpeta de Drive de ${c.negocio}:`, error);
+    return null;
   }
 }
 
+// Alternativa: la hoja publicada como CSV, para quien prefiera escribir los datos a mano.
+async function leerHoja(c: ClienteRemates, url: string): Promise<Remate[] | null> {
+  try {
+    const res = await fetch(urlCSV(url), { next: { revalidate: 60 } });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return filasARemates(parseCSV(await res.text()));
+  } catch (error) {
+    console.error(`[remates] Error leyendo la hoja de ${c.negocio}:`, error);
+    return null;
+  }
+}
+
+async function leerFuente(c: ClienteRemates): Promise<Remate[]> {
+  const drive = process.env[c.driveEnv];
+  const csv = process.env[c.csvEnv];
+  if (!drive && !csv) {
+    if (demoPermitido()) return DEMO;
+    console.error(`[remates] Falta ${c.driveEnv} (o ${c.csvEnv}); el catálogo de ${c.negocio} sale vacío en producción.`);
+    return [];
+  }
+  const items = drive ? await leerCarpeta(c, drive) : await leerHoja(c, csv as string);
+  if (items === null) return demoPermitido() ? DEMO : [];
+  if (!items.length) console.error(`[remates] La fuente de ${c.negocio} respondió sin muebles usables.`);
+  return items;
+}
+
 // cache(): generateMetadata y la página comparten una sola lectura por petición.
-export const cargarRemates = cache((c: ClienteRemates): Promise<Remate[]> => leerHoja(c));
+export const cargarRemates = cache((c: ClienteRemates): Promise<Remate[]> => leerFuente(c));
