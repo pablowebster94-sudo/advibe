@@ -140,10 +140,22 @@ El repo `advibe` tenía 83 ramas. Clasificación verificada:
   `ventads-ai/`. Tiene abierto el PR #53 (borrador), que se cerrará al borrar
   la rama. Eso es lo buscado.
 
-### Comandos pendientes de ejecutar
+### Cómo ejecutarla
 
-Bloqueados por el clasificador de permisos de la sesión. Ejecutar desde un
-clon del repo:
+Hay un script que vuelve a verificar todo antes de borrar (que cada rama esté
+contenida en `main`, y que cada duplicado apunte al mismo commit que la rama
+que se conserva). No se fía de la lista escrita aquí:
+
+```bash
+bash scripts/limpieza-ramas.sh              # simulación, no borra
+bash scripts/limpieza-ramas.sh --ejecutar   # borra
+```
+
+Si una rama ha cambiado desde esta auditoría, el script la conserva y lo avisa.
+
+### Comandos equivalentes, uno a uno
+
+Por si se prefiere a mano:
 
 ```bash
 # 19 ramas fusionadas en main
