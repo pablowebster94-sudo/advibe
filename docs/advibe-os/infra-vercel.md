@@ -190,3 +190,43 @@ git push origin --delete \
 # el intento descartado (cierra el PR #53)
 git push origin --delete feat/advibe-meta-marketing-api-integration
 ```
+
+## Estado real de las aplicaciones (19 nov 2026)
+
+Comprobado trayendo cada página por la API de Vercel, no por metadatos.
+
+| App | URL | Estado |
+|---|---|---|
+| Sitio público | www.advibeagencia.com | **200 OK** |
+| Panel de control/pagos | advibe-control.vercel.app/control | **200 OK** (reactivado hoy) |
+| JARVIS | jarvis-advibe-ai.vercel.app | **200 OK** |
+| Generador de imágenes | advibe-ai-six.vercel.app | 401: protegido por Vercel Authentication. No verificable sin desactivar la protección. |
+| alvitec | — | builds en ERROR. Marcado para borrar. |
+
+### Arreglado: el panel de pagos estaba caído
+
+`advibe-control` devolvía `503 DEPLOYMENT_PAUSED`. No era un fallo de build:
+tenía un deploy de producción READY desde `main` (`c9a1030`), pero el proyecto
+estaba **pausado**. Se reactivó con `unpause_project`. Confirmado: `/control`
+responde 200 y carga datos reales.
+
+### Confirmado: los proyectos comparten el mismo build
+
+`advibe-control.vercel.app/` sirve exactamente la misma página que
+www.advibeagencia.com (mismo título, mismo tamaño de respuesta). El panel no es
+una app aparte: es la ruta `/control` dentro de la app de la raíz del repo. Esto
+confirma que el Root Directory no separa las aplicaciones.
+
+### CONFLICTO DETECTADO en los datos del panel
+
+El panel muestra "Por cobrar: $850,00", pero las líneas listadas en "Pendiente
+de cobro" suman $450,00:
+
+- Kamauto $200,00
+- Muebles Ideal $100,00
+- Muebles Ideal $100,00  ← fila repetida
+- Paola Miguitama $50,00
+
+Faltan $400,00 por explicar, y "Muebles Ideal" aparece dos veces con el mismo
+importe. O la lista está truncada, o hay registros duplicados en la fuente.
+Pendiente de revisar contra la hoja COBROS antes de usar esa cifra.
