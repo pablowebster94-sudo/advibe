@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyCampaignBrief,
   parseMoney,
   parseStringList,
   toCampaignBriefInput,
@@ -136,5 +137,71 @@ describe("toCampaignBriefPatch", () => {
   it("caps list length", () => {
     const patch = toCampaignBriefPatch({ cities: Array.from({ length: 50 }, (_, i) => `c${i}`) });
     expect(JSON.parse(patch.cities!)).toHaveLength(20);
+  });
+});
+
+describe("applyCampaignBrief", () => {
+  const product = {
+    priceDisplay: "$500",
+    description: "Sofá genérico de catálogo",
+    benefits: ["Beneficio del producto"],
+    targetAudience: "Público del producto",
+    cta: null,
+    brandCta: null,
+    brandContact: "02-1234567",
+  };
+
+  const campaign = toCampaignBriefInput(row());
+
+  it("lets the campaign offer replace the product description", () => {
+    const merged = applyCampaignBrief(product, campaign);
+    expect(merged.description).toBe("Sofá de 3 puestos");
+  });
+
+  it("keeps the product description when the campaign offer is empty", () => {
+    const merged = applyCampaignBrief(product, { ...campaign, offerSummary: "   " });
+    expect(merged.description).toBe("Sofá genérico de catálogo");
+  });
+
+  it("lets the campaign price win", () => {
+    expect(applyCampaignBrief(product, campaign).priceDisplay).toBe("$399");
+  });
+
+  it("falls back to the product price when the campaign has none", () => {
+    const merged = applyCampaignBrief(product, { ...campaign, priceDisplay: null });
+    expect(merged.priceDisplay).toBe("$500");
+  });
+
+  it("never blanks a field the campaign left empty", () => {
+    const merged = applyCampaignBrief(product, {
+      ...campaign,
+      priceDisplay: null,
+      benefits: [],
+      audienceNotes: null,
+    });
+    expect(merged.benefits).toEqual(["Beneficio del producto"]);
+    expect(merged.targetAudience).toBe("Público del producto");
+  });
+
+  it("uses the destination's CTA when nothing else supplies one", () => {
+    expect(applyCampaignBrief(product, campaign).cta).toBe("Escríbenos por WhatsApp");
+    expect(
+      applyCampaignBrief(product, { ...campaign, destinationId: "LLAMADA" }).cta
+    ).toBe("Llámanos");
+  });
+
+  it("prefers an explicit CTA over the destination default", () => {
+    const merged = applyCampaignBrief({ ...product, cta: "Compra ya" }, campaign);
+    expect(merged.cta).toBe("Compra ya");
+  });
+
+  it("routes the contact to the campaign destination", () => {
+    expect(applyCampaignBrief(product, campaign).brandContact).toBe("+593999999999");
+  });
+
+  it("does not mutate the input brief", () => {
+    const copy = { ...product };
+    applyCampaignBrief(product, campaign);
+    expect(product).toEqual(copy);
   });
 });

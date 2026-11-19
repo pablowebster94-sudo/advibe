@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
@@ -32,8 +33,14 @@ function toList(text: string): string[] {
   return text.split(",").map((v) => v.trim()).filter(Boolean);
 }
 
+type MetaRequirement = { key: string; label: string; how: string };
+
 export function BriefForm({ campaignId }: { campaignId: string }) {
+  const router = useRouter();
   const [payload, setPayload] = useState<Payload | null>(null);
+  const [busy, setBusy] = useState<null | "generar" | "aprobar" | "reabrir" | "publicar">(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [metaMissing, setMetaMissing] = useState<MetaRequirement[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -114,6 +121,58 @@ export function BriefForm({ campaignId }: { campaignId: string }) {
     },
     [save]
   );
+
+  /** Runs one of the campaign actions and surfaces exactly what came back. */
+  const act = async (what: "generar" | "aprobar" | "reabrir" | "publicar") => {
+    setBusy(what);
+    setNotice(null);
+    setMetaMissing(null);
+    const routes = {
+      generar: { url: `/api/campaigns/${campaignId}/generate`, body: undefined },
+      aprobar: { url: `/api/campaigns/${campaignId}/approve`, body: { action: "approve" } },
+      reabrir: { url: `/api/campaigns/${campaignId}/approve`, body: { action: "reopen" } },
+      publicar: { url: `/api/campaigns/${campaignId}/publish`, body: undefined },
+    } as const;
+    const route = routes[what];
+    try {
+      const res = await fetch(route.url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: route.body ? JSON.stringify(route.body) : undefined,
+      });
+      const data = await readJson<{
+        error?: string;
+        approvalStatus?: string;
+        missing?: MetaRequirement[];
+      }>(res);
+
+      if (!res.ok) {
+        setNotice(data.error ?? "No se pudo completar la acción.");
+        // The publish route answers with exactly which credentials are absent.
+        if (Array.isArray(data.missing) && data.missing.some((m) => "how" in m)) {
+          setMetaMissing(data.missing);
+        }
+        return;
+      }
+
+      if (what === "generar") {
+        router.push(`/results/${campaignId}`);
+        return;
+      }
+      if (data.approvalStatus) {
+        setPayload((prev) => (prev ? { ...prev, approvalStatus: data.approvalStatus! } : prev));
+        setNotice(
+          data.approvalStatus === "APPROVED"
+            ? "Campaña aprobada. La estrategia quedó congelada tal como se aprobó."
+            : "Campaña de vuelta en borrador."
+        );
+      }
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : "Error de red.");
+    } finally {
+      setBusy(null);
+    }
+  };
 
   if (error && !payload) {
     return (
@@ -344,17 +403,73 @@ export function BriefForm({ campaignId }: { campaignId: string }) {
 
       <aside className="lg:sticky lg:top-6 lg:self-start">
         <StrategyPanel strategy={strategy} />
-        <Button
-          className="mt-4 w-full"
-          disabled={!strategy.readyToPublish || locked}
-          title={
-            strategy.readyToPublish
-              ? undefined
-              : "Completa los datos que impiden publicar"
-          }
-        >
-          Generar anuncios
-        </Button>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <Button
+            className="w-full"
+            disabled={!strategy.readyToPublish || locked || busy !== null}
+            onClick={() => void act("generar")}
+            title={
+              strategy.readyToPublish
+                ? undefined
+                : "Completa los datos que impiden publicar"
+            }
+          >
+            {busy === "generar" ? "Generando…" : "Generar anuncios"}
+          </Button>
+
+          {locked ? (
+            <>
+              <Button
+                variant="secondary"
+                className="w-full"
+                disabled={busy !== null}
+                onClick={() => void act("publicar")}
+              >
+                {busy === "publicar" ? "Publicando…" : "Publicar en Meta (pausada)"}
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full"
+                disabled={busy !== null}
+                onClick={() => void act("reabrir")}
+              >
+                Volver a borrador
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="secondary"
+              className="w-full"
+              disabled={!strategy.readyToPublish || busy !== null}
+              onClick={() => void act("aprobar")}
+            >
+              {busy === "aprobar" ? "Aprobando…" : "Aprobar campaña"}
+            </Button>
+          )}
+        </div>
+
+        {notice && (
+          <p className="mt-3 rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-2 text-xs text-foreground">
+            {notice}
+          </p>
+        )}
+
+        {metaMissing && metaMissing.length > 0 && (
+          <section className="mt-3 rounded-[var(--radius-md)] border border-border bg-surface-muted p-3">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted">
+              Falta para conectar Meta
+            </h3>
+            <ul className="mt-2 flex flex-col gap-2">
+              {metaMissing.map((m) => (
+                <li key={m.key}>
+                  <p className="text-xs font-semibold text-foreground">{m.label}</p>
+                  <p className="text-[11px] leading-snug text-muted">{m.how}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </aside>
     </div>
   );

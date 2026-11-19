@@ -147,3 +147,55 @@ export function toCampaignBriefPatch(body: unknown): CampaignBriefPatch {
 
   return patch;
 }
+
+/**
+ * Default call to action per destination. Used only when neither the campaign
+ * nor the brand supplies one, so the ad never ends without telling the person
+ * what to do. These are instructions, not commercial claims, so choosing one
+ * invents no fact about the product.
+ */
+const CTA_BY_DESTINATION: Record<DestinationId, string> = {
+  WHATSAPP: "Escríbenos por WhatsApp",
+  SITIO_WEB: "Ver más",
+  FORMULARIO: "Quiero información",
+  MENSAJES_IG: "Envíanos un mensaje",
+  LLAMADA: "Llámanos",
+  PERFIL: "Conoce la marca",
+};
+
+/**
+ * Overlays the campaign brief on top of the product brief that the copy,
+ * concept and creative engines read.
+ *
+ * The campaign wins wherever it has a value, because it describes *this*
+ * offer: the same sofa is briefed differently for a launch and for a
+ * clearance. Where the campaign says nothing, the product's own data stays —
+ * a field is never blanked and never invented. Returns a new object; the
+ * input brief is not mutated.
+ */
+export function applyCampaignBrief<T extends {
+  priceDisplay: string | null;
+  description: string | null;
+  benefits: string[];
+  targetAudience: string | null;
+  cta: string | null;
+  brandCta: string | null;
+  brandContact: string | null;
+}>(productBrief: T, campaign: CampaignBriefInput): T {
+  const contact =
+    campaign.whatsappNumber ?? campaign.phoneNumber ?? campaign.landingUrl ?? null;
+
+  return {
+    ...productBrief,
+    // The operator's own words about what is being sold in this campaign.
+    description: campaign.offerSummary.trim() || productBrief.description,
+    priceDisplay: campaign.priceDisplay ?? productBrief.priceDisplay,
+    benefits: campaign.benefits.length ? campaign.benefits : productBrief.benefits,
+    targetAudience: campaign.audienceNotes ?? productBrief.targetAudience,
+    cta:
+      productBrief.cta ??
+      productBrief.brandCta ??
+      CTA_BY_DESTINATION[campaign.destinationId],
+    brandContact: contact ?? productBrief.brandContact,
+  };
+}

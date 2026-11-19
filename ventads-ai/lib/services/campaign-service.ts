@@ -3,6 +3,7 @@ import type { ObjectiveId } from "@/lib/catalog/objectives";
 import type { Creative } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { buildProductBrief, isVehicleBrief } from "@/lib/product-brief";
+import { applyCampaignBrief, toCampaignBriefInput } from "@/lib/campaign-brief";
 import { analyzeProduct } from "@/lib/services/analysis-engine";
 import { activeImageProviderName, imageGeneration, type GeneratedImage } from "@/lib/services/image-generation";
 import { isTemplateId } from "@/lib/templates/catalog";
@@ -36,11 +37,17 @@ export async function createCampaignJobs(
 ): Promise<void> {
   const campaign = await prisma.campaign.findUniqueOrThrow({
     where: { id: campaignId },
-    include: { product: { include: { brand: true, images: true } } },
+    include: { product: { include: { brand: true, images: true } }, brief: true },
   });
 
   const { product } = campaign;
-  const brief = buildProductBrief(product, product.brand);
+  // The campaign brief describes *this* offer and wins over the product's
+  // catalog data wherever it has a value (see applyCampaignBrief). A campaign
+  // with no brief yet keeps the old behaviour untouched.
+  const productBrief = buildProductBrief(product, product.brand);
+  const brief = campaign.brief
+    ? applyCampaignBrief(productBrief, toCampaignBriefInput(campaign.brief))
+    : productBrief;
   const objective = campaign.objective as ObjectiveId;
   const baseAnalysis = analyzeProduct(brief, objective);
   const ai = await generateAICampaign(brief, baseAnalysis, { objective, variantCount: options.variants });
