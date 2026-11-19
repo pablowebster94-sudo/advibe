@@ -23,7 +23,12 @@ function supabaseImagePatterns() {
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [...supabaseImagePatterns(), { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" }],
+    remotePatterns: [
+      ...supabaseImagePatterns(),
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      // Fotos de los catálogos de remates: archivos de Google Drive servidos como imagen.
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+    ],
     formats: ["image/avif", "image/webp"],
   },
   turbopack: {
