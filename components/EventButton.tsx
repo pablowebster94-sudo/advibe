@@ -1,7 +1,11 @@
 "use client";
 
-import { MouseEvent, ReactNode } from "react";
+import { MouseEvent, ReactNode, useSyncExternalStore } from "react";
 import { buildTrackedHref, getCtaUtmParams, trackEvent, trackLead, trackWhatsAppOpen } from "@/lib/tracking";
+
+// El href solo cambia con la navegación, que ya remonta el componente: no hay
+// nada a lo que suscribirse.
+const subscribeToNothing = () => () => {};
 
 type Props = {
   href: string;
@@ -13,7 +17,16 @@ type Props = {
 };
 
 export default function EventButton({ href, eventName, eventParams, leadOnClick = false, className, children }: Props) {
-  const trackedHref = buildTrackedHref(href, eventParams);
+  // El href con UTM depende de la URL del navegador (los UTM entrantes), así que
+  // no puede calcularse en el servidor. Pintarlo directamente rompía la
+  // hidratación en todos los CTA: el servidor mandaba "#contacto" y el cliente
+  // "?utm_source=...". useSyncExternalStore entrega el href limpio durante la
+  // hidratación y el enriquecido en cuanto React pasa al cliente.
+  const trackedHref = useSyncExternalStore(
+    subscribeToNothing,
+    () => buildTrackedHref(href, eventParams),
+    () => href,
+  );
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     const utm = getCtaUtmParams(eventParams);

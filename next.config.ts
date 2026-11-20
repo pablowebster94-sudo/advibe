@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
       { source: "/enfoque-visual/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/enfoque-visual/admin", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/api/enfoque/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
-      // En enfoque.advibeagencia.com el panel se sirve como /admin (reescrito por middleware.ts).
+      // En enfoque.advibeagencia.com el panel se sirve como /admin (reescrito por proxy.ts).
       ...["enfoque.advibeagencia.com", "enfoquevisual.advibeagencia.com"].flatMap((host) => ["/admin", "/admin/:path*"].map((source) => ({
         source, has: [{ type: "host" as const, value: host }], headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       }))),

@@ -22,7 +22,7 @@ export const BUSINESS = {
 };
 
 // URL pública. Si compran dominio propio, basta con definir NEXT_PUBLIC_LATIN_EAGLE_URL
-// (y NEXT_PUBLIC_LATIN_EAGLE_HOSTS para que middleware.ts sirva esta ruta en la raíz de ese dominio).
+// (y NEXT_PUBLIC_LATIN_EAGLE_HOSTS para que proxy.ts sirva esta ruta en la raíz de ese dominio).
 export const SITE_URL = (process.env.NEXT_PUBLIC_LATIN_EAGLE_URL || "https://www.advibeagencia.com/latin-eagle").replace(/\/$/, "");
 
 // TODO confirmar con Pablo: coordenadas exactas del local (lat, lng) para el JSON-LD.

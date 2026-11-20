@@ -9,7 +9,7 @@ function isEnfoqueAdmin(path:string, isEV:boolean) {
   return path.startsWith("/enfoque-visual/admin") || path.startsWith("/api/enfoque/admin") || (isEV && path.startsWith("/admin"));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const host = request.headers.get("host")?.split(":")[0] ?? "";
   const isEV = host === "enfoque.advibeagencia.com" || host === "enfoquevisual.advibeagencia.com";
   const path = request.nextUrl.pathname;

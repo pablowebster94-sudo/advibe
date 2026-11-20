@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { caseStudies, getCaseStudy } from "@/lib/cases";
 
+const siteUrl = "https://www.advibeagencia.com";
+
 export function generateStaticParams() {
   return caseStudies.map((item) => ({ slug: item.slug }));
 }
@@ -9,7 +11,18 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = getCaseStudy(slug);
-  return { title: project ? `${project.client} | AdVibe Agencia` : "Caso | AdVibe Agencia", description: project?.summary };
+  if (!project) return { title: "Caso | AdVibe Agencia" };
+
+  // Sin canonical propio se hereda el del layout raíz, que apunta a la home:
+  // cada caso se declaraba duplicado de "/" y no podía posicionar.
+  const title = `${project.client} | AdVibe Agencia`;
+  const url = `${siteUrl}/casos/${project.slug}`;
+  return {
+    title,
+    description: project.summary,
+    alternates: { canonical: url },
+    openGraph: { title, description: project.summary, url, siteName: "AdVibe Agencia", locale: "es_EC", type: "article" },
+  };
 }
 
 export default async function CasePage({ params }: { params: Promise<{ slug: string }> }) {
